@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model City {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  flag        String
+  isHomeCity  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  translations CityTranslation[]
+  col          CostOfLiving?
+  regimes      TaxRegime[]
+  details      CityDetail[]
+}
+
+model CityTranslation {
+  id      String @id @default(cuid())
+  cityId  String
+  city    City   @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  locale  String
+  name    String
+  country String
+
+  @@unique([cityId, locale])
+}
+
+model CostOfLiving {
+  id        String @id @default(cuid())
+  cityId    String @unique
+  city      City   @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  rent      Int
+  food      Int
+  transport Int
+}
+
+model TaxRegime {
+  id          String  @id @default(cuid())
+  cityId      String
+  city        City    @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  slug        String
+  incomeRate  Float
+  socialRate  Float
+  exemptFrac  Float?
+  isDefault   Boolean @default(false)
+  sortOrder   Int     @default(0)
+
+  translations TaxRegimeTranslation[]
+}
+
+model TaxRegimeTranslation {
+  id       String    @id @default(cuid())
+  regimeId String
+  regime   TaxRegime @relation(fields: [regimeId], references: [id], onDelete: Cascade)
+  locale   String
+  label    String
+
+  @@unique([regimeId, locale])
+}
+
+model CityDetail {
+  id      String   @id @default(cuid())
+  cityId  String
+  city    City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  section String
+  locale  String
+  items   String[]
+
+  @@unique([cityId, section, locale])
+}
+
+model HomeTaxConfig {
+  id          String   @id @default(cuid())
+  countrySlug String   @unique
+  label       String
+  brackets    Json
+  social      Json
+  updatedAt   DateTime @updatedAt
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
