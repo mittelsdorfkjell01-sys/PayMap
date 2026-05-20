@@ -1,18 +1,17 @@
 {
   "name": "paymap",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": ["apps/nextjs", "packages/*"],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=apps/api\" \"npm run dev --workspace=apps/web\"",
-    "dev:api": "npm run dev --workspace=apps/api",
-    "dev:web": "npm run dev --workspace=apps/web",
+    "dev": "npm run dev --workspace=apps/nextjs",
+    "build": "npm run build --workspace=apps/nextjs",
+    "typecheck": "npm run typecheck --workspace=apps/nextjs && npm run typecheck --workspace=packages/tax-engine",
+    "test": "npm run test --workspace=packages/tax-engine",
     "db:migrate": "npm run migrate --workspace=packages/db",
     "db:seed": "npm run seed --workspace=packages/db",
-    "db:studio": "npm run studio --workspace=packages/db",
     "db:generate": "npm run generate --workspace=packages/db"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
     "typescript": "^5.3.3"
   }
 }
