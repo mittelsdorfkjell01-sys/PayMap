@@ -43,7 +43,38 @@
     "partnerMode": "Partner-Modus",
     "partnerGross": "Brutto Partner / Jahr",
     "compareAll": "Alle 6 vergleichen →",
-    "suggestions": "Vorschläge für dich"
+    "suggestions": "Vorschläge für dich",
+    "emptyState": "Gib deine Heimat- und Zielstadt ein, um zu starten.",
+    "networkError": "Netzwerkfehler — bitte erneut versuchen",
+    "refine": {
+      "title": "Genauer rechnen",
+      "employmentLabel": "Beschäftigung",
+      "employed": "Angestellt",
+      "freelancer": "Freelancer",
+      "founder": "Gründer",
+      "passive": "Passiveinkommen",
+      "familyStatusLabel": "Familienstand",
+      "single": "Single",
+      "married": "Verheiratet",
+      "divorced": "Geschieden",
+      "childrenLabel": "Kinder",
+      "childrenOne": "Kind",
+      "childrenMany": "Kinder",
+      "childrenDecrease": "Weniger Kinder",
+      "childrenIncrease": "Mehr Kinder",
+      "grossLabel": "Brutto anpassen",
+      "targetCityLabel": "Zielstadt",
+      "kvLabel": "Krankenversicherung",
+      "statutory": "Gesetzlich",
+      "private": "Privat",
+      "cta": {
+        "hint": "Verfeinere dein Ergebnis mit deinen persönlichen Angaben.",
+        "scrollDown": "Genauer rechnen ↓",
+        "saveHint": "Einstellungen für den nächsten Besuch merken?",
+        "savePreferences": "Im Profil speichern",
+        "signInToSave": "Anmelden & speichern"
+      }
+    }
   },
   "results": {
     "approximate": "Ungefähres Ergebnis",
@@ -70,6 +101,7 @@
     "regime": "Steuerregime",
     "withRegime": "Mit {regime}",
     "withoutRegime": "Standard",
+    "savingsPerYear": "gespart / Jahr",
     "costOfLiving": "Lebenshaltungskosten",
     "rent": "Miete",
     "food": "Ernährung",
@@ -79,6 +111,8 @@
     "safety": "Sicherheit",
     "lifestyle": "Lebensqualität",
     "share": "Teilen",
+    "linkCopied": "Link kopiert",
+    "shareFailed": "Fehler",
     "save": "Speichern",
     "toPDF": "Als PDF",
     "toGuide": "Zum Guide →",
@@ -168,7 +202,12 @@
       "description": "In welchem Land bist du aktuell steuerpflichtig?",
       "label": "Heimatland",
       "hint": "Wichtig für Wegzugsteuer-Prüfung und Vergleich."
-    }
+    },
+    "profileTitle": "Mein Profil",
+    "profileSubtitle": "Felder werden in deinem Profil gespeichert und beim nächsten Vergleich automatisch genutzt.",
+    "profileSave": "Speichern",
+    "profileSaved": "Gespeichert ✓",
+    "loginRequired": "Bitte melde dich an, um dein Profil zu verwalten."
   },
   "ranking": {
     "title": "Städte-Ranking",
@@ -181,19 +220,36 @@
       "rank": "#",
       "city": "Stadt",
       "purchasingPower": "Kaufkraft",
-      "safety": "Safety",
+      "tax": "Steuer",
+      "safety": "Sicherheit",
+      "health": "Gesundheit",
       "climate": "Klima",
-      "outdoor": "Outdoor",
-      "gastro": "Gastro",
-      "social": "Social",
       "score": "Score"
     },
     "purchasingPowerHint": "Netto Zielland − Lebenshaltung, verglichen mit deiner Heimatstadt",
     "expandHint": "Klicke für Details",
     "viewProfile": "Vollständiges Stadtprofil",
     "compareWith": "Mit {city} vergleichen →",
+    "homeCityPlaceholder": "z.B. Berlin",
+    "grossUnit": "€/Jahr",
+    "fetchError": "Fehler",
     "sortBy": "Sortieren nach",
-    "defaultSort": "Kombiniert"
+    "defaultSort": "Kombiniert",
+    "weights": {
+      "title": "Prioritäten anpassen",
+      "tax_burden_score": "Steuerbelastung",
+      "cost_of_living_score": "Lebenshaltung",
+      "crime_index": "Sicherheit",
+      "purchasing_power_score": "Kaufkraft",
+      "political_stability": "Polit. Stabilität",
+      "healthcare_quality": "Gesundheitsversorgung",
+      "air_quality_pm25": "Luftqualität",
+      "lgbtq_acceptance": "LGBTQ+",
+      "english_proficiency": "Englisch",
+      "internet_speed_combined": "Internet",
+      "direct_flight_to_germany": "Flugverbindung DE",
+      "resetDefaults": "Zurücksetzen"
+    }
   },
   "steuerGuide": {
     "title": "Steuer-Guide",
@@ -228,7 +284,12 @@
       "calcWithCountry": "Mit {country} berechnen →",
       "qualifications": "Voraussetzungen",
       "unlimited": "Unbegrenzt",
-      "warning": "Achtung"
+      "warning": "Achtung",
+      "risk_low": "Geringes Risiko",
+      "risk_medium": "Mittleres Risiko",
+      "risk_high": "Hohes Risiko",
+      "legalAdvice": "Rechtliche Beratung empfohlen — Dieses Regime ist komplex. Hole vor dem Umzug professionelle Steuerberatung ein.",
+      "disclaimer": "Hinweis"
     }
   },
   "guide": {
@@ -241,7 +302,16 @@
     "tabs": {
       "plan": "Mein Plan",
       "budget": "Budget",
-      "documents": "Dokumente"
+      "documents": "Dokumente",
+      "cityGuide": "Städte-Guide"
+    },
+    "cityBrowse": {
+      "title": "Städte-Guide",
+      "subtitle": "Vollständige Auswanderungs-Guides für alle Städte",
+      "noGuide": "Noch kein Guide für diese Stadt verfügbar.",
+      "viewFull": "Vollständigen Guide ansehen →",
+      "steps": "Schritte",
+      "disclaimer": "paymap ersetzt keine individuelle steuerliche oder rechtliche Beratung. Inhalte mit ⚠ markiert sind besonders prüfungsbedürftig."
     },
     "phases": {
       "critical": "Phase 0: Sofort / Kritisch",
@@ -302,6 +372,19 @@
       "upload": "Hochladen",
       "uploadHint": "Pro-Feature: Dokumente sicher speichern."
     },
+    "riskWarning": {
+      "title": "Wichtiger Hinweis",
+      "intro": "Dein Plan enthält Themen mit hohem rechtlichen oder steuerlichen Risiko:",
+      "body1": "Diese Informationen dienen ausschließlich der Orientierung.",
+      "body2": "Vor jeder konkreten Entscheidung musst du:",
+      "bullet1": "einen qualifizierten Steuerberater konsultieren",
+      "bullet2": "rechtliche Verbindlichkeit nur durch schriftliche Beratung",
+      "bullet3": "paymap übernimmt keine Haftung für Schäden",
+      "confirm": "Ich habe verstanden und bestätige",
+      "cancel": "Abbrechen",
+      "banner": "Dein Plan enthält Schritte mit hohem rechtlichem Risiko. Bitte konsultiere einen Steuerberater.",
+      "legalAdviceBtn": "Steuerberater suchen"
+    },
     "countdown": "{days} Tage bis zum Umzug",
     "progress": "{done} von {total} Schritten erledigt",
     "stats": {
@@ -309,6 +392,78 @@
       "open": "Offen",
       "urgent": "Dringend",
       "blocked": "Blockiert"
+    }
+  },
+  "cityDetails": {
+    "close": "Schließen",
+    "nodata": "Keine Daten verfügbar.",
+    "finances": {
+      "salaryMedian": "Median-Brutto",
+      "referenceNet": "Bei 60k brutto",
+      "perYear": "/ Jahr",
+      "perMonth": "/ Monat"
+    },
+    "col": {
+      "total": "Gesamt"
+    },
+    "climate": {
+      "sunshineDays": "Sonnentage",
+      "rainyDays": "Regentage",
+      "summerAvg": "Sommer Ø",
+      "winterAvg": "Winter Ø",
+      "sunshineIndex": "Sonnenstunden-Index"
+    },
+    "outdoor": {
+      "coworking": "Coworking-Spaces"
+    },
+    "social": {
+      "restaurants": "Restaurants",
+      "bars": "Bars"
+    },
+    "sections": {
+      "finances": "Finanzen",
+      "cost": "Lebenshaltungskosten",
+      "safety": "Sicherheit & Stabilität",
+      "climate": "Klima",
+      "outdoor": "Gesundheit & Umwelt",
+      "social": "Community & Vernetzung"
+    },
+    "confidence": {
+      "verified": "Verifiziert",
+      "estimated": "Geschätzt",
+      "approximate": "Ungefähr"
+    },
+    "col": {
+      "rent": "Miete (1-Zi., außerhalb)",
+      "groceries": "Lebensmittel / Monat",
+      "transport": "ÖPNV / Monat",
+      "utilities": "Nebenkosten / Monat"
+    },
+    "lifestyle": {
+      "crimeIndex": "Kriminalitätsindex",
+      "stability": "Politische Stabilität",
+      "politicalFreedom": "Politische Freiheit",
+      "disaster": "Katastrophenresilienz",
+      "healthcare": "Gesundheitsversorgung",
+      "airQuality": "Luftqualität (PM2.5)",
+      "water": "Trinkwasserversorgung",
+      "english": "Englischkenntnisse",
+      "lgbtq": "LGBTQ+ Akzeptanz",
+      "internet": "Internetgeschwindigkeit",
+      "flights": "Flugverbindung DE"
+    },
+    "safety": {
+      "hospitals": "Kliniken im Umkreis"
+    },
+    "weather": {
+      "veryOld": "Klimadaten evtl. veraltet (vor April 2026 erhoben)"
+    },
+    "guidePreview": {
+      "title": "Auswandern — Top-Schritte",
+      "viewFull": "Vollständigen Guide ansehen →",
+      "highRisk": "⚠ Hohes Risiko",
+      "mediumRisk": "◈ Mittleres Risiko",
+      "legalAdvice": "Rechtsberatung"
     }
   },
   "errors": {

@@ -13,6 +13,8 @@ export interface TaxOptions {
   partnerGross?: number;
   // For NL 30%-ruling: number of full years the ruling has been active (1 = first year, 2 = second, etc.)
   rulingYearsActive?: number;
+  // For GB: 'scotland' applies Scottish income tax rates instead of England/Wales/NI rates
+  region?: string;
 }
 
 export interface TaxBreakdownLine {

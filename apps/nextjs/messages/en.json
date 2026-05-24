@@ -43,7 +43,38 @@
     "partnerMode": "Partner Mode",
     "partnerGross": "Partner Gross / Year",
     "compareAll": "Compare all 6 →",
-    "suggestions": "Suggestions for you"
+    "suggestions": "Suggestions for you",
+    "emptyState": "Enter your home city and target city to get started.",
+    "networkError": "Network error — please try again",
+    "refine": {
+      "title": "Refine result",
+      "employmentLabel": "Employment",
+      "employed": "Employed",
+      "freelancer": "Freelancer",
+      "founder": "Founder",
+      "passive": "Passive income",
+      "familyStatusLabel": "Family status",
+      "single": "Single",
+      "married": "Married",
+      "divorced": "Divorced",
+      "childrenLabel": "Children",
+      "childrenOne": "child",
+      "childrenMany": "children",
+      "childrenDecrease": "Fewer children",
+      "childrenIncrease": "More children",
+      "grossLabel": "Adjust gross",
+      "targetCityLabel": "Target city",
+      "kvLabel": "Health insurance",
+      "statutory": "Statutory",
+      "private": "Private",
+      "cta": {
+        "hint": "Refine your result with your personal details.",
+        "scrollDown": "Refine result ↓",
+        "saveHint": "Save settings for your next visit?",
+        "savePreferences": "Save to profile",
+        "signInToSave": "Sign in & save"
+      }
+    }
   },
   "results": {
     "approximate": "Approximate Result",
@@ -70,6 +101,7 @@
     "regime": "Tax Regime",
     "withRegime": "With {regime}",
     "withoutRegime": "Standard",
+    "savingsPerYear": "saved / year",
     "costOfLiving": "Cost of Living",
     "rent": "Rent",
     "food": "Food",
@@ -79,6 +111,8 @@
     "safety": "Safety",
     "lifestyle": "Quality of Life",
     "share": "Share",
+    "linkCopied": "Link copied",
+    "shareFailed": "Error",
     "save": "Save",
     "toPDF": "As PDF",
     "toGuide": "To Guide →",
@@ -168,7 +202,12 @@
       "description": "In which country are you currently tax-resident?",
       "label": "Home country",
       "hint": "Important for exit tax check and comparison."
-    }
+    },
+    "profileTitle": "My Profile",
+    "profileSubtitle": "Settings are saved to your profile and applied automatically on your next comparison.",
+    "profileSave": "Save",
+    "profileSaved": "Saved ✓",
+    "loginRequired": "Please sign in to manage your profile."
   },
   "ranking": {
     "title": "City Ranking",
@@ -181,19 +220,36 @@
       "rank": "#",
       "city": "City",
       "purchasingPower": "Purchasing Power",
+      "tax": "Tax",
       "safety": "Safety",
+      "health": "Healthcare",
       "climate": "Climate",
-      "outdoor": "Outdoor",
-      "gastro": "Gastro",
-      "social": "Social",
       "score": "Score"
     },
     "purchasingPowerHint": "Net in target country − cost of living, compared to your home city",
     "expandHint": "Click for details",
     "viewProfile": "Full city profile",
     "compareWith": "Compare with {city} →",
+    "homeCityPlaceholder": "e.g. Berlin",
+    "grossUnit": "€/year",
+    "fetchError": "Error",
     "sortBy": "Sort by",
-    "defaultSort": "Combined"
+    "defaultSort": "Combined",
+    "weights": {
+      "title": "Adjust priorities",
+      "tax_burden_score": "Tax Burden",
+      "cost_of_living_score": "Cost of Living",
+      "crime_index": "Safety",
+      "purchasing_power_score": "Purchasing Power",
+      "political_stability": "Political Stability",
+      "healthcare_quality": "Healthcare",
+      "air_quality_pm25": "Air Quality",
+      "lgbtq_acceptance": "LGBTQ+",
+      "english_proficiency": "English",
+      "internet_speed_combined": "Internet",
+      "direct_flight_to_germany": "Flights to DE",
+      "resetDefaults": "Reset to defaults"
+    }
   },
   "steuerGuide": {
     "title": "Tax Guide",
@@ -228,7 +284,12 @@
       "calcWithCountry": "Calculate with {country} →",
       "qualifications": "Requirements",
       "unlimited": "Unlimited",
-      "warning": "Warning"
+      "warning": "Warning",
+      "risk_low": "Low Risk",
+      "risk_medium": "Medium Risk",
+      "risk_high": "High Risk",
+      "legalAdvice": "Legal advice recommended — This regime is complex. Consult a tax professional before relocating.",
+      "disclaimer": "Note"
     }
   },
   "guide": {
@@ -241,7 +302,16 @@
     "tabs": {
       "plan": "My Plan",
       "budget": "Budget",
-      "documents": "Documents"
+      "documents": "Documents",
+      "cityGuide": "City Guides"
+    },
+    "cityBrowse": {
+      "title": "City Guides",
+      "subtitle": "Complete emigration guides for all cities",
+      "noGuide": "No guide available for this city yet.",
+      "viewFull": "View full guide →",
+      "steps": "steps",
+      "disclaimer": "paymap does not replace individual tax or legal advice. Content marked ⚠ requires particular verification."
     },
     "phases": {
       "critical": "Phase 0: Immediate / Critical",
@@ -302,6 +372,19 @@
       "upload": "Upload",
       "uploadHint": "Pro feature: securely store documents."
     },
+    "riskWarning": {
+      "title": "Important Notice",
+      "intro": "Your plan contains topics with high legal or tax risk:",
+      "body1": "This information is for guidance only.",
+      "body2": "Before making any concrete decision, you must:",
+      "bullet1": "consult a qualified tax advisor",
+      "bullet2": "legal binding only through written advice",
+      "bullet3": "paymap accepts no liability for damages",
+      "confirm": "I understand and confirm",
+      "cancel": "Cancel",
+      "banner": "Your plan contains steps with high legal risk. Please consult a tax advisor.",
+      "legalAdviceBtn": "Find a tax advisor"
+    },
     "countdown": "{days} days until move",
     "progress": "{done} of {total} steps completed",
     "stats": {
@@ -309,6 +392,78 @@
       "open": "Open",
       "urgent": "Urgent",
       "blocked": "Blocked"
+    }
+  },
+  "cityDetails": {
+    "close": "Close",
+    "nodata": "No data available.",
+    "finances": {
+      "salaryMedian": "Median salary",
+      "referenceNet": "At 60k gross",
+      "perYear": "/ year",
+      "perMonth": "/ mo"
+    },
+    "col": {
+      "total": "Total"
+    },
+    "climate": {
+      "sunshineDays": "Sunshine days",
+      "rainyDays": "Rainy days",
+      "summerAvg": "Summer avg.",
+      "winterAvg": "Winter avg.",
+      "sunshineIndex": "Sunshine index"
+    },
+    "outdoor": {
+      "coworking": "Coworking spaces"
+    },
+    "social": {
+      "restaurants": "Restaurants",
+      "bars": "Bars"
+    },
+    "sections": {
+      "finances": "Finances",
+      "cost": "Cost of Living",
+      "safety": "Safety & Stability",
+      "climate": "Climate",
+      "outdoor": "Health & Environment",
+      "social": "Community & Connectivity"
+    },
+    "confidence": {
+      "verified": "Verified",
+      "estimated": "Estimated",
+      "approximate": "Approximate"
+    },
+    "col": {
+      "rent": "Rent (1-BR, outside center)",
+      "groceries": "Groceries / month",
+      "transport": "Public transport / month",
+      "utilities": "Utilities / month"
+    },
+    "lifestyle": {
+      "crimeIndex": "Crime Index",
+      "stability": "Political Stability",
+      "politicalFreedom": "Political Freedom",
+      "disaster": "Disaster Resilience",
+      "healthcare": "Healthcare Quality",
+      "airQuality": "Air Quality (PM2.5)",
+      "water": "Drinking Water",
+      "english": "English Proficiency",
+      "lgbtq": "LGBTQ+ Acceptance",
+      "internet": "Internet Speed",
+      "flights": "Flights to Germany"
+    },
+    "safety": {
+      "hospitals": "clinics nearby"
+    },
+    "weather": {
+      "veryOld": "Climate data may be outdated (collected before April 2026)"
+    },
+    "guidePreview": {
+      "title": "Emigrate — Key Steps",
+      "viewFull": "View full guide →",
+      "highRisk": "⚠ High Risk",
+      "mediumRisk": "◈ Medium Risk",
+      "legalAdvice": "Legal Advice"
     }
   },
   "errors": {

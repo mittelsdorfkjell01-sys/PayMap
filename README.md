@@ -57,12 +57,26 @@ npm run db:seed       # Seed-Daten laden (32 Städte, 26 Länder)
 npm run dev           # Next.js auf http://localhost:3000
 ```
 
+## Auswanderungs-Guide
+
+PayMap enthält vollständige Auswanderungs-Guides für **32 Städte** in 26 Ländern — jeweils auf Deutsch und Englisch.
+
+- **7 Sektionen pro Stadt**: Bürokratie, Steuerplanung, Banking, Versicherungen, Wohnen, Praktisches, Soziales Leben
+- **Risiko-Klassifizierung**: `low` / `medium` / `high` — High-Risk-Steps enthalten Quellen-URL und Rechtsberatungs-Hinweis
+- **Persona-Filter**: Alle/Angestellt/Freelancer/Gründer/Mit Familie
+- **Strukturierte Daten**: HowTo- und FAQPage-Schema für SEO
+- **Routen**: `/de/auswandern/[slug]` und `/en/emigrate/[slug]`
+
+Redaktionsrichtlinien und Update-Schedule: [`docs/auswanderungs-guide.md`](docs/auswanderungs-guide.md)
+
 ## Nützliche Befehle
 
 ```bash
 npm run build         # Production Build
 npm run typecheck     # TypeScript-Check (Next.js + Tax Engine)
 npm test              # Unit-Tests (Tax Engine)
+npm run test:guide    # Guide-Integritäts-Tests (benötigt DATABASE_URL in .env.local)
+npm run check:guide   # Status-Report: Steps, Sektionen, High-Risk-Coverage pro Stadt
 ```
 
 ## Umgebungsvariablen

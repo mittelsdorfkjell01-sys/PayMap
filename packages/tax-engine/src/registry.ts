@@ -17,6 +17,15 @@ import { ro } from './countries/ro';
 import { uae } from './countries/uae';
 import { th } from './countries/th';
 import { us } from './countries/us';
+import { gb } from './countries/gb';
+import { mt } from './countries/mt';
+import { ge } from './countries/ge';
+import { sg } from './countries/sg';
+import { id } from './countries/id';
+import { co } from './countries/co';
+import { mx } from './countries/mx';
+import { ar } from './countries/ar';
+import { za } from './countries/za';
 
 const COUNTRY_MODULES: Record<string, CountryModule> = {
   de,
@@ -36,6 +45,15 @@ const COUNTRY_MODULES: Record<string, CountryModule> = {
   uae,
   th,
   us,
+  gb,
+  mt,
+  ge,
+  sg,
+  id,
+  co,
+  mx,
+  ar,
+  za,
 };
 
 export function getCountryModule(countryCode: string): CountryModule {
@@ -54,5 +72,6 @@ export function getSupportedCountries(): string[] {
 }
 
 export {
-  de, at, ch, nl, pt, es, fr, it, ie, ee, pl, cz, hu, ro, uae, th, us,
+  de, at, ch, nl, pt, es, fr, it, ie, ee, pl, cz, hu, ro, uae, th, us, gb, mt, ge, sg,
+  id, co, mx, ar, za,
 };

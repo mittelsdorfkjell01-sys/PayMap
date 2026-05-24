@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
   store.set('admin_session', getSessionToken(), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
+    sameSite: 'strict',
+    maxAge: 60 * 60 * 8,
     path: '/',
   });
 

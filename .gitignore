@@ -30,8 +30,14 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Claude Code session data
+.claude/
+
 # Prisma generated
 prisma/migrations/
 
 # TypeScript
 *.tsbuildinfo
+
+# Visa import — live data file (not committed; may contain draft content)
+scripts/data-import/data/visa-rules.csv

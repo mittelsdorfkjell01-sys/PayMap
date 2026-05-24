@@ -3,6 +3,19 @@ import { calculateApproximate } from '@paymap/tax-engine';
 import { findCity } from '@/lib/city-lookup';
 import { prisma } from '@/lib/prisma';
 import { toEUR, fromEUR } from '@/lib/exchange-rates';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { SCORE_CAT } from '@/lib/score-categories';
+import {
+  computeWeightedScore,
+  normalizeWeights,
+  normalizeToScale,
+  parseWeightsParam,
+} from '@/lib/ranking';
+import {
+  computeClusterScore,
+  parseClusterWeightsFromParams,
+  type ClusterWeights,
+} from '@/lib/ranking-score';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,8 +40,12 @@ export interface RankingRow {
   outdoor: number;
   gastro: number;
   social: number;
+  scores: Record<string, number>;
   score: number;
-  col: { rent: number; food: number; transport: number } | null;
+  breakdown: Record<string, number>;
+  usedFallback: boolean;
+  missingCategories: string[];
+  col: null;
   effectiveRate: number;
   isHome: boolean;
 }
@@ -46,19 +63,18 @@ function lifestyleMap(entries: { category: string; score: number }[]): Record<st
   return m;
 }
 
-function normalize(values: number[]): number[] {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  if (max === min) return values.map(() => 50);
-  return values.map((v) => Math.round(((v - min) / (max - min)) * 100));
-}
-
 export async function GET(req: NextRequest) {
+  const limited = checkRateLimit(req);
+  if (limited) return limited;
+
   try {
-  const from = req.nextUrl.searchParams.get('from') ?? '';
-  const grossParam = req.nextUrl.searchParams.get('gross') ?? '';
-  const gross = parseFloat(grossParam);
-  const locale = (req.nextUrl.searchParams.get('locale') ?? 'de') as 'de' | 'en';
+  const from         = req.nextUrl.searchParams.get('from') ?? '';
+  const grossParam   = req.nextUrl.searchParams.get('gross') ?? '';
+  const gross        = parseFloat(grossParam);
+  const locale       = (req.nextUrl.searchParams.get('locale') ?? 'de') as 'de' | 'en';
+  const weightsRaw   = req.nextUrl.searchParams.get('weights') ?? null;
+  const normWeights  = normalizeWeights(parseWeightsParam(weightsRaw));
+  const clusterWeights: ClusterWeights | null = parseClusterWeightsFromParams(req.nextUrl.searchParams);
 
   if (!from || isNaN(gross) || gross <= 0) {
     return NextResponse.json({ error: 'from and gross params required' }, { status: 400 });
@@ -75,19 +91,36 @@ export async function GET(req: NextRequest) {
   const homeGrossLocal = await fromEUR(gross, homeCity.currency);
   const homeResult = calculateApproximate(homeCity.countrySlug, homeGrossLocal, homeCity.currency, year, locale);
   const homeNetEUR = await toEUR(homeResult.netMonthly, homeCity.currency);
-  const homeColEUR = homeCity.col ? homeCity.col.total : 0;
-  const homeSurplusEUR = homeNetEUR - homeColEUR;
+  // homeColEUR resolved below after batch CoL load
+  let homeSurplusEUR = homeNetEUR; // placeholder, updated after batch load
 
-  // Load all active cities
-  const cities = await prisma.city.findMany({
-    where: { isActive: true },
-    include: {
-      country: { select: { slug: true } },
-      col: { select: { rent: true, food: true, transport: true } },
-      lifestyle: { select: { category: true, score: true } },
-    },
-    orderBy: { sortOrder: 'asc' },
-  });
+  // Load all active cities + batch CoL totals in parallel
+  const [cities, allColItems] = await Promise.all([
+    prisma.city.findMany({
+      where: { isActive: true },
+      include: {
+        country: { select: { slug: true } },
+        lifestyle: { select: { category: true, score: true } },
+      },
+      orderBy: { sortOrder: 'asc' },
+    }),
+    prisma.costOfLivingItem.findMany({
+      where: { category: 'total_monthly_estimate' },
+      orderBy: { periodStart: 'desc' },
+      select: { cityId: true, value: true, currency: true },
+    }),
+  ]);
+
+  // Map: cityId → latest CoL total item
+  const colByCityId = new Map<string, { value: number; currency: string }>();
+  for (const item of allColItems) {
+    if (!colByCityId.has(item.cityId)) colByCityId.set(item.cityId, item);
+  }
+
+  // Home city CoL
+  const homeColItem = colByCityId.get(homeCity.id);
+  const homeColEUR = homeColItem ? await toEUR(homeColItem.value, homeColItem.currency) : 0;
+  homeSurplusEUR = homeNetEUR - homeColEUR;
 
   // Calculate per city
   const rawRows: Array<{
@@ -116,7 +149,8 @@ export async function GET(req: NextRequest) {
     }
 
     const netMonthlyEUR = await toEUR(netMonthlyLocal, currency);
-    const colMonthlyEUR = city.col ? city.col.rent + city.col.food + city.col.transport : 0;
+    const colItem = colByCityId.get(city.id);
+    const colMonthlyEUR = colItem ? Math.round(await toEUR(colItem.value, colItem.currency)) : 0;
     const surplusEUR = netMonthlyEUR - colMonthlyEUR;
     const purchasingPowerDelta = surplusEUR - homeSurplusEUR;
 
@@ -131,28 +165,34 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Normalize purchasing power to 0-100
-  const ppNorm = normalize(rawRows.map((r) => r.purchasingPowerDelta));
+  // Normalize purchasing power delta and CoL to 0-100
+  const ppNorm  = normalizeToScale(rawRows.map((r) => r.purchasingPowerDelta));
+  const colNorm = normalizeToScale(rawRows.map((r) => -r.colMonthlyEUR)); // lower CoL → higher score
 
   // Build rows with scores
   const rowsWithScore = rawRows.map((r, i) => {
     const ls = r.lifestyle;
-    const safety = ls['safety_general'] ?? 50;
-    const climate = ls['air_quality'] ?? 50;
-    const outdoor = ls['outdoor'] ?? 50;
-    const gastro = ls['gastro'] ?? 50;
-    const social = ls['expat_community'] ?? 50;
+
+    // Legacy display fields (kept for frontend compatibility)
+    const safety  = ls['safety_general']  ?? ls[SCORE_CAT.CRIME_INDEX]             ?? 50;
+    const climate = ls['air_quality']     ?? ls[SCORE_CAT.AIR_QUALITY_PM25]         ?? 50;
+    const outdoor = ls['outdoor']         ?? 50;
+    const gastro  = ls['gastro']          ?? 50;
+    const social  = ls['expat_community'] ?? ls[SCORE_CAT.ENGLISH_PROFICIENCY]      ?? 50;
     const ppScore = ppNorm[i];
 
-    // Weighted score
-    const score = Math.round(
-      ppScore * 0.35 +
-        safety * 0.15 +
-        social * 0.20 +
-        outdoor * 0.10 +
-        gastro * 0.10 +
-        climate * 0.10,
-    );
+    // Build merged scores map: DB lifestyle values + live-computed overrides
+    const combinedScores: Record<string, number> = {
+      ...ls,
+      // Live-computed financial overrides (user's actual salary)
+      [SCORE_CAT.TAX_BURDEN_SCORE]:       Math.max(0, Math.min(100, Math.round((1 - r.effectiveRate) * 100))),
+      [SCORE_CAT.PURCHASING_POWER_SCORE]:  ppScore,
+      // CoL: prefer pre-computed DB score, fall back to cross-city normalisation
+      [SCORE_CAT.COST_OF_LIVING_SCORE]:    ls[SCORE_CAT.COST_OF_LIVING_SCORE] ?? colNorm[i],
+    };
+
+    const score   = computeWeightedScore(combinedScores, normWeights);
+    const cluster = computeClusterScore(combinedScores, clusterWeights ?? undefined);
 
     return {
       city: {
@@ -174,8 +214,12 @@ export async function GET(req: NextRequest) {
       outdoor,
       gastro,
       social,
+      scores: combinedScores,
       score,
-      col: r.city.col,
+      breakdown:         cluster.breakdown as Record<string, number>,
+      usedFallback:      cluster.usedFallback,
+      missingCategories: cluster.missingCategories,
+      col: null,
       effectiveRate: r.effectiveRate,
       isHome: r.city.id === homeCity.id,
     };

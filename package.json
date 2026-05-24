@@ -1,12 +1,14 @@
 {
   "name": "paymap",
   "private": true,
-  "workspaces": ["apps/nextjs", "packages/*"],
+  "workspaces": ["apps/nextjs", "packages/*", "scripts/data-import"],
   "scripts": {
     "dev": "npm run dev --workspace=apps/nextjs",
     "build": "npm run build --workspace=apps/nextjs",
     "typecheck": "npm run typecheck --workspace=apps/nextjs && npm run typecheck --workspace=packages/tax-engine",
     "test": "npm run test --workspace=packages/tax-engine",
+    "test:guide": "npm run test:guide --workspace=apps/nextjs",
+    "check:guide": "npm run check:guide --workspace=@paymap/data-import",
     "db:migrate": "npm run migrate --workspace=packages/db",
     "db:seed": "npm run seed --workspace=packages/db",
     "db:generate": "npm run generate --workspace=packages/db"

@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { calculate, calculateApproximate } from '@paymap/tax-engine';
 import { findCity } from '@/lib/city-lookup';
 import { prisma } from '@/lib/prisma';
+import { flags } from '@/lib/feature-flags';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const RequestSchema = z.object({
   fromCity: z.string().min(1),
@@ -17,6 +19,7 @@ const RequestSchema = z.object({
   partnerGross: z.number().optional(),
   year: z.number().int().min(2020).max(2030).optional(),
   locale: z.enum(['de', 'en']).default('de'),
+  persistShare: z.boolean().optional(),
 });
 
 type CalculateRequest = z.infer<typeof RequestSchema>;
@@ -26,6 +29,9 @@ function isPrecise(body: CalculateRequest): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = checkRateLimit(req);
+  if (limited) return limited;
+
   let body: unknown;
   try {
     body = await req.json();
@@ -82,11 +88,55 @@ export async function POST(req: NextRequest) {
     toResult = calculate(toCountry, { ...opts, currency: toCity.currency });
   }
 
-  // --- Cost of living comparison ---
-  const fromCol = fromCity.col;
-  const toCol = toCity.col;
-
   const monthlyDifference = toResult.netMonthly - fromResult.netMonthly;
+
+  // Special regime for to-country (kick off in parallel with sync work above)
+  const toRegimeRow = await prisma.specialRegime.findFirst({
+    where: { country: { slug: toCountry } },
+    select: { id: true, slug: true, nameDE: true, nameEN: true, conditionsDE: true, flatRate: true },
+  });
+
+  let taxWithRegime: {
+    netMonthly: number;
+    netAnnual: number;
+    effectiveRate: number;
+    regimeId: string;
+    regimeSlug: string;
+    regimeNameDE: string;
+    regimeNameEN: string;
+    conditionsDE: string | null;
+    flatRate: number | null;
+    savings: number;
+  } | null = null;
+
+  if (toRegimeRow) {
+    try {
+      const regimeCalc = calculate(toCountry, {
+        gross: data.grossSalary,
+        currency: toCity.currency,
+        employment: data.employment ?? 'employed',
+        familyStatus: data.familyStatus ?? 'single',
+        children: data.children ?? 0,
+        kvType: data.kvType ?? 'statutory',
+        year,
+        specialRegimeId: toRegimeRow.slug,
+      });
+      taxWithRegime = {
+        netMonthly: regimeCalc.netMonthly,
+        netAnnual: regimeCalc.netAnnual,
+        effectiveRate: regimeCalc.effectiveRate,
+        regimeId: toRegimeRow.id,
+        regimeSlug: toRegimeRow.slug,
+        regimeNameDE: toRegimeRow.nameDE,
+        regimeNameEN: toRegimeRow.nameEN,
+        conditionsDE: toRegimeRow.conditionsDE,
+        flatRate: toRegimeRow.flatRate,
+        savings: Math.max(0, Math.round(regimeCalc.netAnnual - toResult.netAnnual)),
+      };
+    } catch {
+      // regime not implemented for this country — skip silently
+    }
+  }
 
   // Equivalence salary: what gross in fromCity gives same net as toCity
   const equivalenceSalary =
@@ -94,8 +144,10 @@ export async function POST(req: NextRequest) {
       ? Math.round((toResult.netAnnual / fromResult.netAnnual) * fromResult.gross)
       : null;
 
-  // --- Track CitySearch (fire-and-forget) ---
-  trackSearch(fromCity.id, toCity.id, data.grossSalary).catch(() => {});
+  // Data minimization: gated until privacy policy is live
+  if (flags.enableSearchTracking) {
+    trackSearch(fromCity.id, toCity.id, data.grossSalary).catch(() => {});
+  }
 
   const shareToken = crypto.randomUUID();
   const responseBody = {
@@ -123,17 +175,23 @@ export async function POST(req: NextRequest) {
     monthlyDifference: Math.round(monthlyDifference),
     equivalenceSalary,
     costOfLiving: {
-      from: fromCol,
-      to: toCol,
+      from: null,
+      to: null,
     },
     lifestyle: {
       from: fromCity.lifestyle,
       to: toCity.lifestyle,
     },
+    taxWithRegime,
     shareToken,
   };
 
-  saveCalculation(fromCity.id, toCity.id, data, responseBody, approximate, shareToken).catch(() => {});
+  // Data minimization: gated until privacy policy is live.
+  // persistShare = explicit user action → save regardless of flag.
+  const shouldSave = flags.enableAnonymousCalculationSave || data.persistShare;
+  if (shouldSave) {
+    saveCalculation(fromCity.id, toCity.id, data, responseBody, approximate, shareToken, !!data.persistShare).catch(() => {});
+  }
 
   return NextResponse.json(responseBody);
 }
@@ -153,6 +211,7 @@ async function saveCalculation(
   outputData: object,
   isApproximate: boolean,
   shareToken: string,
+  isShared: boolean = false,
 ) {
   await prisma.calculation.create({
     data: {
@@ -162,7 +221,8 @@ async function saveCalculation(
       inputData,
       outputData,
       isApproximate,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      isShared,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     },
   });
 }

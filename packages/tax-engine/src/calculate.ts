@@ -151,6 +151,15 @@ const VARIANCE_MAP: Record<string, number> = {
   at: 0.25,
   us: 0.25,
   ie: 0.20,
+  gb: 0.20,
+  mt: 0.15,
+  ge: 0.15,
+  sg: 0.15,
+  id: 0.20,
+  co: 0.25,
+  mx: 0.25,
+  ar: 0.35,
+  za: 0.20,
 };
 
 export function calculateApproximate(

@@ -6,7 +6,10 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev --name init",
     "seed": "ts-node prisma/seed.ts",
-    "studio": "prisma studio"
+    "seed:guides": "ts-node prisma/seed-sprint8-guides.ts",
+    "studio": "prisma studio",
+    "import:scores": "ts-node scripts/import-scores.ts",
+    "import:derived": "ts-node scripts/import-derived-scores.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",

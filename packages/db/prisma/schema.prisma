@@ -8,83 +8,39 @@ datasource db {
 }
 
 model City {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  flag        String
-  isHomeCity  Boolean  @default(false)
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  flag      String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  translations CityTranslation[]
-  col          CostOfLiving?
-  regimes      TaxRegime[]
-  details      CityDetail[]
-}
+  countryId String?
+  country   Country? @relation(fields: [countryId], references: [id])
+  nameDE    String?
+  nameEN    String?
+  currency  String?
+  lat       Float?
+  lng       Float?
+  timezone  String?
+  mapboxId  String?
+  isCapital Boolean  @default(false)
 
-model CityTranslation {
-  id      String @id @default(cuid())
-  cityId  String
-  city    City   @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  locale  String
-  name    String
-  country String
-
-  @@unique([cityId, locale])
-}
-
-model CostOfLiving {
-  id        String @id @default(cuid())
-  cityId    String @unique
-  city      City   @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  rent      Int
-  food      Int
-  transport Int
-}
-
-model TaxRegime {
-  id          String  @id @default(cuid())
-  cityId      String
-  city        City    @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  slug        String
-  incomeRate  Float
-  socialRate  Float
-  exemptFrac  Float?
-  isDefault   Boolean @default(false)
-  sortOrder   Int     @default(0)
-
-  translations TaxRegimeTranslation[]
-}
-
-model TaxRegimeTranslation {
-  id       String    @id @default(cuid())
-  regimeId String
-  regime   TaxRegime @relation(fields: [regimeId], references: [id], onDelete: Cascade)
-  locale   String
-  label    String
-
-  @@unique([regimeId, locale])
-}
-
-model CityDetail {
-  id      String   @id @default(cuid())
-  cityId  String
-  city    City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  section String
-  locale  String
-  items   String[]
-
-  @@unique([cityId, section, locale])
-}
-
-model HomeTaxConfig {
-  id          String   @id @default(cuid())
-  countrySlug String   @unique
-  label       String
-  brackets    Json
-  social      Json
-  updatedAt   DateTime @updatedAt
+  costItems        CostOfLivingItem[]
+  lifestyle        CityLifestyle[]
+  weather          CityWeather?
+  pois             CityPOI[]
+  movingGuides     MovingGuide[]
+  calculationsFrom Calculation[]     @relation("calcFrom")
+  calculationsTo   Calculation[]     @relation("calcTo")
+  watchlistItems   WatchlistItem[]
+  salaryData       SalaryBenchmark[]
+  districts        District[]
+  searchesFrom     CitySearch[]      @relation("searchFrom")
+  searchesTo       CitySearch[]      @relation("searchTo")
+  plansFrom        MovingPlan[]      @relation("planFrom")
+  plansTo          MovingPlan[]      @relation("planTo")
 }
 
 model AdminUser {
@@ -92,4 +48,399 @@ model AdminUser {
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
+}
+
+model Country {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  nameDE    String
+  nameEN    String
+  currency  String
+  taxType   String
+  isActive  Boolean  @default(true)
+  sourceUrl String?
+  updatedAt DateTime @updatedAt
+
+  cities                  City[]
+  taxBrackets             TaxBracket[]
+  specialRegimes          SpecialRegime[]
+  socialContribs          SocialContribution[]
+  deductions              Deduction[]
+  visaRules               VisaRule[]
+  countryProfiles         CountryProfile[]
+  countrySalaryBenchmarks CountrySalaryBenchmark[]
+}
+
+model CostOfLivingItem {
+  id          String    @id @default(cuid())
+  cityId      String
+  city        City      @relation(fields: [cityId], references: [id])
+  category    String
+  value       Float
+  currency    String
+  source      String
+  confidence  Int
+  periodStart DateTime
+  periodEnd   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([cityId, category, periodStart])
+  @@index([cityId, category])
+}
+
+model CityLifestyle {
+  id             String   @id @default(cuid())
+  cityId         String
+  city           City     @relation(fields: [cityId], references: [id])
+  category       String
+  score          Int
+  descriptionDE  String?
+  descriptionEN  String?
+  source         String
+  confidence     Int      @default(80)
+  sourceFootnote String?
+  updatedAt      DateTime @updatedAt
+}
+
+model CityWeather {
+  id             String   @id @default(cuid())
+  cityId         String   @unique
+  city           City     @relation(fields: [cityId], references: [id])
+  sunshineDays   Int
+  rainyDays      Int
+  avgTempSummer  Float
+  avgTempWinter  Float
+  humidityIndex  Int
+  weatherType    String
+  updatedAt      DateTime @updatedAt
+}
+
+model CityPOI {
+  id         String  @id @default(cuid())
+  cityId     String
+  city       City    @relation(fields: [cityId], references: [id])
+  type       String
+  name       String
+  lat        Float
+  lng        Float
+  priceRange Int?
+  district   String?
+  website    String?
+}
+
+model TaxBracket {
+  id             String  @id @default(cuid())
+  countryId      String
+  country        Country @relation(fields: [countryId], references: [id])
+  fromAmount     Float
+  toAmount       Float?
+  rate           Float
+  year           Int
+  employmentType String
+}
+
+model SpecialRegime {
+  id                  String    @id @default(cuid())
+  countryId           String
+  country             Country   @relation(fields: [countryId], references: [id])
+  slug                String
+  nameDE              String
+  nameEN              String
+  flatRate            Float
+  durationYears       Int
+  qualifications      Json
+  conditionsDE        String    @db.Text
+  conditionsEN        String    @db.Text
+  validFrom           DateTime
+  validTo             DateTime?
+  sourceUrl           String
+  sourceDE            String
+  riskLevel           String    @default("medium")
+  requiresLegalAdvice Boolean   @default(false)
+  disclaimerDE        String?   @db.Text
+  disclaimerEN        String?   @db.Text
+  updatedAt           DateTime  @updatedAt
+}
+
+model SocialContribution {
+  id           String  @id @default(cuid())
+  countryId    String
+  country      Country @relation(fields: [countryId], references: [id])
+  type         String
+  rate         Float
+  ceiling      Float?
+  employeeSide Boolean
+  year         Int
+}
+
+model Deduction {
+  id         String  @id @default(cuid())
+  countryId  String
+  country    Country @relation(fields: [countryId], references: [id])
+  type       String
+  amount     Float?
+  percentage Float?
+  condition  String?
+  year       Int
+}
+
+model VisaRule {
+  id                     String   @id @default(cuid())
+  countryId              String
+  country                Country  @relation(fields: [countryId], references: [id])
+  fromNationality        String
+  visaType               String
+  nameDE                 String
+  nameEN                 String
+  requirementsDE         String   @db.Text
+  requirementsEN         String   @db.Text
+  processingDays         String
+  costEUR                Int?
+  minIncomeEUR           Int?
+  durationMonths         Int?
+  renewable              Boolean  @default(false)
+  pathToCitizenshipYears Int?
+  sourceUrl              String
+  updatedAt              DateTime @updatedAt
+
+  @@unique([countryId, fromNationality, visaType])
+}
+
+model CountryProfile {
+  id              String   @id @default(cuid())
+  countryId       String
+  country         Country  @relation(fields: [countryId], references: [id])
+  locale          String
+  title           String
+  metaDescription String
+  introText       String   @db.Text
+  keyFacts        Json
+  updatedAt       DateTime @updatedAt
+
+  @@unique([countryId, locale])
+}
+
+model SalaryBenchmark {
+  id        String   @id @default(cuid())
+  cityId    String
+  city      City     @relation(fields: [cityId], references: [id])
+  industry  String
+  role      String
+  p25       Float
+  median    Float
+  p75       Float
+  currency  String
+  source    String
+  updatedAt DateTime @updatedAt
+}
+
+model District {
+  id          String  @id @default(cuid())
+  cityId      String
+  city        City    @relation(fields: [cityId], references: [id])
+  name        String
+  nameEN      String?
+  rent1BRLow  Float?
+  rent1BRHigh Float?
+  safetyScore Int?
+  vibe        String?
+  geoJson     Json?
+}
+
+model MovingGuide {
+  id                  String    @id @default(cuid())
+  cityId              String
+  city                City      @relation(fields: [cityId], references: [id])
+  stepOrder           Int
+  phase               String
+  section             String    @default("bureaucracy")
+  // bureaucracy | tax_planning | banking | insurance | housing | practical | social
+  titleDE             String
+  titleEN             String
+  subtitleDE          String?
+  subtitleEN          String?
+  timingDE            String
+  timingEN            String
+  isWarning           Boolean   @default(false)
+  documents           Json
+  infoBoxDE           String?   @db.Text
+  infoBoxEN           String?   @db.Text
+  infoBoxType         String?
+  tags                Json?
+  forEmployed         Boolean   @default(true)
+  forFreelancer       Boolean   @default(true)
+  forFounder          Boolean   @default(true)
+  forFamily           Boolean   @default(true)
+  forPassive          Boolean   @default(true)
+  forPair             Boolean   @default(true)
+  isActive            Boolean   @default(true)
+  riskLevel           String    @default("low")
+  // low | medium | high
+  requiresLegalAdvice Boolean   @default(false)
+  sourceUrl           String?
+  sourceLabel         String?
+  lastVerified        DateTime?
+  translationSource   String    @default("manual")
+  // manual | machine
+}
+
+model UserProfile {
+  id               String    @id
+  email            String    @unique
+  stripeCustomerId String?   @unique
+  plan             String    @default("free")
+  planExpiresAt    DateTime?
+  onboardingDone   Boolean   @default(false)
+  grossAnnual      Float?
+  employment       String?
+  familyStatus     String?
+  childrenCount    Int?      @default(0)
+  childrenAges     Json?
+  kvType           String?
+  taxResidency     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  calculations   Calculation[]
+  watchlistItems WatchlistItem[]
+  oneShots       OneShot[]
+  apiKeys        ApiKey[]
+  movingPlans    MovingPlan[]
+}
+
+model Calculation {
+  id            String       @id @default(cuid())
+  shareToken    String       @unique @default(cuid())
+  fromCityId    String
+  toCityId      String
+  fromCity      City         @relation(name: "calcFrom", fields: [fromCityId], references: [id])
+  toCity        City         @relation(name: "calcTo", fields: [toCityId], references: [id])
+  inputData     Json
+  outputData    Json
+  isApproximate Boolean      @default(true)
+  userId        String?
+  user          UserProfile? @relation(fields: [userId], references: [id])
+  locale        String       @default("de")
+  isShared      Boolean      @default(false)
+  isSaved       Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  expiresAt     DateTime
+
+  @@index([shareToken])
+  @@index([userId, createdAt])
+}
+
+model CitySearch {
+  id         String   @id @default(cuid())
+  fromCityId String
+  toCityId   String
+  fromCity   City     @relation(name: "searchFrom", fields: [fromCityId], references: [id])
+  toCity     City     @relation(name: "searchTo", fields: [toCityId], references: [id])
+  grossRange String
+  employment String?
+  lifestyle  String?
+  locale     String   @default("de")
+  source     String
+  createdAt  DateTime @default(now())
+
+  @@index([fromCityId, createdAt])
+  @@index([toCityId, createdAt])
+  @@index([fromCityId, toCityId])
+}
+
+model CitySearchAggregate {
+  id          String   @id @default(cuid())
+  fromCityId  String
+  toCityId    String
+  searchCount Int      @default(0)
+  period      String
+  updatedAt   DateTime @updatedAt
+
+  @@unique([fromCityId, toCityId, period])
+  @@index([toCityId, searchCount])
+}
+
+model WatchlistItem {
+  id            String      @id @default(cuid())
+  userId        String
+  user          UserProfile @relation(fields: [userId], references: [id])
+  cityId        String
+  city          City        @relation(fields: [cityId], references: [id])
+  alertsEnabled Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, cityId])
+}
+
+model MovingPlan {
+  id               String      @id @default(cuid())
+  userId           String
+  user             UserProfile @relation(fields: [userId], references: [id])
+  fromCityId       String
+  toCityId         String
+  fromCity         City        @relation(name: "planFrom", fields: [fromCityId], references: [id])
+  toCity           City        @relation(name: "planTo", fields: [toCityId], references: [id])
+  employment       String
+  situation        String
+  assets           Json
+  nationality      String
+  targetDate       DateTime
+  locale           String      @default("de")
+  completedStepIds Json        @default("[]")
+  skippedStepIds   Json        @default("[]")
+  budgetItems      Json
+  documents        Json
+  isActive         Boolean     @default(true)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@unique([userId, fromCityId, toCityId])
+}
+
+model OneShot {
+  id              String       @id @default(cuid())
+  userId          String?
+  user            UserProfile? @relation(fields: [userId], references: [id])
+  stripePaymentId String       @unique
+  fromCityId      String
+  toCityId        String
+  inputData       Json
+  reportUrl       String?
+  createdAt       DateTime     @default(now())
+}
+
+model ApiKey {
+  id           String      @id @default(cuid())
+  userId       String
+  user         UserProfile @relation(fields: [userId], references: [id])
+  key          String      @unique
+  name         String
+  monthlyLimit Int         @default(10000)
+  usageCount   Int         @default(0)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+}
+
+model ExchangeRate {
+  id           String   @id @default(cuid())
+  fromCurrency String
+  toCurrency   String
+  rate         Float
+  updatedAt    DateTime @updatedAt
+
+  @@unique([fromCurrency, toCurrency])
+}
+
+model CountrySalaryBenchmark {
+  id          String   @id @default(cuid())
+  countryId   String
+  country     Country  @relation(fields: [countryId], references: [id])
+  year        Int
+  grossMedian Float
+  netMedian   Float?
+  currency    String   @default("EUR")
+  source      String
+  updatedAt   DateTime @updatedAt
+
+  @@unique([countryId, year])
 }

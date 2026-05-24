@@ -1,0 +1,40 @@
+{
+  "name": "@paymap/nextjs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:guide": "vitest run __tests__/guide-integrity.test.ts --reporter=verbose"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "next-intl": "^3.17.2",
+    "@supabase/ssr": "^0.4.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "@prisma/client": "^5.22.0",
+    "@paymap/tax-engine": "*",
+    "zod": "^3.23.8",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.2",
+    "lucide-react": "^0.441.0",
+    "class-variance-authority": "^0.7.0",
+    "@vercel/blob": "^0.27.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.5.4",
+    "tailwindcss": "^3.4.10",
+    "postcss": "^8.4.41",
+    "autoprefixer": "^10.4.20",
+    "vitest": "^4.1.7"
+  }
+}

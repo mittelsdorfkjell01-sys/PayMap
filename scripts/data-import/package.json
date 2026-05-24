@@ -1,0 +1,25 @@
+{
+  "name": "@paymap/data-import",
+  "private": true,
+  "scripts": {
+    "wherenext":              "tsx import-wherenext.ts",
+    "weather":                "tsx import-weather.ts",
+    "pois":                   "tsx import-pois.ts",
+    "visa":                   "tsx import-visa-csv.ts",
+    "generate-template":      "tsx generate-visa-template.ts",
+    "crime-index":            "tsx import-crime-index.ts",
+    "compute-derived":        "tsx compute-derived-scores.ts",
+    "status":                 "tsx check-status.ts",
+    "guide:lissabon":         "tsx seed-guide-lissabon.ts",
+    "check:guide":            "tsx check-guide-status.ts"
+  },
+  "dependencies": {
+    "@paymap/tax-engine": "*",
+    "@prisma/client": "*",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0"
+  }
+}

@@ -59,13 +59,13 @@ export async function POST(req: NextRequest) {
   const { toCitySlug, fromCitySlug, nationality, situation, employment, assets, targetDate, locale } = parsed.data;
 
   const [fromCity, toCity] = await Promise.all([
-    prisma.city.findUnique({ where: { slug: fromCitySlug }, include: { col: true } }),
-    prisma.city.findUnique({ where: { slug: toCitySlug }, include: { col: true } }),
+    prisma.city.findUnique({ where: { slug: fromCitySlug } }),
+    prisma.city.findUnique({ where: { slug: toCitySlug } }),
   ]);
 
   if (!fromCity || !toCity) return NextResponse.json({ error: 'City not found' }, { status: 404 });
 
-  const depositRent = toCity.col?.rent ?? 1200;
+  const depositRent = 1200;
   const isEN = locale === 'en';
   const budgetItems = [
     { label: isEN ? 'Security Deposit' : 'Kaution', amount: depositRent * 3, isCustom: false, isEditable: true },
