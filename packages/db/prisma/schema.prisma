@@ -37,6 +37,11 @@ model City {
   watchlistItems   WatchlistItem[]
   salaryData       SalaryBenchmark[]
   districts        District[]
+  narratives       CityNarrative[]
+  tools            CityTool[]
+  resources        Resource[]
+  testimonials     Testimonial[]
+  feedback         UserFeedback[]
   searchesFrom     CitySearch[]      @relation("searchFrom")
   searchesTo       CitySearch[]      @relation("searchTo")
   plansFrom        MovingPlan[]      @relation("planFrom")
@@ -235,16 +240,39 @@ model SalaryBenchmark {
 }
 
 model District {
-  id          String  @id @default(cuid())
-  cityId      String
-  city        City    @relation(fields: [cityId], references: [id])
-  name        String
-  nameEN      String?
-  rent1BRLow  Float?
-  rent1BRHigh Float?
-  safetyScore Int?
-  vibe        String?
-  geoJson     Json?
+  id            String   @id @default(cuid())
+  cityId        String
+  city          City     @relation(fields: [cityId], references: [id])
+  slug          String
+  nameDE        String
+  nameEN        String
+  descriptionDE String?  @db.Text
+  descriptionEN String?  @db.Text
+  latitude      Float?
+  longitude     Float?
+  vibe          String?
+  priceLevel    Int      @default(3)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  costOfLiving  DistrictCostOfLiving[]
+
+  @@unique([cityId, slug])
+}
+
+model DistrictCostOfLiving {
+  id         String   @id @default(cuid())
+  districtId String
+  district   District @relation(fields: [districtId], references: [id])
+  category   String
+  value      Float
+  currency   String
+  source     String
+  confidence Int      @default(60)
+  validFrom  DateTime @default(now())
+
+  @@unique([districtId, category])
 }
 
 model MovingGuide {
@@ -443,4 +471,90 @@ model CountrySalaryBenchmark {
   updatedAt   DateTime @updatedAt
 
   @@unique([countryId, year])
+}
+
+model CityNarrative {
+  id                String    @id @default(cuid())
+  cityId            String
+  city              City      @relation(fields: [cityId], references: [id])
+  section           String
+  // intro | for_freelancers | for_families | for_retirees | for_employees | for_tech_workers | for_crypto_investors
+  titleDE           String
+  titleEN           String
+  contentDE         String    @db.Text
+  contentEN         String    @db.Text
+  sourceUrls        String[]
+  translationSource String    @default("manual")
+  lastVerified      DateTime?
+  sortOrder         Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([cityId, section])
+}
+
+model CityTool {
+  id            String   @id @default(cuid())
+  cityId        String
+  city          City     @relation(fields: [cityId], references: [id])
+  toolType      String
+  // first_month_budget | visa_eligibility | language_learning_estimator | commute_calculator | school_finder | cost_living_comparator
+  nameDE        String
+  nameEN        String
+  descriptionDE String
+  descriptionEN String
+  config        Json
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([cityId, toolType])
+}
+
+model Resource {
+  id            String   @id @default(cuid())
+  cityId        String?
+  city          City?    @relation(fields: [cityId], references: [id])
+  resourceType  String
+  // template | checklist | glossary | directory | cheatsheet
+  titleDE       String
+  titleEN       String
+  descriptionDE String?
+  descriptionEN String?
+  content       Json
+  downloadUrl   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Testimonial {
+  id               String   @id @default(cuid())
+  cityId           String
+  city             City     @relation(fields: [cityId], references: [id])
+  authorName       String
+  authorAge        Int?
+  authorProfession String?
+  authorPersona    String?
+  // freelancer | employed | family | retiree
+  yearMoved        Int
+  contentDE        String   @db.Text
+  contentEN        String   @db.Text
+  rating           Int      @default(5)
+  isVerified       Boolean  @default(false)
+  sourceUrl        String?
+  createdAt        DateTime @default(now())
+
+  @@index([cityId])
+}
+
+model UserFeedback {
+  id          String   @id @default(cuid())
+  cityId      String?
+  city        City?    @relation(fields: [cityId], references: [id])
+  category    String
+  description String   @db.Text
+  userEmail   String?
+  status      String   @default("new")
+  // new | reviewing | applied | rejected
+  createdAt   DateTime @default(now())
 }
