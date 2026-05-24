@@ -21,6 +21,10 @@ const webAppJsonLd = {
 
 const locales = ['de', 'en'];
 
+export const metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://paymap.io'),
+};
+
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
