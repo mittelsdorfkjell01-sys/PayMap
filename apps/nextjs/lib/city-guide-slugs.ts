@@ -28,6 +28,7 @@ export const EN_TO_DB_SLUG: Record<string, string> = {
   tallinn: 'tallinn',
   valletta: 'valletta',
   milan: 'mailand',
+  rome: 'rom',
   rotterdam: 'rotterdam',
   dublin: 'dublin',
   london: 'london',
