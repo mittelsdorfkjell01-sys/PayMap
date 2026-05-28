@@ -2,7 +2,10 @@ import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { getCityGuide, getAllCitySlugs } from '@/lib/city-guide';
+import { getPremiumCityData, getCityIdBySlug } from '@/lib/premium-city-data';
+import { isPremiumCity } from '@/lib/premium-content';
 import CityGuideContent from '@/components/guide/CityGuideContent';
+import { PremiumCityContent } from '@/components/cities/PremiumCityContent';
 
 const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://paymap.io').replace(/\/$/, '');
 
@@ -73,8 +76,15 @@ function buildFAQSchema(data: ReturnType<typeof getCityGuide> extends Promise<in
 
 export default async function AuswandernPage({ params }: Props) {
   setRequestLocale(params.locale);
-  const data = await getCityGuide(params.slug);
+
+  const [data, cityId] = await Promise.all([
+    getCityGuide(params.slug),
+    isPremiumCity(params.slug) ? getCityIdBySlug(params.slug) : Promise.resolve(null),
+  ]);
+
   if (!data) notFound();
+
+  const premiumData = cityId ? await getPremiumCityData(cityId) : null;
 
   const howToSchema = buildHowToSchema(data);
   const faqSchema = buildFAQSchema(data);
@@ -98,6 +108,7 @@ export default async function AuswandernPage({ params }: Props) {
           <p className="text-body-lg text-on-surface-variant">
             {data.totalSteps} geprüfte Schritte · {data.sections.length} Themenbereiche
             {data.highRiskCount > 0 && ` · ${data.highRiskCount} Hochrisiko-Hinweise`}
+            {premiumData && ' · Premium-Guide'}
           </p>
           {data.highRiskCount > 0 && (
             <div className="border border-error/30 bg-error/5 rounded-xl px-4 py-3 text-body-sm text-error leading-relaxed">
@@ -108,6 +119,15 @@ export default async function AuswandernPage({ params }: Props) {
 
         {/* Guide content */}
         <CityGuideContent data={data} locale="de" />
+
+        {/* Premium content */}
+        {premiumData && (
+          <PremiumCityContent
+            data={premiumData}
+            citySlug={params.slug}
+            locale={params.locale}
+          />
+        )}
       </div>
     </>
   );

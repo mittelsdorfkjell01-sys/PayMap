@@ -3,7 +3,10 @@ import { setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { getCityGuide, getAllCitySlugs } from '@/lib/city-guide';
 import { resolveDbSlug, toEnSlug } from '@/lib/city-guide-slugs';
+import { getPremiumCityData, getCityIdBySlug } from '@/lib/premium-city-data';
+import { isPremiumCity } from '@/lib/premium-content';
 import CityGuideContent from '@/components/guide/CityGuideContent';
+import { PremiumCityContent } from '@/components/cities/PremiumCityContent';
 
 const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://paymap.io').replace(/\/$/, '');
 
@@ -76,8 +79,15 @@ function buildFAQSchema(data: ReturnType<typeof getCityGuide> extends Promise<in
 export default async function EmigratePage({ params }: Props) {
   setRequestLocale(params.locale);
   const dbSlug = resolveDbSlug(params.slug);
-  const data = await getCityGuide(dbSlug);
+
+  const [data, cityId] = await Promise.all([
+    getCityGuide(dbSlug),
+    isPremiumCity(dbSlug) ? getCityIdBySlug(dbSlug) : Promise.resolve(null),
+  ]);
+
   if (!data) notFound();
+
+  const premiumData = cityId ? await getPremiumCityData(cityId) : null;
 
   const howToSchema = buildHowToSchema(data);
   const faqSchema = buildFAQSchema(data);
@@ -101,6 +111,7 @@ export default async function EmigratePage({ params }: Props) {
           <p className="text-body-lg text-on-surface-variant">
             {data.totalSteps} verified steps · {data.sections.length} topic areas
             {data.highRiskCount > 0 && ` · ${data.highRiskCount} high-risk notices`}
+            {premiumData && ' · Premium Guide'}
           </p>
           {data.highRiskCount > 0 && (
             <div className="border border-error/30 bg-error/5 rounded-xl px-4 py-3 text-body-sm text-error leading-relaxed">
@@ -111,6 +122,15 @@ export default async function EmigratePage({ params }: Props) {
 
         {/* Guide content */}
         <CityGuideContent data={data} locale="en" />
+
+        {/* Premium content */}
+        {premiumData && (
+          <PremiumCityContent
+            data={premiumData}
+            citySlug={dbSlug}
+            locale="en"
+          />
+        )}
       </div>
     </>
   );
