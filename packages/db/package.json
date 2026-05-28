@@ -11,6 +11,7 @@
     "seed:premium": "ts-node --project tsconfig.json prisma/seed-premium.ts",
     "seed:premium:lissabon": "ts-node --project tsconfig.json prisma/seed-sprint9-lissabon.ts",
     "seed:premium:madrid": "ts-node --project tsconfig.json prisma/seed-sprint9-madrid.ts",
+    "seed:premium:amsterdam": "ts-node --project tsconfig.json prisma/seed-sprint9-amsterdam.ts",
     "seed:all": "npm run seed && npm run seed:guides && npm run seed:premium",
     "studio": "prisma studio",
     "import:scores": "ts-node scripts/import-scores.ts",

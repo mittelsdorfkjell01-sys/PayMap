@@ -8,6 +8,7 @@ import { QnA } from '@/components/community/QnA';
 import { FirstMonthBudgetCalculator } from '@/components/tools/FirstMonthBudgetCalculator';
 import { IFICIEligibilityChecker } from '@/components/tools/IFICIEligibilityChecker';
 import { BeckhamLawEligibilityChecker } from '@/components/tools/BeckhamLawEligibilityChecker';
+import { ThirtyPercentRulingChecker } from '@/components/tools/ThirtyPercentRulingChecker';
 import type { PremiumCityData, DistrictWithCoL } from '@/lib/premium-city-data';
 
 type Props = {
@@ -172,6 +173,9 @@ function ToolsSection({ tools, citySlug, locale }: { tools: PremiumCityData['too
               locale={locale}
             />
           );
+        }
+        if (tool.toolType === 'thirty_percent_ruling_checker') {
+          return <ThirtyPercentRulingChecker key={tool.toolType} locale={locale} />;
         }
         if (tool.toolType === 'visa_eligibility') {
           const regime = (config.regime as string | undefined) ?? '';
