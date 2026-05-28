@@ -683,6 +683,80 @@ What I wish I'd known earlier: Madrid is empty in August. Restaurants close, act
   },
 ];
 
+// ─── Exported seed function ───────────────────────────────────────────────────
+
+export async function seedMadrid(): Promise<void> {
+  console.log('🌍 Seeding Madrid premium content...\n');
+
+  console.log('📍 Creating districts...');
+  for (const d of DISTRICTS) {
+    const { col, ...districtData } = d;
+    const district = await prisma.district.upsert({
+      where: { cityId_slug: { cityId: CITY_ID, slug: d.slug } },
+      update: { ...districtData, updatedAt: NOW },
+      create: { ...districtData, cityId: CITY_ID },
+    });
+    for (const c of col) {
+      await prisma.districtCostOfLiving.upsert({
+        where: { districtId_category: { districtId: district.id, category: c.category } },
+        update: { value: c.value, source: SOURCE_IDEALISTA },
+        create: { districtId: district.id, category: c.category, value: c.value, currency: c.currency, source: SOURCE_IDEALISTA, confidence: 65, validFrom: NOW },
+      });
+    }
+    console.log(`  ✓ ${d.nameDE} (${col.length} CoL entries)`);
+  }
+
+  console.log('\n📝 Creating narratives...');
+  for (const n of NARRATIVES) {
+    await prisma.cityNarrative.upsert({
+      where: { cityId_section: { cityId: CITY_ID, section: n.section } },
+      update: { ...n, updatedAt: NOW, lastVerified: NOW },
+      create: { ...n, cityId: CITY_ID, lastVerified: NOW },
+    });
+    console.log(`  ✓ ${n.section} (${n.contentDE.length} chars DE)`);
+  }
+
+  console.log('\n🔧 Creating tools...');
+  for (const t of TOOLS) {
+    await prisma.cityTool.upsert({
+      where: { cityId_toolType: { cityId: CITY_ID, toolType: t.toolType } },
+      update: { ...t, updatedAt: NOW },
+      create: { ...t, cityId: CITY_ID },
+    });
+    console.log(`  ✓ ${t.toolType}`);
+  }
+
+  console.log('\n📚 Creating resources...');
+  for (const r of RESOURCES) {
+    const existing = await prisma.resource.findFirst({ where: { cityId: CITY_ID, titleDE: r.titleDE } });
+    if (existing) {
+      await prisma.resource.update({ where: { id: existing.id }, data: { ...r, updatedAt: NOW } });
+    } else {
+      await prisma.resource.create({ data: { ...r, cityId: CITY_ID } });
+    }
+    console.log(`  ✓ ${r.titleDE}`);
+  }
+
+  console.log('\n💬 Creating testimonials...');
+  for (const t of TESTIMONIALS) {
+    const existing = await prisma.testimonial.findFirst({ where: { cityId: CITY_ID, authorName: t.authorName } });
+    if (!existing) {
+      await prisma.testimonial.create({ data: { ...t, cityId: CITY_ID } });
+      console.log(`  ✓ ${t.authorName}`);
+    } else {
+      console.log(`  ~ ${t.authorName} (already exists)`);
+    }
+  }
+
+  console.log('\n✅ Madrid premium seed complete.');
+  console.log(`   Districts: ${DISTRICTS.length}`);
+  console.log(`   CoL entries: ${DISTRICTS.reduce((s, d) => s + d.col.length, 0)}`);
+  console.log(`   Narratives: ${NARRATIVES.length}`);
+  console.log(`   Tools: ${TOOLS.length}`);
+  console.log(`   Resources: ${RESOURCES.length}`);
+  console.log(`   Testimonials: ${TESTIMONIALS.length}`);
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
