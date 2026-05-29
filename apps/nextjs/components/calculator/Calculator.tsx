@@ -51,6 +51,7 @@ export interface CalculateResponse {
   costOfLiving: { from: null; to: null };
   lifestyle: { from: Record<string, number>; to: Record<string, number> };
   taxWithRegime: TaxWithRegime | null;
+  fxStale?: boolean;
   shareToken?: string;
 }
 

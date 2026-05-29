@@ -2,28 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { cookies } from 'next/headers';
 import { getSessionToken } from '@/lib/admin-auth';
-
-const attempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 15 * 60 * 1000;
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = attempts.get(ip);
-  if (!entry || entry.resetAt < now) {
-    attempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return false;
-  }
-  if (entry.count >= MAX_ATTEMPTS) return true;
-  entry.count++;
-  return false;
-}
+import { checkAuthRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-  if (isRateLimited(ip)) {
-    return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 });
-  }
+  // 5 attempts / 15 min, enforced via the shared persistent store (serverless-safe).
+  const limited = await checkAuthRateLimit(req);
+  if (limited) return limited;
 
   const adminPw = process.env.ADMIN_PASSWORD;
   if (!adminPw) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });

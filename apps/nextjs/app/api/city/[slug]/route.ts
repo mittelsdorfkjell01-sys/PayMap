@@ -90,7 +90,7 @@ export interface CityDetailResponse {
 }
 
 export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
-  const limited = checkRateLimit(req);
+  const limited = await checkRateLimit(req);
   if (limited) return limited;
 
   const { slug } = params;

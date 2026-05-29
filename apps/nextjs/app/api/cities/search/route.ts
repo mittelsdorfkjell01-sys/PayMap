@@ -3,7 +3,7 @@ import { searchCities } from '@/lib/city-lookup';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function GET(req: NextRequest) {
-  const limited = checkRateLimit(req);
+  const limited = await checkRateLimit(req);
   if (limited) return limited;
 
   try {

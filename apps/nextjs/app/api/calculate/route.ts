@@ -5,6 +5,7 @@ import { findCity } from '@/lib/city-lookup';
 import { prisma } from '@/lib/prisma';
 import { flags } from '@/lib/feature-flags';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { toEURStrict, fromEURStrict, areRatesStale } from '@/lib/exchange-rates';
 
 const RequestSchema = z.object({
   fromCity: z.string().min(1),
@@ -29,7 +30,7 @@ function isPrecise(body: CalculateRequest): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = checkRateLimit(req);
+  const limited = await checkRateLimit(req);
   if (limited) return limited;
 
   let body: unknown;
@@ -66,15 +67,34 @@ export async function POST(req: NextRequest) {
   const fromCountry = fromCity.countrySlug;
   const toCountry = toCity.countrySlug;
 
+  // The salary input is in EUR (see the "€ / Jahr" unit in the form). Tax
+  // brackets in the engine are denominated in each country's LOCAL currency
+  // (e.g. Thailand's brackets are in THB), so we must convert the EUR input
+  // into each city's currency before running the engine — otherwise 60.000 €
+  // would be taxed as 60.000 THB. Refuse to compute on a missing rate rather
+  // than emit a silent wrong value.
+  const [fromGross, toGross] = await Promise.all([
+    fromEURStrict(data.grossSalary, fromCity.currency),
+    fromEURStrict(data.grossSalary, toCity.currency),
+  ]);
+  if (fromGross === null || toGross === null) {
+    const missing = [
+      fromGross === null ? fromCity.currency : null,
+      toGross === null ? toCity.currency : null,
+    ].filter(Boolean);
+    return NextResponse.json(
+      { error: `Exchange rate unavailable for ${missing.join(', ')}`, code: 'FX_RATE_UNAVAILABLE' },
+      { status: 503 },
+    );
+  }
+
   let fromResult, toResult;
 
   if (approximate) {
-    fromResult = calculateApproximate(fromCountry, data.grossSalary, fromCity.currency, year, data.locale);
-    toResult = calculateApproximate(toCountry, data.grossSalary, toCity.currency, year, data.locale);
+    fromResult = calculateApproximate(fromCountry, fromGross, fromCity.currency, year, data.locale);
+    toResult = calculateApproximate(toCountry, toGross, toCity.currency, year, data.locale);
   } else {
     const opts = {
-      gross: data.grossSalary,
-      currency: fromCity.currency,
       employment: data.employment ?? 'employed',
       familyStatus: data.familyStatus ?? 'single',
       children: data.children ?? 0,
@@ -84,11 +104,17 @@ export async function POST(req: NextRequest) {
       partnerGross: data.partnerGross,
     } as const;
 
-    fromResult = calculate(fromCountry, opts);
-    toResult = calculate(toCountry, { ...opts, currency: toCity.currency });
+    fromResult = calculate(fromCountry, { ...opts, gross: fromGross, currency: fromCity.currency });
+    toResult = calculate(toCountry, { ...opts, gross: toGross, currency: toCity.currency });
   }
 
-  const monthlyDifference = toResult.netMonthly - fromResult.netMonthly;
+  // Net figures live in each city's local currency; normalise to EUR before
+  // comparing across currencies.
+  const [fromNetMonthlyEUR, toNetMonthlyEUR] = await Promise.all([
+    toEURStrict(fromResult.netMonthly, fromCity.currency),
+    toEURStrict(toResult.netMonthly, toCity.currency),
+  ]);
+  const monthlyDifference = (toNetMonthlyEUR ?? 0) - (fromNetMonthlyEUR ?? 0);
 
   // Special regime for to-country (kick off in parallel with sync work above)
   const toRegimeRow = await prisma.specialRegime.findFirst({
@@ -112,7 +138,7 @@ export async function POST(req: NextRequest) {
   if (toRegimeRow) {
     try {
       const regimeCalc = calculate(toCountry, {
-        gross: data.grossSalary,
+        gross: toGross,
         currency: toCity.currency,
         employment: data.employment ?? 'employed',
         familyStatus: data.familyStatus ?? 'single',
@@ -138,11 +164,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Equivalence salary: what gross in fromCity gives same net as toCity
+  // Equivalence salary: what gross in fromCity gives the same net as toCity.
+  // Result is expressed in fromCity's currency (matching how the UI formats it),
+  // so the to-net must be converted into fromCity's currency first.
+  const toNetAnnualEUR = await toEURStrict(toResult.netAnnual, toCity.currency);
+  const toNetAnnualInFrom =
+    toNetAnnualEUR === null ? null : await fromEURStrict(toNetAnnualEUR, fromCity.currency);
   const equivalenceSalary =
-    fromResult.gross > 0 && fromResult.netAnnual > 0
-      ? Math.round((toResult.netAnnual / fromResult.netAnnual) * fromResult.gross)
+    fromResult.gross > 0 && fromResult.netAnnual > 0 && toNetAnnualInFrom !== null
+      ? Math.round((toNetAnnualInFrom / fromResult.netAnnual) * fromResult.gross)
       : null;
+
+  // Mark results that relied on FX conversion with a potentially stale rate.
+  const involvesNonEUR = fromCity.currency !== 'EUR' || toCity.currency !== 'EUR';
+  const fxStale = involvesNonEUR ? await areRatesStale() : false;
 
   // Data minimization: gated until privacy policy is live
   if (flags.enableSearchTracking) {
@@ -183,6 +218,7 @@ export async function POST(req: NextRequest) {
       to: toCity.lifestyle,
     },
     taxWithRegime,
+    fxStale,
     shareToken,
   };
 
