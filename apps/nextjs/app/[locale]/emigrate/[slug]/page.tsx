@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url,
       type: 'article',
-      images: [{ url: `${BASE}/og/auswandern/${dbSlug}`, width: 1200, height: 630, alt: title }],
+      images: [{ url: `${BASE}/og/emigrate/${params.slug}`, width: 1200, height: 630, alt: title }],
     },
     twitter: { card: 'summary_large_image', title, description },
   };
@@ -76,6 +76,18 @@ function buildFAQSchema(data: ReturnType<typeof getCityGuide> extends Promise<in
   };
 }
 
+function buildBreadcrumbSchema(enSlug: string, cityName: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'paymap', item: `${BASE}/en` },
+      { '@type': 'ListItem', position: 2, name: 'Emigration Guides', item: `${BASE}/en/emigrate` },
+      { '@type': 'ListItem', position: 3, name: `Emigrate to ${cityName}`, item: `${BASE}/en/emigrate/${enSlug}` },
+    ],
+  };
+}
+
 export default async function EmigratePage({ params }: Props) {
   setRequestLocale(params.locale);
   const dbSlug = resolveDbSlug(params.slug);
@@ -91,11 +103,13 @@ export default async function EmigratePage({ params }: Props) {
 
   const howToSchema = buildHowToSchema(data);
   const faqSchema = buildFAQSchema(data);
+  const breadcrumbSchema = buildBreadcrumbSchema(params.slug, data.city.nameEN);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
       {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <div className="max-w-3xl mx-auto space-y-8 px-4 py-8">
         {/* Header */}

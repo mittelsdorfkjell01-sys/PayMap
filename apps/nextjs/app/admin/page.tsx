@@ -24,6 +24,7 @@ const sections = [
   { href: '/admin/social-contributions', title: '🤝 Sozialabgaben',     desc: 'Arbeitnehmer-Beitragssätze und Bemessungsgrenzen pro Land.',      color: 'bg-rose-50    border-rose-200' },
   { href: '/admin/deductions',           title: '✂️ Freibeträge',       desc: 'Pauschalen und Prozentabzüge pro Land und Jahr.',                  color: 'bg-yellow-50  border-yellow-200' },
   { href: '/admin/exchange-rates',       title: '💱 Wechselkurse',      desc: 'Manuelle Kurspflege; automatisch aktualisiert per Cron.',         color: 'bg-teal-50    border-teal-200' },
+  { href: '/admin/stale-content',        title: '⏰ Veraltete Inhalte',  desc: 'Inhalte ohne Prüfung seit >90 Tagen — Guide-Steps, Narratives, CoL.', color: 'bg-amber-50   border-amber-200' },
 ];
 
 export default async function AdminDashboard() {

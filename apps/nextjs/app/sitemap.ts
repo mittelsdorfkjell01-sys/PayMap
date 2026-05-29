@@ -1,5 +1,7 @@
 import { MetadataRoute } from 'next';
 import { TOP_PAIRS } from '@/lib/seo/top-pairs';
+import { PREMIUM_CITY_SLUGS } from '@/lib/premium-content';
+import { toEnSlug } from '@/lib/city-guide-slugs';
 
 const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://paymap.io').replace(/\/$/, '');
 const LOCALES = ['de', 'en'] as const;
@@ -23,5 +25,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   );
 
-  return [...mainPages, ...comparisonPages];
+  const premiumGuidePages = PREMIUM_CITY_SLUGS.flatMap((dbSlug) => [
+    {
+      url: `${BASE}/de/auswandern/${dbSlug}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${BASE}/en/emigrate/${toEnSlug(dbSlug)}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+  ]);
+
+  return [...mainPages, ...comparisonPages, ...premiumGuidePages];
 }

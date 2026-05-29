@@ -74,6 +74,18 @@ function buildFAQSchema(data: ReturnType<typeof getCityGuide> extends Promise<in
   };
 }
 
+function buildBreadcrumbSchema(slug: string, cityName: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'paymap', item: `${BASE}/de` },
+      { '@type': 'ListItem', position: 2, name: 'Auswandern-Guides', item: `${BASE}/de/auswandern` },
+      { '@type': 'ListItem', position: 3, name: `Auswandern nach ${cityName}`, item: `${BASE}/de/auswandern/${slug}` },
+    ],
+  };
+}
+
 export default async function AuswandernPage({ params }: Props) {
   setRequestLocale(params.locale);
 
@@ -88,11 +100,13 @@ export default async function AuswandernPage({ params }: Props) {
 
   const howToSchema = buildHowToSchema(data);
   const faqSchema = buildFAQSchema(data);
+  const breadcrumbSchema = buildBreadcrumbSchema(params.slug, data.city.nameDE);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
       {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       <div className="max-w-3xl mx-auto space-y-8 px-4 py-8">
         {/* Header */}

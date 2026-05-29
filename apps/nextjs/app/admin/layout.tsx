@@ -13,6 +13,7 @@ const navSections = [
       { href: '/admin/cities', label: '🏙 Städte (Scores)' },
       { href: '/admin/moving-guide', label: '📋 Moving Guide' },
       { href: '/admin/regimes', label: '🏛 Steuerregimes' },
+      { href: '/admin/stale-content', label: '⏰ Veraltete Inhalte' },
     ],
   },
   {

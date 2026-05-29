@@ -5,6 +5,8 @@ import { calculateApproximate } from '@paymap/tax-engine';
 import { prisma } from '@/lib/prisma';
 import { toEUR, fromEUR } from '@/lib/exchange-rates';
 import { TOP_PAIRS } from '@/lib/seo/top-pairs';
+import { isPremiumCity } from '@/lib/premium-content';
+import { toEnSlug } from '@/lib/city-guide-slugs';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -313,6 +315,30 @@ export default async function ComparisonPage({ params }: Props) {
             {isDE ? 'Zum Rechner →' : 'Go to Calculator →'}
           </a>
         </div>
+
+        {/* Premium guide cross-link for destination city */}
+        {isPremiumCity(params.to) && (
+          <div className="border border-primary/30 bg-primary/5 rounded-2xl p-5 flex items-center justify-between gap-4">
+            <div>
+              <p className="font-semibold text-on-surface">
+                {isDE
+                  ? `Schritt-für-Schritt Guide: Auswandern nach ${toName}`
+                  : `Step-by-step guide: Emigrate to ${toName}`}
+              </p>
+              <p className="text-sm text-on-surface-variant mt-0.5">
+                {isDE
+                  ? 'Bürokratie, Steuern, Banking, Wohnen — alle Schritte geprüft.'
+                  : 'Bureaucracy, taxes, banking, housing — all steps verified.'}
+              </p>
+            </div>
+            <a
+              href={isDE ? `/de/auswandern/${params.to}` : `/en/emigrate/${toEnSlug(params.to)}`}
+              className="shrink-0 text-sm font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+            >
+              {isDE ? 'Zum Guide →' : 'View Guide →'}
+            </a>
+          </div>
+        )}
       </div>
     </>
   );

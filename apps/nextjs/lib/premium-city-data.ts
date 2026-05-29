@@ -62,16 +62,28 @@ export type TestimonialData = {
   isVerified: boolean;
 };
 
+export type CityChangeLogEntry = {
+  id: string;
+  changeType: string;
+  section: string | null;
+  descriptionDE: string;
+  descriptionEN: string;
+  changedBy: string;
+  createdAt: Date;
+};
+
 export type PremiumCityData = {
   districts: DistrictWithCoL[];
   narratives: CityNarrativeData[];
   tools: CityToolData[];
   resources: ResourceData[];
   testimonials: TestimonialData[];
+  lastVerifiedAt: Date | null;
+  changeLogs: CityChangeLogEntry[];
 };
 
 export async function getPremiumCityData(cityId: string): Promise<PremiumCityData | null> {
-  const [districts, narratives, tools, resources, testimonials] = await Promise.all([
+  const [districts, narratives, tools, resources, testimonials, changeLogs] = await Promise.all([
     prisma.district.findMany({
       where: { cityId },
       orderBy: { sortOrder: 'asc' },
@@ -115,9 +127,21 @@ export async function getPremiumCityData(cityId: string): Promise<PremiumCityDat
         rating: true, isVerified: true,
       },
     }),
+    prisma.cityChangeLog.findMany({
+      where: { cityId, NOT: { changedBy: { startsWith: 'cron:' } } },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: { id: true, changeType: true, section: true, descriptionDE: true, descriptionEN: true, changedBy: true, createdAt: true },
+    }),
   ]);
 
   if (districts.length === 0 && narratives.length === 0) return null;
+
+  // Derive the most recent verification date from narratives
+  const verifiedDates = narratives.map(n => n.lastVerified).filter(Boolean) as Date[];
+  const lastVerifiedAt = verifiedDates.length > 0
+    ? new Date(Math.max(...verifiedDates.map(d => d.getTime())))
+    : null;
 
   return {
     districts: districts as unknown as DistrictWithCoL[],
@@ -125,6 +149,8 @@ export async function getPremiumCityData(cityId: string): Promise<PremiumCityDat
     tools: tools as unknown as CityToolData[],
     resources: resources as unknown as ResourceData[],
     testimonials,
+    lastVerifiedAt,
+    changeLogs,
   };
 }
 

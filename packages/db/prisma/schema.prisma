@@ -42,6 +42,7 @@ model City {
   resources        Resource[]
   testimonials     Testimonial[]
   feedback         UserFeedback[]
+  changeLogs       CityChangeLog[]
   searchesFrom     CitySearch[]      @relation("searchFrom")
   searchesTo       CitySearch[]      @relation("searchTo")
   plansFrom        MovingPlan[]      @relation("planFrom")
@@ -557,4 +558,20 @@ model UserFeedback {
   status      String   @default("new")
   // new | reviewing | applied | rejected
   createdAt   DateTime @default(now())
+}
+
+model CityChangeLog {
+  id            String   @id @default(cuid())
+  cityId        String
+  city          City     @relation(fields: [cityId], references: [id])
+  changeType    String
+  // data_update | content_added | correction | verification
+  section       String?
+  descriptionDE String
+  descriptionEN String
+  changedBy     String   @default("system")
+  createdAt     DateTime @default(now())
+
+  @@index([cityId])
+  @@index([createdAt])
 }

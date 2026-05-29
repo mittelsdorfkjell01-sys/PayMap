@@ -1,6 +1,12 @@
 import { prisma } from './_lib/prisma';
 import { printSummary } from './_lib/logger';
 
+const PREMIUM_CITY_SLUGS = [
+  'lissabon', 'porto', 'madrid', 'barcelona', 'rom',
+  'amsterdam', 'wien', 'paris', 'prag', 'budapest',
+  'zuerich', 'dubai', 'bangkok',
+] as const;
+
 const SCORE_CATEGORIES = [
   'crime_index',
   'political_stability',
@@ -82,6 +88,57 @@ async function main() {
     ...coverageRows,
     { label: '─'.repeat(30), value: '' },
     { label: 'Total entries',  value: `${present} / ${total} (${coverage}%)` },
+  ]);
+
+  // ── Premium Coverage ──────────────────────────────────────────────────────────
+
+  const premiumCities = await prisma.city.findMany({
+    where: { slug: { in: [...PREMIUM_CITY_SLUGS] } },
+    select: {
+      slug: true,
+      nameDE: true,
+      _count: {
+        select: {
+          districts: true,
+          narratives: true,
+          tools: true,
+          resources: true,
+          testimonials: true,
+        },
+      },
+    },
+    orderBy: { sortOrder: 'asc' },
+  });
+
+  const slugsFound = new Set(premiumCities.map(c => c.slug));
+  const missingSlugs = PREMIUM_CITY_SLUGS.filter(s => !slugsFound.has(s));
+
+  const premiumRows = premiumCities.map(c => {
+    const { districts, narratives, tools, resources, testimonials } = c._count;
+    const ok = districts >= 8 && narratives >= 5 && tools >= 2 && resources >= 5 && testimonials >= 3;
+    const parts = [
+      `${districts >= 8 ? '✓' : '⚠'} ${districts}d`,
+      `${narratives >= 5 ? '✓' : '⚠'} ${narratives}n`,
+      `${tools >= 2 ? '✓' : '⚠'} ${tools}t`,
+      `${resources >= 5 ? '✓' : '⚠'} ${resources}r`,
+      `${testimonials >= 3 ? '✓' : '⚠'} ${testimonials}te`,
+    ];
+    return {
+      label: `  ${(c.nameDE ?? c.slug).padEnd(12)} (${c.slug})`,
+      value: `${ok ? '✓' : '⚠ INCOMPLETE'}  [${parts.join('  ')}]`,
+    };
+  });
+
+  const totalComplete = premiumCities.filter(c =>
+    c._count.districts >= 8 && c._count.narratives >= 5 &&
+    c._count.tools >= 2 && c._count.resources >= 5 && c._count.testimonials >= 3
+  ).length;
+
+  printSummary('Premium City Coverage (d=districts n=narratives t=tools r=resources te=testimonials)', [
+    ...premiumRows,
+    ...(missingSlugs.length > 0 ? [{ label: '⚠ Missing in DB', value: missingSlugs.join(', ') }] : []),
+    { label: '─'.repeat(30), value: '' },
+    { label: 'Complete cities', value: `${totalComplete} / ${PREMIUM_CITY_SLUGS.length}` },
   ]);
 
   await prisma.$disconnect();

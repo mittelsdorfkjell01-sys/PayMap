@@ -9,7 +9,7 @@ import { FirstMonthBudgetCalculator } from '@/components/tools/FirstMonthBudgetC
 import { IFICIEligibilityChecker } from '@/components/tools/IFICIEligibilityChecker';
 import { BeckhamLawEligibilityChecker } from '@/components/tools/BeckhamLawEligibilityChecker';
 import { ThirtyPercentRulingChecker } from '@/components/tools/ThirtyPercentRulingChecker';
-import type { PremiumCityData, DistrictWithCoL } from '@/lib/premium-city-data';
+import type { PremiumCityData, DistrictWithCoL, CityChangeLogEntry } from '@/lib/premium-city-data';
 
 type Props = {
   data: PremiumCityData;
@@ -312,6 +312,49 @@ function ResourceContent({ content, resourceType, locale }: { content: Record<st
   );
 }
 
+function LastUpdatedBadge({ lastVerifiedAt, changeLogs, locale }: { lastVerifiedAt: Date | null; changeLogs: CityChangeLogEntry[]; locale: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const t = (de: string, en: string) => locale === 'de' ? de : en;
+
+  if (!lastVerifiedAt && changeLogs.length === 0) return null;
+
+  const dateStr = lastVerifiedAt
+    ? new Date(lastVerifiedAt).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { month: 'long', year: 'numeric' })
+    : null;
+
+  return (
+    <div className="rounded-xl border border-outline-variant/30 px-4 py-3 bg-surface-container/30">
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="flex items-center gap-2 w-full text-left"
+      >
+        <span className="text-label-sm text-on-surface-variant">
+          {dateStr
+            ? `${t('Zuletzt geprüft', 'Last verified')}: ${dateStr}`
+            : t('Inhalt noch nicht geprüft', 'Content not yet verified')}
+        </span>
+        {changeLogs.length > 0 && (
+          <span className="ml-auto text-label-sm text-primary shrink-0">
+            {expanded ? t('Änderungen schließen', 'Close changes') : t(`${changeLogs.length} Änderung${changeLogs.length !== 1 ? 'en' : ''}`, `${changeLogs.length} change${changeLogs.length !== 1 ? 's' : ''}`)}
+          </span>
+        )}
+      </button>
+      {expanded && changeLogs.length > 0 && (
+        <ul className="mt-3 space-y-1.5 border-t border-outline-variant/20 pt-3">
+          {changeLogs.map(log => (
+            <li key={log.id} className="flex items-start gap-2 text-xs text-on-surface-variant">
+              <span className="text-on-surface-variant/50 shrink-0 tabular-nums">
+                {new Date(log.createdAt).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+              </span>
+              <span>{locale === 'de' ? log.descriptionDE : log.descriptionEN}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function TestimonialsSection({ testimonials, locale }: { testimonials: PremiumCityData['testimonials']; locale: string }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const t = (de: string, en: string) => locale === 'de' ? de : en;
@@ -401,6 +444,13 @@ export function PremiumCityContent({ data, citySlug, locale = 'de' }: Props) {
         </p>
       </div>
 
+      {/* Last updated + change log */}
+      <LastUpdatedBadge
+        lastVerifiedAt={data.lastVerifiedAt}
+        changeLogs={data.changeLogs}
+        locale={locale}
+      />
+
       {/* Districts */}
       {data.districts.length > 0 && (
         <Section title={t('Stadtteile', 'Neighbourhoods')}>
@@ -442,6 +492,19 @@ export function PremiumCityContent({ data, citySlug, locale = 'de' }: Props) {
           <QnA items={qna} locale={locale} />
         </Section>
       )}
+
+      {/* Calculator CTA */}
+      <div className="border border-outline-variant/40 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 bg-surface-container/30">
+        <p className="text-sm text-on-surface-variant">
+          {t('Genaues Netto für dein Gehalt berechnen?', 'Calculate your exact net salary?')}
+        </p>
+        <a
+          href={`/${locale}`}
+          className="shrink-0 text-sm font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+        >
+          {t('Zum Rechner →', 'Go to Calculator →')}
+        </a>
+      </div>
 
       {/* Feedback */}
       <div className="flex justify-end">
