@@ -24,9 +24,9 @@ const DISTRICTS = [
     descriptionEN: 'The trendiest neighbourhood in Porto — former working-class area, now full of cafés, galleries and tech startups. Popular with young expats and digital nomads.',
     latitude: 41.1469, longitude: -8.5934, vibe: 'trendy', priceLevel: 3, sortOrder: 1,
     col: [
-      { category: 'rent_studio', value: 850, currency: 'EUR' },
-      { category: 'rent_1br', value: 1100, currency: 'EUR' },
-      { category: 'rent_2br', value: 1550, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 850, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1100, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1550, currency: 'EUR' },
       { category: 'groceries_monthly', value: 280, currency: 'EUR' },
       { category: 'restaurant_meal', value: 13, currency: 'EUR' },
     ],
@@ -39,9 +39,9 @@ const DISTRICTS = [
     descriptionEN: 'Lively neighbourhood near the city park, with proximity to the University of Porto, boutiques and an active cultural scene. Good for families and students.',
     latitude: 41.1517, longitude: -8.6189, vibe: 'urban', priceLevel: 3, sortOrder: 2,
     col: [
-      { category: 'rent_studio', value: 800, currency: 'EUR' },
-      { category: 'rent_1br', value: 1050, currency: 'EUR' },
-      { category: 'rent_2br', value: 1450, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 800, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1050, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1450, currency: 'EUR' },
       { category: 'groceries_monthly', value: 270, currency: 'EUR' },
       { category: 'restaurant_meal', value: 12, currency: 'EUR' },
     ],
@@ -54,9 +54,9 @@ const DISTRICTS = [
     descriptionEN: 'The historic heart of Porto with views over the Douro. Touristy, expensive and very sought after. The Ribeira is a UNESCO World Heritage Site.',
     latitude: 41.1406, longitude: -8.6155, vibe: 'historisch', priceLevel: 4, sortOrder: 3,
     col: [
-      { category: 'rent_studio', value: 1000, currency: 'EUR' },
-      { category: 'rent_1br', value: 1400, currency: 'EUR' },
-      { category: 'rent_2br', value: 2000, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1000, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1400, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2000, currency: 'EUR' },
       { category: 'groceries_monthly', value: 290, currency: 'EUR' },
       { category: 'restaurant_meal', value: 15, currency: 'EUR' },
     ],
@@ -69,9 +69,9 @@ const DISTRICTS = [
     descriptionEN: 'Coastal municipality directly on the Atlantic — surfing, fresh seafood and relaxed living. 15 min metro to the centre. Very popular with expats.',
     latitude: 41.1843, longitude: -8.6893, vibe: 'coastal', priceLevel: 3, sortOrder: 4,
     col: [
-      { category: 'rent_studio', value: 850, currency: 'EUR' },
-      { category: 'rent_1br', value: 1100, currency: 'EUR' },
-      { category: 'rent_2br', value: 1600, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 850, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1100, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1600, currency: 'EUR' },
       { category: 'groceries_monthly', value: 275, currency: 'EUR' },
       { category: 'restaurant_meal', value: 13, currency: 'EUR' },
     ],
@@ -84,9 +84,9 @@ const DISTRICTS = [
     descriptionEN: "Exclusive villa neighbourhood at the river mouth — upscale residential area, beach promenade, Porto's most expensive rents. For wealthy expats and families.",
     latitude: 41.1582, longitude: -8.6826, vibe: 'gehoben', priceLevel: 5, sortOrder: 5,
     col: [
-      { category: 'rent_studio', value: 1100, currency: 'EUR' },
-      { category: 'rent_1br', value: 1600, currency: 'EUR' },
-      { category: 'rent_2br', value: 2400, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1100, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1600, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2400, currency: 'EUR' },
       { category: 'groceries_monthly', value: 310, currency: 'EUR' },
       { category: 'restaurant_meal', value: 16, currency: 'EUR' },
     ],
@@ -99,9 +99,9 @@ const DISTRICTS = [
     descriptionEN: 'University district with the largest campus of the Universidade do Porto. Affordable, green, quiet — ideal for students and families on smaller budgets.',
     latitude: 41.1650, longitude: -8.6200, vibe: 'akademisch', priceLevel: 2, sortOrder: 6,
     col: [
-      { category: 'rent_studio', value: 650, currency: 'EUR' },
-      { category: 'rent_1br', value: 850, currency: 'EUR' },
-      { category: 'rent_2br', value: 1200, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 650, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 850, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1200, currency: 'EUR' },
       { category: 'groceries_monthly', value: 250, currency: 'EUR' },
       { category: 'restaurant_meal', value: 10, currency: 'EUR' },
     ],
@@ -114,9 +114,9 @@ const DISTRICTS = [
     descriptionEN: 'On the other side of the Douro — more affordable rents with views of Porto. Home to the Port Wine caves and a growing expat community.',
     latitude: 41.1332, longitude: -8.6094, vibe: 'aufstrebend', priceLevel: 2, sortOrder: 7,
     col: [
-      { category: 'rent_studio', value: 700, currency: 'EUR' },
-      { category: 'rent_1br', value: 950, currency: 'EUR' },
-      { category: 'rent_2br', value: 1350, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 700, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 950, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1350, currency: 'EUR' },
       { category: 'groceries_monthly', value: 260, currency: 'EUR' },
       { category: 'restaurant_meal', value: 11, currency: 'EUR' },
     ],
@@ -129,9 +129,9 @@ const DISTRICTS = [
     descriptionEN: 'Most affordable option in greater Porto — 40–60 min by train. University cities with their own charm and significantly lower rents.',
     latitude: 41.5454, longitude: -8.4265, vibe: 'suburban', priceLevel: 1, sortOrder: 8,
     col: [
-      { category: 'rent_studio', value: 500, currency: 'EUR' },
-      { category: 'rent_1br', value: 650, currency: 'EUR' },
-      { category: 'rent_2br', value: 900, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 500, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 650, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 900, currency: 'EUR' },
       { category: 'groceries_monthly', value: 220, currency: 'EUR' },
       { category: 'restaurant_meal', value: 9, currency: 'EUR' },
     ],
@@ -166,7 +166,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'freelancers',
+    section: 'for_freelancers',
     titleDE: 'Porto für Freelancer & Selbstständige',
     titleEN: 'Porto for Freelancers & Self-Employed',
     contentDE: `**Recibo Verde (Grüne Quittung):** Das portugiesische System für Selbstständige. Einfache Registrierung beim Finanzamt (Portal das Finanças). Kategorie B-Einkünfte.
@@ -200,7 +200,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'families',
+    section: 'for_families',
     titleDE: 'Porto für Familien',
     titleEN: 'Porto for Families',
     contentDE: `**Schulen:** Porto hat weniger internationale Schulen als Lissabon, aber die vorhandenen sind qualitativ hochwertig:
@@ -234,7 +234,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'retirees',
+    section: 'for_retirees',
     titleDE: 'Porto für Rentner',
     titleEN: 'Porto for Retirees',
     contentDE: `**IFICI für Rentner:** Das IFICI-Regime gilt auch für Rentner mit ausländischen Pensionen: 10% Quellensteuer auf ausländische Ruhestandseinkünfte (bei Eintritt in Portugal im Rahmen des IFICI-Regimes). Deutlich günstiger als in Deutschland.
@@ -266,7 +266,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'tech',
+    section: 'for_tech_workers',
     titleDE: 'Porto als Tech-Hub',
     titleEN: 'Porto as Tech Hub',
     contentDE: `Porto ist nach Lissabon Portugals zweites Tech-Zentrum, mit dem Vorteil niedrigerer Kosten bei ähnlichem Talent-Pool.
@@ -446,7 +446,7 @@ What distinguishes Porto from Lisbon: the community is more authentic, less "Ins
 
 Housing market: 1-bedroom for €950/month in Cedofeita. The search took 6 weeks — idealista.pt is the best portal, but personal recommendations through local networks ultimately worked out.`,
     rating: 5,
-    isVerified: true,
+    isVerified: false,
   },
   {
     authorName: 'Renate & Jürgen H.',
@@ -465,7 +465,7 @@ What surprised us: Porto is much more European than we thought. Daily life is we
 
 Our tip for older expats: Foz do Douro or Matosinhos for quiet, clean residential locations. We live in Matosinhos, 5 minutes' walk from the Atlantic.`,
     rating: 5,
-    isVerified: true,
+    isVerified: false,
   },
   {
     authorName: 'Katharina M.',

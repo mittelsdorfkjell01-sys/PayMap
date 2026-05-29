@@ -24,9 +24,9 @@ export async function seedBarcelona() {
       descriptionEN: "Barcelona's iconic grid district — Gaudí architecture, wide boulevards, central for everything.",
       latitude: 41.3942, longitude: 2.1605, vibe: 'urban-modern', priceLevel: 4, sortOrder: 1,
       col: [
-        { category: 'rent_studio', value: 1300, currency: 'EUR' },
-        { category: 'rent_1br', value: 1700, currency: 'EUR' },
-        { category: 'rent_2br', value: 2200, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1300, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1700, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 2200, currency: 'EUR' },
       ],
     },
     {
@@ -37,9 +37,9 @@ export async function seedBarcelona() {
       descriptionEN: 'Former village with community feel — lively squares, bohemian vibe, popular with creatives and young families.',
       latitude: 41.4036, longitude: 2.1572, vibe: 'bohemian', priceLevel: 3, sortOrder: 2,
       col: [
-        { category: 'rent_studio', value: 1050, currency: 'EUR' },
-        { category: 'rent_1br', value: 1400, currency: 'EUR' },
-        { category: 'rent_2br', value: 1850, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1050, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1400, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1850, currency: 'EUR' },
       ],
     },
     {
@@ -50,9 +50,9 @@ export async function seedBarcelona() {
       descriptionEN: 'Up-and-coming district at the foot of Montjuïc — great tapas scene on Carrer de Blai, more affordable rents.',
       latitude: 41.3726, longitude: 2.1588, vibe: 'trendy', priceLevel: 2, sortOrder: 3,
       col: [
-        { category: 'rent_studio', value: 900, currency: 'EUR' },
-        { category: 'rent_1br', value: 1200, currency: 'EUR' },
-        { category: 'rent_2br', value: 1600, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 900, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1200, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1600, currency: 'EUR' },
       ],
     },
     {
@@ -63,9 +63,9 @@ export async function seedBarcelona() {
       descriptionEN: 'Former industrial district turned tech hub 22@ — startups, co-working, close to the beach.',
       latitude: 41.4024, longitude: 2.2003, vibe: 'urban-modern', priceLevel: 3, sortOrder: 4,
       col: [
-        { category: 'rent_studio', value: 1100, currency: 'EUR' },
-        { category: 'rent_1br', value: 1500, currency: 'EUR' },
-        { category: 'rent_2br', value: 1950, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1100, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1500, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1950, currency: 'EUR' },
       ],
     },
     {
@@ -76,9 +76,9 @@ export async function seedBarcelona() {
       descriptionEN: 'Upscale residential area in the northwest — quiet, green, international schools, popular with families.',
       latitude: 41.4063, longitude: 2.1311, vibe: 'suburban', priceLevel: 4, sortOrder: 5,
       col: [
-        { category: 'rent_studio', value: 1200, currency: 'EUR' },
-        { category: 'rent_1br', value: 1700, currency: 'EUR' },
-        { category: 'rent_2br', value: 2400, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1200, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1700, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 2400, currency: 'EUR' },
       ],
     },
     {
@@ -89,9 +89,9 @@ export async function seedBarcelona() {
       descriptionEN: 'Large district around the main train station — affordable rents, great transport links, authentic neighbourhood.',
       latitude: 41.3716, longitude: 2.1434, vibe: 'authentic', priceLevel: 2, sortOrder: 6,
       col: [
-        { category: 'rent_studio', value: 850, currency: 'EUR' },
-        { category: 'rent_1br', value: 1150, currency: 'EUR' },
-        { category: 'rent_2br', value: 1550, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 850, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1150, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1550, currency: 'EUR' },
       ],
     },
     {
@@ -102,9 +102,9 @@ export async function seedBarcelona() {
       descriptionEN: 'Eastern district with beaches and Rambla del Poblenou — mix of locals and expats.',
       latitude: 41.4099, longitude: 2.2046, vibe: 'mixed', priceLevel: 3, sortOrder: 7,
       col: [
-        { category: 'rent_studio', value: 1000, currency: 'EUR' },
-        { category: 'rent_1br', value: 1350, currency: 'EUR' },
-        { category: 'rent_2br', value: 1800, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1000, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1350, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1800, currency: 'EUR' },
       ],
     },
     {
@@ -115,9 +115,9 @@ export async function seedBarcelona() {
       descriptionEN: 'More affordable municipalities adjacent to Barcelona — metro access, significantly lower rents.',
       latitude: 41.4500, longitude: 2.2474, vibe: 'suburban', priceLevel: 1, sortOrder: 8,
       col: [
-        { category: 'rent_studio', value: 700, currency: 'EUR' },
-        { category: 'rent_1br', value: 950, currency: 'EUR' },
-        { category: 'rent_2br', value: 1300, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 700, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 950, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1300, currency: 'EUR' },
       ],
     },
   ];
@@ -152,7 +152,7 @@ export async function seedBarcelona() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'freelancers',
+      section: 'for_freelancers',
       titleDE: 'Selbstständig in Barcelona: Autónomo, Módulos und das Beckham-Gesetz',
       titleEN: 'Freelancing in Barcelona: Autónomo, Módulos and the Beckham Law',
       contentDE: `Als Selbstständiger in Spanien musst du dich als Autónomo bei der Seguridad Social (Sozialversicherung) anmelden. Seit 2023 gilt ein reformiertes System: Die monatliche Mindestbeitrag beträgt ca. 230 Euro (Einsteiger, erste 12 Monate Bonifikation: 80 Euro tarifa plana), steigt dann stufenweise je nach Nettoeinnahmen bis max. ca. 590 Euro/Monat.\n\nFür die Einkommensteuer (IRPF) wählen viele Freiberufler die Módulos-Methode (pauschale Schätzung nach Branche), was bei geringen tatsächlichen Gewinnen vorteilhaft sein kann. Alternativ: Estimación Directa (tatsächliche Gewinne).\n\nDas Beckham-Gesetz (Art. 93 LIRPF) ermöglicht unter bestimmten Voraussetzungen eine Flat Tax von 24 % auf spanische Einkünfte bis 600.000 Euro — auch für Selbstständige. Voraussetzung: kein spanischer Wohnsitz in den letzten 5 Jahren, Tätigkeit in Spanien auf Einladung eines spanischen Unternehmens oder als Fernarbeiter. Die Beantragung erfolgt über das Formular 149 bei der AEAT, innerhalb von 6 Monaten nach Registrierung.`,
@@ -161,7 +161,7 @@ export async function seedBarcelona() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'families',
+      section: 'for_families',
       titleDE: 'Familienleben in Barcelona: Schulen, Empadronamiento und Kinderbetreuung',
       titleEN: 'Family Life in Barcelona: Schools, Empadronamiento and Childcare',
       contentDE: `Der erste behördliche Schritt für Familien ist die Empadronamiento — die Anmeldung im Einwohnerbüro des Stadtbezirks. Ohne Empadronamiento kein Zugang zu öffentlichen Schulen, kein Anspruch auf Gesundheitsversorgung via CatSalut, keine lokalen Sozialleistungen.\n\nInternationale Schulen sind in Sarria-Sant Gervasi und Pedralbes konzentriert: Deutsche Schule Barcelona (DSB), American School of Barcelona, British School of Barcelona und mehrere bilinguale Privatschulen. Jahresgebühren: 8.000–18.000 Euro. Öffentliche zweisprachige Schulen (Spanisch/Katalanisch) sind kostenlos, aber überbucht — Anmeldezeitraum März/April für das Folgejahr.\n\nKinderbetreuung (0–3 Jahre): Öffentliche Krippen (Llars d'infants municipals) kosten 200–500 Euro/Monat je nach Einkommen, private 600–1.200 Euro/Monat. Wartelisten sind lang — frühzeitig anmelden. Ab 3 Jahren ist Vorschule kostenlos und praktisch universell.`,
@@ -170,7 +170,7 @@ export async function seedBarcelona() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'retirees',
+      section: 'for_retirees',
       titleDE: 'Ruhestand in Barcelona: Beckham-Gesetz, Non-Lucrative Visa und Steuern',
       titleEN: 'Retirement in Barcelona: Beckham Law, Non-Lucrative Visa and Taxes',
       contentDE: `Für EU-Bürger ist die Einreise nach Spanien ohne Visum möglich; nach 3 Monaten ist die Registrierung als EU-Bürger (Certificado de Registro de Ciudadano de la Unión) im zuständigen Ausländeramt Pflicht.\n\nNon-EU-Rentner benötigen ein Visum für nicht erwerbstätige Personen (Visado de residencia no lucrativa): Nachweis von min. 28.800 Euro/Jahr eigenem Einkommen (Rente, Kapital) plus ca. 7.200 Euro pro zusätzlichem Familienmitglied, Krankenversicherung, Unterkunftsnachweis, Strafregisterauszug.\n\nDas Beckham-Gesetz gilt unter Umständen auch für Rentner: Wer zum ersten Mal nach Spanien zieht, kann 24 % Flat Tax auf ausländische Renten und Kapitalerträge beantragen — besonders relevant für Deutsche mit hoher gesetzlicher Rente. Faustregel: Bei Rentenbeträgen über 45.000 Euro/Jahr lohnt sich ein Steuerberater-Vergleich zwischen Beckham und regulärem IRPF.`,
@@ -179,7 +179,7 @@ export async function seedBarcelona() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'tech',
+      section: 'for_tech_workers',
       titleDE: 'Tech-Szene Barcelona: 22@, Startups und internationale Arbeitgeber',
       titleEN: 'Tech Scene Barcelona: 22@, Startups and International Employers',
       contentDE: `Barcelonas Tech-Hub 22@ in Poblenou beherbergt über 1.500 Unternehmen — darunter Amazon, Glovo, King, Typeform, Wallapop und zahlreiche Scale-ups. Der Bezirk entstand aus dem Industrieviertel Poblenou und ist heute Sinnbild für Barcelonas Wandel zur Startup-Stadt.\n\nGehälter liegen im europäischen Mittelfeld: Senior Software Engineers verdienen 55.000–80.000 Euro brutto/Jahr, Product Manager 60.000–90.000 Euro. Im Vergleich zu London oder Amsterdam sind Gehälter niedriger, aber das Preis-Leistungs-Verhältnis beim Lebensstil ist ein starkes Argument.\n\nFür Fachkräfte aus Nicht-EU-Ländern wurde 2023 das Digital Nomad Visa (Visum für digitale Nomaden) eingeführt: Voraussetzung sind nachweisbare Einnahmen von min. 200 % des spanischen Mindestlohns (ca. 2.762 Euro/Monat in 2024), Tätigkeit für ausländische Arbeitgeber. Das Beckham-Gesetz ist kombinierbar.`,
@@ -360,7 +360,7 @@ export async function seedBarcelona() {
       contentDE: 'Das Beckham-Gesetz hat meine Entscheidung fuer Barcelona gegenueber Amsterdam oder Lissabon besiegelt. 24 % Flat Tax und dann noch 320 Sonnentage — die Kalkulation war einfach. Die Empadronamiento lief in zwei Stunden, der NIE-Termin dauerte drei Wochen auf sich warten. Einmal durch den buerokratischen Huegel, laeuft es aber gut.',
       contentEN: 'The Beckham Law sealed my decision for Barcelona over Amsterdam or Lisbon. 24% flat tax and 320 sunny days — the calculation was simple. The Empadronamiento took two hours, the NIE appointment took three weeks to come through. Once past the bureaucratic hill, things run smoothly.',
       rating: 4,
-      isVerified: true,
+      isVerified: false,
     },
     {
       authorName: 'Claudia & Marco R.',
@@ -371,7 +371,7 @@ export async function seedBarcelona() {
       contentDE: 'Mit zwei Kindern war die Schulwahl unser wichtigstes Thema. Die Deutsche Schule Barcelona ist teuer, aber der Uebergang war fuer die Kinder nahtlos. Sarria ist ruhig, gruen und trotzdem 20 Minuten vom Strand entfernt. Was uns ueberrascht hat: Wie viele Deutsche und Oesterreicher hier schon wohnen — unser Freundeskreis war nach 6 Monaten groesser als in Muenchen.',
       contentEN: 'With two children, school choice was our top priority. The Deutsche Schule Barcelona is expensive, but the transition was seamless for the kids. Sarria is quiet, green and still 20 minutes from the beach. What surprised us: how many Germans and Austrians already live here — our social circle was larger after 6 months than it was in Munich.',
       rating: 5,
-      isVerified: true,
+      isVerified: false,
     },
     {
       authorName: 'Nina K.',
@@ -382,7 +382,7 @@ export async function seedBarcelona() {
       contentDE: 'Als Freelancerin war der Autonomo-Prozess aufwendiger als gedacht. Mein Gestor hat das aber gut begleitet — ca. 350 EUR fuer alles inklusive Beckham-Antrag. Die tarifa plana (80 EUR/Monat) in den ersten Monaten hat mir den Start enorm erleichtert. Poblenou ist genau das richtige Viertel fuer mich: Co-Working, Strand, Nachbarschaft.',
       contentEN: 'As a freelancer, the Autonomo process was more involved than expected. My gestor handled it well — about 350 EUR for everything including the Beckham application. The tarifa plana (80 EUR/month) in the early months made starting out much easier. Poblenou is exactly the right neighbourhood for me: co-working, beach, community.',
       rating: 4,
-      isVerified: true,
+      isVerified: false,
     },
   ];
 

@@ -29,9 +29,9 @@ export async function seedParis() {
       descriptionEN: 'Historic Jewish quarter and vibrant nightlife — popular with creatives, young expats, very expensive.',
       latitude: 48.8575, longitude: 2.3593, vibe: 'bohemian', priceLevel: 5, sortOrder: 1,
       col: [
-        { category: 'rent_studio', value: 1400, currency: 'EUR' },
-        { category: 'rent_1br', value: 1900, currency: 'EUR' },
-        { category: 'rent_2br', value: 2800, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1400, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1900, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 2800, currency: 'EUR' },
       ],
     },
     {
@@ -42,9 +42,9 @@ export async function seedParis() {
       descriptionEN: 'Iconic hilltop artists district — touristy but with a vibrant local community and cultural scene.',
       latitude: 48.8865, longitude: 2.3431, vibe: 'bohemian', priceLevel: 3, sortOrder: 2,
       col: [
-        { category: 'rent_studio', value: 1050, currency: 'EUR' },
-        { category: 'rent_1br', value: 1500, currency: 'EUR' },
-        { category: 'rent_2br', value: 2100, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1050, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1500, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 2100, currency: 'EUR' },
       ],
     },
     {
@@ -55,9 +55,9 @@ export async function seedParis() {
       descriptionEN: 'Intellectual heart of Paris — cafés, universities, Sorbonne, historic bookshops. Very exclusive.',
       latitude: 48.8497, longitude: 2.3378, vibe: 'urban-modern', priceLevel: 5, sortOrder: 3,
       col: [
-        { category: 'rent_studio', value: 1500, currency: 'EUR' },
-        { category: 'rent_1br', value: 2100, currency: 'EUR' },
-        { category: 'rent_2br', value: 3200, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1500, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 2100, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 3200, currency: 'EUR' },
       ],
     },
     {
@@ -68,9 +68,9 @@ export async function seedParis() {
       descriptionEN: 'Multicultural, more affordable rents, emerging art and food scene — popular with young French and expats.',
       latitude: 48.8717, longitude: 2.3829, vibe: 'trendy', priceLevel: 2, sortOrder: 4,
       col: [
-        { category: 'rent_studio', value: 900, currency: 'EUR' },
-        { category: 'rent_1br', value: 1250, currency: 'EUR' },
-        { category: 'rent_2br', value: 1750, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 900, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1250, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1750, currency: 'EUR' },
       ],
     },
     {
@@ -81,9 +81,9 @@ export async function seedParis() {
       descriptionEN: 'Upscale western suburb — international schools, corporate headquarters, quiet and very well-connected.',
       latitude: 48.8834, longitude: 2.2734, vibe: 'suburban', priceLevel: 5, sortOrder: 5,
       col: [
-        { category: 'rent_studio', value: 1400, currency: 'EUR' },
-        { category: 'rent_1br', value: 2000, currency: 'EUR' },
-        { category: 'rent_2br', value: 3000, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1400, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 2000, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 3000, currency: 'EUR' },
       ],
     },
     {
@@ -94,9 +94,9 @@ export async function seedParis() {
       descriptionEN: 'Largest arrondissement, predominantly residential — good infrastructure, mixed population, moderate rents.',
       latitude: 48.8404, longitude: 2.2969, vibe: 'authentic', priceLevel: 3, sortOrder: 6,
       col: [
-        { category: 'rent_studio', value: 1100, currency: 'EUR' },
-        { category: 'rent_1br', value: 1550, currency: 'EUR' },
-        { category: 'rent_2br', value: 2200, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1100, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1550, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 2200, currency: 'EUR' },
       ],
     },
     {
@@ -107,9 +107,9 @@ export async function seedParis() {
       descriptionEN: 'Quiet suburbs east of Paris — Bois de Vincennes right on the doorstep, family life, 15 min to the city.',
       latitude: 48.8477, longitude: 2.4360, vibe: 'suburban', priceLevel: 3, sortOrder: 7,
       col: [
-        { category: 'rent_studio', value: 1000, currency: 'EUR' },
-        { category: 'rent_1br', value: 1400, currency: 'EUR' },
-        { category: 'rent_2br', value: 1950, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1000, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1400, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1950, currency: 'EUR' },
       ],
     },
     {
@@ -120,9 +120,9 @@ export async function seedParis() {
       descriptionEN: 'More affordable municipalities south of Paris — good metro/RER connections, significantly lower rents than intra-muros.',
       latitude: 48.8153, longitude: 2.3117, vibe: 'suburban', priceLevel: 1, sortOrder: 8,
       col: [
-        { category: 'rent_studio', value: 800, currency: 'EUR' },
-        { category: 'rent_1br', value: 1100, currency: 'EUR' },
-        { category: 'rent_2br', value: 1500, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 800, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1100, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1500, currency: 'EUR' },
       ],
     },
   ];
@@ -157,7 +157,7 @@ export async function seedParis() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'freelancers',
+      section: 'for_freelancers',
       titleDE: 'Selbstständig in Paris: Auto-Entrepreneur, SASU und Steuerpflichten',
       titleEN: 'Freelancing in Paris: Auto-Entrepreneur, SASU and Tax Obligations',
       contentDE: `Frankreich bietet Selbstständigen das **Auto-Entrepreneur-/Micro-Entrepreneur-Regime** — die einfachste Form der Selbstständigkeit. Voraussetzungen: Jahresumsatz unter 77.700 EUR (Dienstleistungen) oder 188.700 EUR (Warenhandel). Sozialabgaben: ca. 22–23 % des Umsatzes, keine Trennung von Betriebskosten. Steuern: Einkommensteuer (IRPP) auf Gewinn oder pauschale Abgabe (versement libératoire: 2,2 % auf Umsatz).\n\nFür höhere Umsätze und professionellere Struktur empfiehlt sich die **SASU** (Société par Actions Simplifiée Unipersonnelle) — Einpersonen-AG nach französischem Recht. Vorteile: Haftungsbegrenzung, flexiblere Gehaltsgestaltung, steuerliche Optimierung via Dividenden. Kosten: Buchhalter nötig (ca. 1.000–3.000 EUR/Jahr).\n\n**Lohnsteuer und Sozialabgaben** in Frankreich sind hoch: Arbeitnehmeranteil ~22 %, Arbeitgeberanteil ~43 %. Der Einkommensteuer-Grenzsteuersatz liegt ab 74.545 EUR/Jahr bei 41 %. Sonderregelung für Neuankömmlinge: **Impatriés-Regime** (Art. 155 B CGI) — 50 % Steuerfreistellung auf bestimmte Einkünfte für 8 Jahre.`,
@@ -166,7 +166,7 @@ export async function seedParis() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'families',
+      section: 'for_families',
       titleDE: 'Familienleben in Paris: Schulen, CAF-Zuschüsse und Kinderbetreuung',
       titleEN: 'Family Life in Paris: Schools, CAF Benefits and Childcare',
       contentDE: `Frankreich ist familienpolitisch eines der großzügigsten Länder Europas: Die **CAF** (Caisse d'Allocations Familiales) zahlt ab dem zweiten Kind Kindergeld (Allocations Familiales: 136 EUR/Monat für 2 Kinder, mehr für weitere), Wohnbeihilfe (APL) je nach Einkommen und verschiedene Familienzuschläge.\n\n**Kinderbetreuung**: Öffentliche Krippen (crèches municipales) kosten 0–600 EUR/Monat je nach Einkommen (quotient familial), sind aber überbucht — frühzeitig anmelden. Alternative: Tagesmütter (assistantes maternelles) mit staatlichem Zuschuss (PAJE: bis zu 920 EUR/Monat Erstattung). Ab 3 Jahren ist die Vorschule (maternelle) kostenlos und praktisch universell.\n\n**Internationale Schulen** konzentrieren sich in Neuilly-sur-Seine, im 16. Arr. und in Saint-Germain-en-Laye: Deutsche Schule Paris, Lycée International, American School of Paris, British School of Paris. Jahresgebühren: 10.000–25.000 EUR. Öffentliche Schulen sind exzellent, aber auf Französisch.`,
@@ -175,7 +175,7 @@ export async function seedParis() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'retirees',
+      section: 'for_retirees',
       titleDE: 'Ruhestand in Paris: Rentensteuern, Konventionen und Gesundheitsversorgung',
       titleEN: 'Retirement in Paris: Pension Taxes, Conventions and Healthcare',
       contentDE: `Für Deutsche, die nach Frankreich ziehen, gilt das **Doppelbesteuerungsabkommen Deutschland-Frankreich (DBA)**: Private Renten und Betriebsrenten werden grundsätzlich in Frankreich besteuert, nicht in Deutschland. Gesetzliche Renten aus Deutschland (Deutsche Rentenversicherung) hingegen unterliegen dem Besteuerungsrecht Deutschlands — aber nur auf den steuerpflichtigen Anteil (je nach Renteneintrittsalter). Wichtig: Beide Staaten tauschen Daten aus, daher unbedingt in beiden Ländern korrekt deklarieren.\n\nFrankreichs Einkommensteuer für Rentner ist progressiv: 0 % bis 10.777 EUR, 11 % bis 27.478 EUR, 30 % bis 78.570 EUR. Dazu kommen Sozialabgaben (CSG: 6,6–8,3 % je nach Einkommen) auf Renten — aber EU-Bürger ohne Anspruch auf franz. Sozialversicherung können CSG-Befreiung beantragen.\n\n**Krankenversicherung**: EU-Bürger mit Residenz in Frankreich können sich nach 3 Monaten bei der **CPAM** (Caisse Primaire d'Assurance Maladie) anmelden. Rentner aus EU-Ländern können ihre europäische Krankenversicherungskarte (EHIC) nutzen oder sich über die PUMA (Protection Universelle Maladie) anmelden.`,
@@ -184,7 +184,7 @@ export async function seedParis() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'tech',
+      section: 'for_tech_workers',
       titleDE: 'Tech-Szene Paris: Station F, Startups und das Impatriés-Regime',
       titleEN: 'Tech Scene Paris: Station F, Startups and the Impatriés Regime',
       contentDE: `Paris ist das führende Tech-Ökosystem Kontinentaleuropas: **Station F** (Camille-Desmoulins-Straße, 13. Arr.) beherbergt 1.000+ Startups und gilt als weltgrößter Startup-Campus. Große Tech-Arbeitgeber: Meta, Google, LinkedIn, Doctolib, Contentsquare, Back Market, ManoMano und hunderte Scale-ups in La Défense und im 13./15. Arrondissement.\n\nGehälter in Paris sind im europäischen Vergleich mittelstark: Senior Software Engineers verdienen 65.000–95.000 EUR brutto/Jahr, Product Manager 70.000–100.000 EUR. Das **Impatriés-Regime** (Art. 155 B CGI) macht Paris für internationale Top-Talente attraktiv: 50 % der Prämien, Bezüge aus dem Ausland und bestimmte Einkünfte sind für 8 Jahre von der Einkommensteuer befreit.\n\nFür internationale Tech-Talente ohne Vorort-Präsenz gibt es das **Passeport Talent** (Talent Visa): mehrjährige Aufenthaltserlaubnis für Hochqualifizierte mit Jobangebot oder als Unternehmensgründer. Bearbeitungszeit: 4–8 Wochen. Familienangehörige erhalten einen eigenständigen Aufenthaltstitel.`,
@@ -368,7 +368,7 @@ export async function seedParis() {
       contentDE: 'Das Impatries-Regime hat mir den Entschluss nach Paris erleichtert. 50 % Freistellung auf Boni und Auslandseinnahmen sind enorm. Mein Arbeitgeber hat den Antrag ueber den Lohnzettel abgewickelt — ich musste nichts gesondert einreichen. Die Wohnungssuche war das eigentliche Abenteuer: Ohne franzoesischen Garant laeuft fast nichts. VISALE hat das geloest.',
       contentEN: 'The Impatries regime made the decision to move to Paris easier. 50% exemption on bonuses and foreign income is huge. My employer handled the application via the payslip — I did not have to file anything separately. Flat hunting was the real adventure: without a French guarantor almost nothing works. VISALE solved that.',
       rating: 5,
-      isVerified: true,
+      isVerified: false,
     },
     {
       authorName: 'Sabine & Peter H.',
@@ -379,7 +379,7 @@ export async function seedParis() {
       contentDE: 'Wir leben im 15. Arrondissement — zentral, ruhig genug fuer Kinder, nahe der Deutschen Schule Paris. Die CAF-Leistungen haben uns ueberrascht: APL fuer unsere Wohnung plus Allocations Familiales. Macht fast 600 EUR/Monat zusammen. Das franzoesische Bildungssystem ist exzellent, aber fuer die ersten Jahre in Paris ist die Sprachbarriere fuer die Kinder real.',
       contentEN: 'We live in the 15th arrondissement — central, quiet enough for children, close to the Deutsche Schule Paris. The CAF benefits surprised us: APL for our flat plus Allocations Familiales. Together almost EUR 600/month. The French education system is excellent, but for the first years in Paris the language barrier for children is real.',
       rating: 4,
-      isVerified: true,
+      isVerified: false,
     },
     {
       authorName: 'Dr. Karin L.',
@@ -390,7 +390,7 @@ export async function seedParis() {
       contentDE: 'Das DBA zwischen Deutschland und Frankreich ist kompliziert — meine gesetzliche Rente wird in Deutschland besteuert, meine Betriebsrente in Frankreich. Mein Steuerberater in beiden Laendern ist unverzichtbar. Dafuer: Paris ist fuer Rentner wunderbar. Die CPAM funktioniert gut, und mit einer Complementaire Sante (Zusatzversicherung) ist man rundum versorgt.',
       contentEN: 'The DBA between Germany and France is complicated — my statutory pension is taxed in Germany, my occupational pension in France. My tax adviser in both countries is indispensable. But: Paris is wonderful for retirees. The CPAM works well, and with a Complementaire Sante (supplementary insurance) you are fully covered.',
       rating: 4,
-      isVerified: true,
+      isVerified: false,
     },
   ];
 

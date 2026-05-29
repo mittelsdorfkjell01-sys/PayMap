@@ -29,9 +29,9 @@ export async function seedRomPremium() {
       descriptionEN: 'Bourgeois neighbourhood near the Vatican — wide boulevards, good infrastructure, popular with expats and diplomats.',
       latitude: 41.9052, longitude: 12.4669, vibe: 'urban-modern', priceLevel: 4, sortOrder: 1,
       col: [
-        { category: 'rent_studio', value: 1100, currency: 'EUR' },
-        { category: 'rent_1br', value: 1500, currency: 'EUR' },
-        { category: 'rent_2br', value: 2000, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1100, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1500, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 2000, currency: 'EUR' },
       ],
     },
     {
@@ -42,9 +42,9 @@ export async function seedRomPremium() {
       descriptionEN: "Rome's most charming neighbourhood — cobblestones, piazzas, lively restaurant scene, international flair.",
       latitude: 41.8891, longitude: 12.4689, vibe: 'bohemian', priceLevel: 4, sortOrder: 2,
       col: [
-        { category: 'rent_studio', value: 1050, currency: 'EUR' },
-        { category: 'rent_1br', value: 1400, currency: 'EUR' },
-        { category: 'rent_2br', value: 1900, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1050, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1400, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1900, currency: 'EUR' },
       ],
     },
     {
@@ -55,9 +55,9 @@ export async function seedRomPremium() {
       descriptionEN: 'Up-and-coming eastern neighbourhood — lively bar scene, creative community, more affordable rents.',
       latitude: 41.8841, longitude: 12.5266, vibe: 'trendy', priceLevel: 2, sortOrder: 3,
       col: [
-        { category: 'rent_studio', value: 750, currency: 'EUR' },
-        { category: 'rent_1br', value: 1000, currency: 'EUR' },
-        { category: 'rent_2br', value: 1350, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 750, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1000, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1350, currency: 'EUR' },
       ],
     },
     {
@@ -68,9 +68,9 @@ export async function seedRomPremium() {
       descriptionEN: 'Modern business district in the south — international companies, FAO headquarters, quiet and well-connected.',
       latitude: 41.8320, longitude: 12.4698, vibe: 'urban-modern', priceLevel: 3, sortOrder: 4,
       col: [
-        { category: 'rent_studio', value: 900, currency: 'EUR' },
-        { category: 'rent_1br', value: 1200, currency: 'EUR' },
-        { category: 'rent_2br', value: 1600, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 900, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1200, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1600, currency: 'EUR' },
       ],
     },
     {
@@ -81,9 +81,9 @@ export async function seedRomPremium() {
       descriptionEN: 'Upscale northern districts — embassies, international schools, Villa Borghese nearby.',
       latitude: 41.9283, longitude: 12.4748, vibe: 'suburban', priceLevel: 5, sortOrder: 5,
       col: [
-        { category: 'rent_studio', value: 1200, currency: 'EUR' },
-        { category: 'rent_1br', value: 1700, currency: 'EUR' },
-        { category: 'rent_2br', value: 2400, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 1200, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1700, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 2400, currency: 'EUR' },
       ],
     },
     {
@@ -94,9 +94,9 @@ export async function seedRomPremium() {
       descriptionEN: 'Authentic working-class neighbourhood with lively food scene and emerging creative industry.',
       latitude: 41.8767, longitude: 12.4773, vibe: 'authentic', priceLevel: 3, sortOrder: 6,
       col: [
-        { category: 'rent_studio', value: 950, currency: 'EUR' },
-        { category: 'rent_1br', value: 1250, currency: 'EUR' },
-        { category: 'rent_2br', value: 1650, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 950, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1250, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1650, currency: 'EUR' },
       ],
     },
     {
@@ -107,9 +107,9 @@ export async function seedRomPremium() {
       descriptionEN: 'Character neighbourhood in the south — borgo architecture, community feel, more affordable than the centre.',
       latitude: 41.8609, longitude: 12.4813, vibe: 'authentic', priceLevel: 2, sortOrder: 7,
       col: [
-        { category: 'rent_studio', value: 750, currency: 'EUR' },
-        { category: 'rent_1br', value: 1000, currency: 'EUR' },
-        { category: 'rent_2br', value: 1350, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 750, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 1000, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1350, currency: 'EUR' },
       ],
     },
     {
@@ -120,9 +120,9 @@ export async function seedRomPremium() {
       descriptionEN: 'Vineyards and villas on the outskirts of Rome — significantly cheaper rents, 30–45 min by train to the centre.',
       latitude: 41.7500, longitude: 12.6500, vibe: 'suburban', priceLevel: 1, sortOrder: 8,
       col: [
-        { category: 'rent_studio', value: 550, currency: 'EUR' },
-        { category: 'rent_1br', value: 750, currency: 'EUR' },
-        { category: 'rent_2br', value: 1000, currency: 'EUR' },
+        { category: 'rent_3br_center', value: 550, currency: 'EUR' },
+        { category: 'rent_1br_center', value: 750, currency: 'EUR' },
+        { category: 'rent_2br_center', value: 1000, currency: 'EUR' },
       ],
     },
   ];
@@ -157,7 +157,7 @@ export async function seedRomPremium() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'freelancers',
+      section: 'for_freelancers',
       titleDE: 'Selbstständig in Rom: Partita IVA, Forfettario und Impatriati',
       titleEN: 'Freelancing in Rome: Partita IVA, Forfettario and Impatriati',
       contentDE: `Selbstständige in Italien benötigen eine **Partita IVA** (Mehrwertsteuernummer / Unternehmens-ID). Die Anmeldung erfolgt beim Agenzia delle Entrate — möglich persönlich, online oder über einen Commercialista. Zusammen mit der Partita IVA wählt man das Steuerregime.\n\nFür Einsteiger und Kleinunternehmer besonders attraktiv: das **Regime Forfettario** (Pauschalbesteuerung). Voraussetzung: Jahresumsatz unter 85.000 EUR. Steuersatz: 15 % auf einen pauschalen Gewinnanteil (der nach Branche variiert), effektive Steuerbelastung oft 5–12 %. Neugründer zahlen in den ersten 5 Jahren sogar nur 5 % (Start-up-Bonus).\n\nKombination mit dem Impatriati-Regime: Möglich! Selbstständige mit Partita IVA können beide Regime kombinieren — 50 % der anrechenbaren Einkünfte werden von der Steuerbemessungsgrundlage ausgenommen, und auf den verbleibenden Teil gilt der Forfettario-Satz. Ein Commercialista ist hier unverzichtbar.`,
@@ -166,7 +166,7 @@ export async function seedRomPremium() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'families',
+      section: 'for_families',
       titleDE: 'Familienleben in Rom: Schulen, Residenza und Kindergeld',
       titleEN: 'Family Life in Rome: Schools, Residenza and Child Benefits',
       contentDE: `Der wichtigste erste Schritt für Familien in Rom ist die **Residenza** (Einwohneranmeldung) beim zuständigen Municipio. Ohne Residenza kein Zugang zu kommunalen Diensten, kein Recht auf Kindergartenplätze, keine Abonnements für öffentliche Verkehrsmittel.\n\n**Internationale Schulen** konzentrieren sich in den Nordvierteln (Flaminio, Parioli, Olgiata): Marymount International, Ambrit Rome (amerikanisch), Rome International School, Deutsche Schule Rom (EUR). Jahresgebühren: 8.000–22.000 EUR. Öffentliche Schulen sind kostenlos und mehrsprachige Sektionen (englisch/französisch) vorhanden.\n\n**Assegno Unico** (universelles Kindergeld): EU-Bürger und legale Nicht-EU-Residenten mit Residenza haben Anspruch ab dem 7. Schwangerschaftsmonat — 57–175 EUR/Kind/Monat je nach Einkommens-ISEE. Beantragung beim INPS (nationaler Sozialversicherungsträger).`,
@@ -175,7 +175,7 @@ export async function seedRomPremium() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'retirees',
+      section: 'for_retirees',
       titleDE: 'Ruhestand in Rom: Steuerprivilegien, Elective Residency und Gesundheitsversorgung',
       titleEN: 'Retirement in Rome: Tax Privileges, Elective Residency and Healthcare',
       contentDE: `Italien bietet Rentnern aus dem Ausland mit dem **7%-Flat-Tax-Regime** (Art. 24-ter TUIR) eines der attraktivsten Steuerpaket Europas: Wer in bestimmte Südregionen oder Inseln zieht (Sizilien, Sardinien, Kalabrien, Basilikata, Kampanien, Abruzzen, Molise, Apulien — einschließlich einige Städte im Latium-Umland), zahlt auf ausländische Renten und Kapitalerträge nur 7 % Flat Tax für 10 Jahre. Rom selbst fällt nicht in dieses Regime, aber das Latium-Umland (z. B. Castelli Romani) oft schon.\n\nFür Rom direkt gilt das allgemeine **Regime degli Impatriati** (50 % Steuerfreistellung) — auch für Rentner mit ausländischer Rente und weitere Einnahmen aus Kapitalvermögen.\n\nEU-Bürger haben über die Residenza Zugang zum **SSN (Servizio Sanitario Nazionale)** — kostenfrei nach Anmeldung beim ASL. Non-EU-Rentner benötigen zunächst eine private Krankenversicherung oder zahlen den SSN-Beitrag als freiwillig Versicherte.`,
@@ -184,7 +184,7 @@ export async function seedRomPremium() {
       lastVerified: new Date('2025-10-01'),
     },
     {
-      section: 'tech',
+      section: 'for_tech_workers',
       titleDE: 'Tech-Szene Rom: Startups, FAO-Ökosystem und Digitale Nomaden',
       titleEN: 'Tech Scene Rome: Startups, FAO Ecosystem and Digital Nomads',
       contentDE: `Roms Tech-Szene ist kleiner als Mailand, wächst aber: Hauptcluster im EUR-Viertel (internationale Organisationen, IT-Unternehmen), in Ostiense (Startups, Maker-Szene) und zunehmend in Trastevere. Zu den bekannten Arbeitgebern zählen FAO, IFAD, WFP, Telecom Italia, Leonardo S.p.A. und eine Reihe wachsender Startups wie Satispay.\n\nGehälter im Tech-Sektor liegen deutlich unter dem EU-Schnitt: Senior Software Engineers verdienen 45.000–65.000 EUR brutto/Jahr, Product Manager 50.000–75.000 EUR. Das Impatriati-Regime macht Rom dennoch attraktiv: Nach 50 %-Freistellung sind die effektiven Steuersätze sehr konkurrenzfähig.\n\nFür Fernarbeiter und digitale Nomaden wurde 2022 das **Remote-Work-Visum** (Visto per lavoro autonomo) eingeführt. Voraussetzungen: Arbeitsvertrag mit ausländischem Unternehmen, nachweisbares Einkommen über 2.700 EUR/Monat, private Krankenversicherung. Das Regime degli Impatriati ist bei richtiger Gestaltung kombinierbar.`,
@@ -369,7 +369,7 @@ export async function seedRomPremium() {
       contentDE: 'Das Impatriati-Regime war der Hauptgrund fuer meinen Umzug nach Rom. Mit 50 % Steuerfreistellung kommt mein effektiver Steuersatz auf unter 20 % — das schlaegt jede andere europaeische Stadt. Mein Commercialista hat den Antrag in einer Woche erledigt. Die Buerokratie fuer die Residenza war aufwendiger, aber mit SPID laeuft inzwischen viel online.',
       contentEN: 'The Impatriati regime was the main reason for my move to Rome. With 50% tax exemption, my effective tax rate is under 20% — that beats any other European city. My Commercialista sorted the application in a week. The bureaucracy for Residenza was more involved, but SPID means a lot runs online now.',
       rating: 5,
-      isVerified: true,
+      isVerified: false,
     },
     {
       authorName: 'Franziska & Thomas B.',
@@ -380,7 +380,7 @@ export async function seedRomPremium() {
       contentDE: 'Wir leben in Parioli — ruhig, gruen, nahe der Deutschen Schule. Das Impatriati-Regime haben wir beide in Anspruch genommen: Ich als Angestellte, mein Mann als Freelancer mit Partita IVA. Die Kombination Forfettario + Impatriati ist sehr clever, aber ohne Commercialista nicht zu empfehlen. Rom ist keine Stadt fuer Selbstmacher bei der Buerokratie.',
       contentEN: 'We live in Parioli — quiet, green, close to the Deutsche Schule. We both used the Impatriati regime: me as an employee, my husband as a freelancer with Partita IVA. The Forfettario + Impatriati combination is very clever, but not recommended without a Commercialista. Rome is not a city for DIY bureaucracy.',
       rating: 4,
-      isVerified: true,
+      isVerified: false,
     },
     {
       authorName: 'Ingrid S.',
@@ -391,7 +391,7 @@ export async function seedRomPremium() {
       contentDE: 'Ich wohne in den Castelli Romani — 35 Minuten mit dem Zug nach Rom, aber ein Bruchteil der Miete. Das 7%-Flat-Tax-Regime gilt fuer die Gemeinde hier. Meine deutsche Rente wird mit 7 % besteuert, nicht mit dem deutschen Grenzsteuersatz. Mein Bruder in Muenchen zahlt das Dreifache. Der SSN funktioniert gut, fuer Facharzttermine plane ich aber voraus.',
       contentEN: 'I live in the Castelli Romani — 35 minutes by train to Rome, but a fraction of the rent. The 7% flat tax regime applies to my municipality here. My German pension is taxed at 7%, not the German marginal rate. My brother in Munich pays three times as much. The SSN works well, but I plan ahead for specialist appointments.',
       rating: 5,
-      isVerified: true,
+      isVerified: false,
     },
   ];
 

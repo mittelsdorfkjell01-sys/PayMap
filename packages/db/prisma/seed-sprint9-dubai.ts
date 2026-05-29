@@ -28,9 +28,9 @@ const DISTRICTS = [
     descriptionEN: 'The centrepiece of Dubai with Burj Khalifa, Dubai Mall and Dubai Fountain. Highest rents, luxurious, touristy, but central and prestigious.',
     latitude: 25.1972, longitude: 55.2744, vibe: 'luxuriös', priceLevel: 5, sortOrder: 1,
     col: [
-      { category: 'rent_studio', value: 2200, currency: 'AED' },
-      { category: 'rent_1br', value: 3500, currency: 'AED' },
-      { category: 'rent_2br', value: 5500, currency: 'AED' },
+      { category: 'rent_3br_center', value: 2200, currency: 'AED' },
+      { category: 'rent_1br_center', value: 3500, currency: 'AED' },
+      { category: 'rent_2br_center', value: 5500, currency: 'AED' },
       { category: 'groceries_monthly', value: 1800, currency: 'AED' },
       { category: 'restaurant_meal', value: 85, currency: 'AED' },
     ],
@@ -43,9 +43,9 @@ const DISTRICTS = [
     descriptionEN: 'Artificial harbour with skyscrapers, restaurants and Marina Walk. Very popular with expats, young demographic, excellent infrastructure.',
     latitude: 25.0793, longitude: 55.1404, vibe: 'urban', priceLevel: 4, sortOrder: 2,
     col: [
-      { category: 'rent_studio', value: 1800, currency: 'AED' },
-      { category: 'rent_1br', value: 3000, currency: 'AED' },
-      { category: 'rent_2br', value: 4800, currency: 'AED' },
+      { category: 'rent_3br_center', value: 1800, currency: 'AED' },
+      { category: 'rent_1br_center', value: 3000, currency: 'AED' },
+      { category: 'rent_2br_center', value: 4800, currency: 'AED' },
       { category: 'groceries_monthly', value: 1600, currency: 'AED' },
       { category: 'restaurant_meal', value: 70, currency: 'AED' },
     ],
@@ -58,9 +58,9 @@ const DISTRICTS = [
     descriptionEN: "Most affordable quality area for expats. Quiet, family-friendly, good infrastructure. 20-30 min to the centre. Very popular for mid-range budgets.",
     latitude: 25.0553, longitude: 55.2102, vibe: 'suburban', priceLevel: 2, sortOrder: 3,
     col: [
-      { category: 'rent_studio', value: 900, currency: 'AED' },
-      { category: 'rent_1br', value: 1500, currency: 'AED' },
-      { category: 'rent_2br', value: 2400, currency: 'AED' },
+      { category: 'rent_3br_center', value: 900, currency: 'AED' },
+      { category: 'rent_1br_center', value: 1500, currency: 'AED' },
+      { category: 'rent_2br_center', value: 2400, currency: 'AED' },
       { category: 'groceries_monthly', value: 1300, currency: 'AED' },
       { category: 'restaurant_meal', value: 50, currency: 'AED' },
     ],
@@ -73,9 +73,9 @@ const DISTRICTS = [
     descriptionEN: 'Growing business district directly adjacent to Downtown. Many new residential towers, good metro connection (Red Line), mix of residential and business.',
     latitude: 25.1869, longitude: 55.2631, vibe: 'business', priceLevel: 4, sortOrder: 4,
     col: [
-      { category: 'rent_studio', value: 1600, currency: 'AED' },
-      { category: 'rent_1br', value: 2800, currency: 'AED' },
-      { category: 'rent_2br', value: 4500, currency: 'AED' },
+      { category: 'rent_3br_center', value: 1600, currency: 'AED' },
+      { category: 'rent_1br_center', value: 2800, currency: 'AED' },
+      { category: 'rent_2br_center', value: 4500, currency: 'AED' },
       { category: 'groceries_monthly', value: 1600, currency: 'AED' },
       { category: 'restaurant_meal', value: 75, currency: 'AED' },
     ],
@@ -88,9 +88,9 @@ const DISTRICTS = [
     descriptionEN: 'Historic "Old Dubai" with Gold and Spice Souk, authentic atmosphere and the city\'s cheapest rents. Less typical for Western expats, but culturally unique.',
     latitude: 25.2653, longitude: 55.3075, vibe: 'historisch', priceLevel: 2, sortOrder: 5,
     col: [
-      { category: 'rent_studio', value: 600, currency: 'AED' },
-      { category: 'rent_1br', value: 1100, currency: 'AED' },
-      { category: 'rent_2br', value: 1800, currency: 'AED' },
+      { category: 'rent_3br_center', value: 600, currency: 'AED' },
+      { category: 'rent_1br_center', value: 1100, currency: 'AED' },
+      { category: 'rent_2br_center', value: 1800, currency: 'AED' },
       { category: 'groceries_monthly', value: 1100, currency: 'AED' },
       { category: 'restaurant_meal', value: 35, currency: 'AED' },
     ],
@@ -103,9 +103,9 @@ const DISTRICTS = [
     descriptionEN: 'The famous Palm Island — pure luxury with beach villas, exclusive hotels and restaurants. For high-earning expats and high-net-worth individuals.',
     latitude: 25.1124, longitude: 55.1390, vibe: 'luxuriös', priceLevel: 5, sortOrder: 6,
     col: [
-      { category: 'rent_studio', value: 2500, currency: 'AED' },
-      { category: 'rent_1br', value: 4500, currency: 'AED' },
-      { category: 'rent_2br', value: 8000, currency: 'AED' },
+      { category: 'rent_3br_center', value: 2500, currency: 'AED' },
+      { category: 'rent_1br_center', value: 4500, currency: 'AED' },
+      { category: 'rent_2br_center', value: 8000, currency: 'AED' },
       { category: 'groceries_monthly', value: 2000, currency: 'AED' },
       { category: 'restaurant_meal', value: 110, currency: 'AED' },
     ],
@@ -118,9 +118,9 @@ const DISTRICTS = [
     descriptionEN: 'Tech freezone with affordable rents, good value for money and many tech companies on site. Good for IT freelancers and startup founders.',
     latitude: 25.1190, longitude: 55.3808, vibe: 'tech', priceLevel: 2, sortOrder: 7,
     col: [
-      { category: 'rent_studio', value: 800, currency: 'AED' },
-      { category: 'rent_1br', value: 1400, currency: 'AED' },
-      { category: 'rent_2br', value: 2200, currency: 'AED' },
+      { category: 'rent_3br_center', value: 800, currency: 'AED' },
+      { category: 'rent_1br_center', value: 1400, currency: 'AED' },
+      { category: 'rent_2br_center', value: 2200, currency: 'AED' },
       { category: 'groceries_monthly', value: 1300, currency: 'AED' },
       { category: 'restaurant_meal', value: 45, currency: 'AED' },
     ],
@@ -133,9 +133,9 @@ const DISTRICTS = [
     descriptionEN: 'Quiet family neighbourhood in eastern Dubai. Affordable, greener than the city centre, many international schools nearby. Very popular with Arab expat families.',
     latitude: 25.2218, longitude: 55.4139, vibe: 'familiär', priceLevel: 2, sortOrder: 8,
     col: [
-      { category: 'rent_studio', value: 750, currency: 'AED' },
-      { category: 'rent_1br', value: 1300, currency: 'AED' },
-      { category: 'rent_2br', value: 2100, currency: 'AED' },
+      { category: 'rent_3br_center', value: 750, currency: 'AED' },
+      { category: 'rent_1br_center', value: 1300, currency: 'AED' },
+      { category: 'rent_2br_center', value: 2100, currency: 'AED' },
       { category: 'groceries_monthly', value: 1200, currency: 'AED' },
       { category: 'restaurant_meal', value: 40, currency: 'AED' },
     ],
@@ -172,7 +172,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'freelancers',
+    section: 'for_freelancers',
     titleDE: 'Dubai für Freelancer & Selbstständige',
     titleEN: 'Dubai for Freelancers & Self-Employed',
     contentDE: `**Freezone vs. Mainland:** Selbstständige in Dubai müssen zwischen Freezone-Lizenz und Mainland-Lizenz wählen. Freezon (DMCC, IFZA, DSO): 100% ausländische Eigentümerschaft, Steuervorteile, aber nur B2B mit UAE-Kunden eingeschränkt. Mainland: Dubai Economy & Tourism (DET), vollständige UAE-Marktaktivität möglich, aber teurer.
@@ -204,7 +204,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'families',
+    section: 'for_families',
     titleDE: 'Dubai für Familien',
     titleEN: 'Dubai for Families',
     contentDE: `**Schulen:** Dubai hat eines der dichtesten Netze an internationalen Schulen weltweit. Wichtige Optionen für deutschsprachige Familien:
@@ -236,7 +236,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'retirees',
+    section: 'for_retirees',
     titleDE: 'Dubai für Rentner',
     titleEN: 'Dubai for Retirees',
     contentDE: `**Retirement Visa (55+):** Dubai bietet ein spezielles Retirement Visa für Personen über 55 Jahren. Voraussetzungen: mind. AED 1 Mio. in UAE-Immobilien ODER AED 1 Mio. auf UAE-Bankkonto ODER Monatseinkommen von mind. AED 20.000. Dauer: 5 Jahre, erneuerbar.
@@ -262,7 +262,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'tech',
+    section: 'for_tech_workers',
     titleDE: 'Dubai als Tech-Hub',
     titleEN: 'Dubai as Tech Hub',
     contentDE: `Dubai hat sich in den letzten 5 Jahren konsequent als führendes Tech-Zentrum des Mittleren Ostens und Afrikas (MENA) positioniert.
@@ -466,7 +466,7 @@ The apartment search took 3 weeks — significantly easier than Amsterdam or Mun
 
 What surprised me: Dubai is excellently organised. The bureaucracy is fast and digital — Emirates ID in 10 days, bank account in 5 working days. The reputation for being "chaotic" is not accurate. The only real disadvantage: summer. July/August is barely liveable outdoors.`,
     rating: 5,
-    isVerified: true,
+    isVerified: false,
   },
   {
     authorName: 'Petra & Klaus M.',
@@ -489,7 +489,7 @@ The summer problem is solvable: from June to September we travel — to Germany,
 
 Tip for 50+: Cancel health insurance in Germany BEFORE arriving in Dubai and take out new insurance in Dubai. International Health Plan (Allianz, Cigna, AXA) with UAE coverage: ca. AED 8,000–15,000/year.`,
     rating: 4,
-    isVerified: true,
+    isVerified: false,
   },
   {
     authorName: 'Nina S.',
@@ -512,7 +512,7 @@ Clients from Europe: no problem, as freezone activities are designed for B2B exp
 
 What I don't hide from anyone: Dubai is socially different from Europe. The expat community is large but fluid — many come for 2–3 years, then move on. Building long-term friendships is more challenging. For me the move was still worth it — the financial plan was the right decision.`,
     rating: 4,
-    isVerified: true,
+    isVerified: false,
   },
 ];
 

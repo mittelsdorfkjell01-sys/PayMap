@@ -28,9 +28,9 @@ const DISTRICTS = [
     descriptionEN: 'The historic heart of Amsterdam with canals, museums and tourist infrastructure. Very expensive, loud, but unbeatable central.',
     latitude: 52.3728, longitude: 4.8936, vibe: 'historisch', priceLevel: 5, sortOrder: 1,
     col: [
-      { category: 'rent_studio', value: 1800, currency: 'EUR' },
-      { category: 'rent_1br', value: 2400, currency: 'EUR' },
-      { category: 'rent_2br', value: 3200, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1800, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 2400, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 3200, currency: 'EUR' },
       { category: 'groceries_monthly', value: 380, currency: 'EUR' },
       { category: 'restaurant_meal', value: 22, currency: 'EUR' },
     ],
@@ -43,9 +43,9 @@ const DISTRICTS = [
     descriptionEN: 'Charming neighbourhood with boutiques, galleries and cafés. Highly sought after by expats and creatives. Social housing waitlist: 15 years.',
     latitude: 52.3741, longitude: 4.8813, vibe: 'kreativ', priceLevel: 5, sortOrder: 2,
     col: [
-      { category: 'rent_studio', value: 1700, currency: 'EUR' },
-      { category: 'rent_1br', value: 2300, currency: 'EUR' },
-      { category: 'rent_2br', value: 3100, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1700, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 2300, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 3100, currency: 'EUR' },
       { category: 'groceries_monthly', value: 360, currency: 'EUR' },
       { category: 'restaurant_meal', value: 20, currency: 'EUR' },
     ],
@@ -58,9 +58,9 @@ const DISTRICTS = [
     descriptionEN: 'Vibrant neighbourhood with Albert Cuyp market, diverse restaurants and a young, international community. Popular with professionals.',
     latitude: 52.3535, longitude: 4.8987, vibe: 'urban', priceLevel: 4, sortOrder: 3,
     col: [
-      { category: 'rent_studio', value: 1500, currency: 'EUR' },
-      { category: 'rent_1br', value: 2000, currency: 'EUR' },
-      { category: 'rent_2br', value: 2700, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1500, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 2000, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2700, currency: 'EUR' },
       { category: 'groceries_monthly', value: 340, currency: 'EUR' },
       { category: 'restaurant_meal', value: 18, currency: 'EUR' },
     ],
@@ -73,9 +73,9 @@ const DISTRICTS = [
     descriptionEN: 'Up-and-coming area with Oosterpark, Javastraat and strong restaurant scene. Cheaper than Centrum, still very popular.',
     latitude: 52.3611, longitude: 4.9267, vibe: 'aufstrebend', priceLevel: 3, sortOrder: 4,
     col: [
-      { category: 'rent_studio', value: 1400, currency: 'EUR' },
-      { category: 'rent_1br', value: 1800, currency: 'EUR' },
-      { category: 'rent_2br', value: 2500, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1400, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1800, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2500, currency: 'EUR' },
       { category: 'groceries_monthly', value: 320, currency: 'EUR' },
       { category: 'restaurant_meal', value: 16, currency: 'EUR' },
     ],
@@ -88,9 +88,9 @@ const DISTRICTS = [
     descriptionEN: 'Diverse area with Baarsjes, Westerpark and vibrant cultural life. Good balance between price and location.',
     latitude: 52.3752, longitude: 4.8603, vibe: 'divers', priceLevel: 3, sortOrder: 5,
     col: [
-      { category: 'rent_studio', value: 1350, currency: 'EUR' },
-      { category: 'rent_1br', value: 1750, currency: 'EUR' },
-      { category: 'rent_2br', value: 2400, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1350, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1750, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2400, currency: 'EUR' },
       { category: 'groceries_monthly', value: 310, currency: 'EUR' },
       { category: 'restaurant_meal', value: 15, currency: 'EUR' },
     ],
@@ -103,9 +103,9 @@ const DISTRICTS = [
     descriptionEN: 'Rapidly growing area beyond the IJ with NDSM wharf, creative scene and relatively affordable rents. Ferry to Centrum in 7 minutes.',
     latitude: 52.4011, longitude: 4.9006, vibe: 'kreativ', priceLevel: 3, sortOrder: 6,
     col: [
-      { category: 'rent_studio', value: 1200, currency: 'EUR' },
-      { category: 'rent_1br', value: 1600, currency: 'EUR' },
-      { category: 'rent_2br', value: 2200, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1200, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1600, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2200, currency: 'EUR' },
       { category: 'groceries_monthly', value: 300, currency: 'EUR' },
       { category: 'restaurant_meal', value: 14, currency: 'EUR' },
     ],
@@ -118,9 +118,9 @@ const DISTRICTS = [
     descriptionEN: 'Suburb with high expat ratio, many international schools (ISA, DBSA) and quiet residential feel. 20 min by tram to Centrum.',
     latitude: 52.3108, longitude: 4.8625, vibe: 'familiär', priceLevel: 3, sortOrder: 7,
     col: [
-      { category: 'rent_studio', value: 1100, currency: 'EUR' },
-      { category: 'rent_1br', value: 1500, currency: 'EUR' },
-      { category: 'rent_2br', value: 2000, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1100, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1500, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2000, currency: 'EUR' },
       { category: 'groceries_monthly', value: 290, currency: 'EUR' },
       { category: 'restaurant_meal', value: 14, currency: 'EUR' },
     ],
@@ -133,9 +133,9 @@ const DISTRICTS = [
     descriptionEN: 'Most affordable option in the Amsterdam metro area. Well connected by metro, quiet, suburban. Popular with families on tighter budgets.',
     latitude: 52.3272, longitude: 4.9498, vibe: 'suburban', priceLevel: 2, sortOrder: 8,
     col: [
-      { category: 'rent_studio', value: 1000, currency: 'EUR' },
-      { category: 'rent_1br', value: 1350, currency: 'EUR' },
-      { category: 'rent_2br', value: 1800, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1000, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1350, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1800, currency: 'EUR' },
       { category: 'groceries_monthly', value: 280, currency: 'EUR' },
       { category: 'restaurant_meal', value: 13, currency: 'EUR' },
     ],
@@ -172,7 +172,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'freelancers',
+    section: 'for_freelancers',
     titleDE: 'Amsterdam für Freelancer & Selbstständige',
     titleEN: 'Amsterdam for Freelancers & Self-Employed',
     contentDE: `**ZZP (Zelfstandige zonder personeel)** ist die niederländische Entsprechung des Einzelunternehmens — die häufigste Rechtsform für Freelancer. Anmeldung bei der Kamer van Koophandel (KvK) kostet einmalig €75, danach jährliche Beiträge.
@@ -206,7 +206,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'families',
+    section: 'for_families',
     titleDE: 'Amsterdam für Familien',
     titleEN: 'Amsterdam for Families',
     contentDE: `**Schulen:** Amsterdam hat ein breites Angebot an internationalen Schulen — ein großer Vorteil für Familien mit Kindern, die kein Niederländisch sprechen. Wichtigste internationale Schulen:
@@ -236,7 +236,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'retirees',
+    section: 'for_retirees',
     titleDE: 'Amsterdam für Rentner',
     titleEN: 'Amsterdam for Retirees',
     contentDE: `**AOW und DBA:** Niederländische Rente (AOW) basiert auf Wohnjahren in NL (2% pro Jahr, max. 50 Jahre = 100%). Als Rentner aus Deutschland gilt das DBA DE-NL: Deutsche Renten werden in der Regel in DE besteuert, niederländische Rente in NL (mit Quellensteuererstattungsverfahren).
@@ -268,7 +268,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'tech',
+    section: 'for_tech_workers',
     titleDE: 'Amsterdam als Tech-Hub',
     titleEN: 'Amsterdam as Tech Hub',
     contentDE: `Amsterdam ist neben Berlin und London eines der führenden Tech-Ökosysteme Europas. Besondere Stärken:
@@ -472,7 +472,7 @@ The housing search was the hardest part. I lived in an Airbnb for 6 weeks and ap
 
 Today I live in Amsterdam Oost, 10 minutes by bike from Booking.com. The work-life balance through the cycling ecosystem is better than in any other city I've worked in.`,
     rating: 5,
-    isVerified: true,
+    isVerified: false,
   },
   {
     authorName: 'Sandra K.',
@@ -491,7 +491,7 @@ Amstelveen is ideal for families: quiet, safe, good infrastructure, short distan
 
 What surprised me: Dutch society is more direct than German. Feedback is more honest, meetings shorter, hierarchies flatter. This has had a very positive effect professionally.`,
     rating: 5,
-    isVerified: true,
+    isVerified: false,
   },
   {
     authorName: 'Thomas R.',
@@ -510,7 +510,7 @@ Nevertheless: Amsterdam is a fantastic place for freelancers. The network (Booki
 
 Tip for ZZPs: KvK registration immediately after moving in, Bunq for business account highly recommended, and definitely use accounting software (Moneybird, SnelStart) — the Belastingdienst is digital and expects it.`,
     rating: 4,
-    isVerified: true,
+    isVerified: false,
   },
 ];
 

@@ -28,9 +28,9 @@ const DISTRICTS = [
     descriptionEN: 'Historic centre with St. Stephen\'s Cathedral, Hofburg and world-famous museums. Vienna\'s highest rents, touristy, limited residential space. Relevant for expats mainly as a prestige address.',
     latitude: 48.2089, longitude: 16.3694, vibe: 'historisch', priceLevel: 5, sortOrder: 1,
     col: [
-      { category: 'rent_studio', value: 1400, currency: 'EUR' },
-      { category: 'rent_1br', value: 1900, currency: 'EUR' },
-      { category: 'rent_2br', value: 2800, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1400, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1900, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2800, currency: 'EUR' },
       { category: 'groceries_monthly', value: 360, currency: 'EUR' },
       { category: 'restaurant_meal', value: 18, currency: 'EUR' },
     ],
@@ -43,9 +43,9 @@ const DISTRICTS = [
     descriptionEN: 'Trendy, young, international — Leopoldstadt has become the most popular expat district with Prater, the Naschmarkt area and a growing startup scene.',
     latitude: 48.2197, longitude: 16.3896, vibe: 'trendy', priceLevel: 4, sortOrder: 2,
     col: [
-      { category: 'rent_studio', value: 1100, currency: 'EUR' },
-      { category: 'rent_1br', value: 1500, currency: 'EUR' },
-      { category: 'rent_2br', value: 2200, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1100, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1500, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2200, currency: 'EUR' },
       { category: 'groceries_monthly', value: 320, currency: 'EUR' },
       { category: 'restaurant_meal', value: 16, currency: 'EUR' },
     ],
@@ -58,9 +58,9 @@ const DISTRICTS = [
     descriptionEN: 'Quiet, elegant district with the Belvedere, diplomatic quarter and good infrastructure. Popular with diplomats, expats and families.',
     latitude: 48.1994, longitude: 16.3862, vibe: 'elegant', priceLevel: 4, sortOrder: 3,
     col: [
-      { category: 'rent_studio', value: 1050, currency: 'EUR' },
-      { category: 'rent_1br', value: 1400, currency: 'EUR' },
-      { category: 'rent_2br', value: 2000, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1050, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1400, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2000, currency: 'EUR' },
       { category: 'groceries_monthly', value: 310, currency: 'EUR' },
       { category: 'restaurant_meal', value: 15, currency: 'EUR' },
     ],
@@ -73,9 +73,9 @@ const DISTRICTS = [
     descriptionEN: 'The Naschmarkt is Vienna\'s culinary heart. The 6th district combines gastronomy, fashion and urban life — central, lively and ideal for singles/couples.',
     latitude: 48.1967, longitude: 16.3572, vibe: 'kulinarisch', priceLevel: 4, sortOrder: 4,
     col: [
-      { category: 'rent_studio', value: 1000, currency: 'EUR' },
-      { category: 'rent_1br', value: 1350, currency: 'EUR' },
-      { category: 'rent_2br', value: 1950, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1000, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1350, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1950, currency: 'EUR' },
       { category: 'groceries_monthly', value: 300, currency: 'EUR' },
       { category: 'restaurant_meal', value: 15, currency: 'EUR' },
     ],
@@ -88,9 +88,9 @@ const DISTRICTS = [
     descriptionEN: 'The creative heart of Vienna — boutiques, galleries, vegan restaurants and the MuseumsQuartier complex. Very popular with creatives, students and young expats.',
     latitude: 48.2017, longitude: 16.3496, vibe: 'kreativ', priceLevel: 4, sortOrder: 5,
     col: [
-      { category: 'rent_studio', value: 1050, currency: 'EUR' },
-      { category: 'rent_1br', value: 1400, currency: 'EUR' },
-      { category: 'rent_2br', value: 2000, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 1050, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1400, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 2000, currency: 'EUR' },
       { category: 'groceries_monthly', value: 310, currency: 'EUR' },
       { category: 'restaurant_meal', value: 15, currency: 'EUR' },
     ],
@@ -103,9 +103,9 @@ const DISTRICTS = [
     descriptionEN: 'University district with AKH (General Hospital), Votivkirche and lively student scene. Affordable, central, lots of greenery. Good for expats in health and science sectors.',
     latitude: 48.2214, longitude: 16.3560, vibe: 'akademisch', priceLevel: 3, sortOrder: 6,
     col: [
-      { category: 'rent_studio', value: 900, currency: 'EUR' },
-      { category: 'rent_1br', value: 1200, currency: 'EUR' },
-      { category: 'rent_2br', value: 1800, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 900, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1200, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1800, currency: 'EUR' },
       { category: 'groceries_monthly', value: 290, currency: 'EUR' },
       { category: 'restaurant_meal', value: 13, currency: 'EUR' },
     ],
@@ -118,9 +118,9 @@ const DISTRICTS = [
     descriptionEN: 'Beyond the Danube, family-oriented, quiet. Most affordable option for families with children within Vienna city limits. 20 min by metro to the centre.',
     latitude: 48.2577, longitude: 16.3999, vibe: 'familiär', priceLevel: 2, sortOrder: 7,
     col: [
-      { category: 'rent_studio', value: 750, currency: 'EUR' },
-      { category: 'rent_1br', value: 1000, currency: 'EUR' },
-      { category: 'rent_2br', value: 1500, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 750, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 1000, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1500, currency: 'EUR' },
       { category: 'groceries_monthly', value: 270, currency: 'EUR' },
       { category: 'restaurant_meal', value: 12, currency: 'EUR' },
     ],
@@ -133,9 +133,9 @@ const DISTRICTS = [
     descriptionEN: 'Quiet suburban towns with vineyards and high quality of life. S-Bahn to Vienna: 20–30 min. Very popular with families wanting to leave the city.',
     latitude: 48.3050, longitude: 16.3280, vibe: 'suburban', priceLevel: 2, sortOrder: 8,
     col: [
-      { category: 'rent_studio', value: 700, currency: 'EUR' },
-      { category: 'rent_1br', value: 950, currency: 'EUR' },
-      { category: 'rent_2br', value: 1400, currency: 'EUR' },
+      { category: 'rent_3br_center', value: 700, currency: 'EUR' },
+      { category: 'rent_1br_center', value: 950, currency: 'EUR' },
+      { category: 'rent_2br_center', value: 1400, currency: 'EUR' },
       { category: 'groceries_monthly', value: 260, currency: 'EUR' },
       { category: 'restaurant_meal', value: 12, currency: 'EUR' },
     ],
@@ -172,7 +172,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'freelancers',
+    section: 'for_freelancers',
     titleDE: 'Wien für Freelancer & Selbstständige',
     titleEN: 'Vienna for Freelancers & Self-Employed',
     contentDE: `**Gewerbeschein vs. Freier Beruf:** In Österreich unterscheidet man zwischen Gewerbetreibenden (Anmeldung bei der Wirtschaftskammer, WKÖ) und Freien Berufen (Ärzte, Rechtsanwälte, Künstler, Journalisten — freie Regelung ohne WKÖ-Pflicht). Für die meisten IT/Kreativfreelancer gilt das Gewerbe.
@@ -206,7 +206,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'families',
+    section: 'for_families',
     titleDE: 'Wien für Familien',
     titleEN: 'Vienna for Families',
     contentDE: `**Schulen:** Wien bietet exzellente öffentliche Schulen und eine wachsende Auswahl an internationalen Schulen:
@@ -238,7 +238,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'retirees',
+    section: 'for_retirees',
     titleDE: 'Wien für Rentner',
     titleEN: 'Vienna for Retirees',
     contentDE: `**DBA Österreich-Deutschland:** Das Doppelbesteuerungsabkommen AT-DE ist für Rentner zentral. Österreichische Pensionen werden in AT besteuert. Deutsche Renten werden grundsätzlich in DE besteuert (Quellensteuerprinzip), aber mit Anrechnung. Empfehlung: Steuerberater mit AT/DE-Expertise für die Erstkonfiguration.
@@ -266,7 +266,7 @@ const NARRATIVES = [
     updatedAt: NOW,
   },
   {
-    section: 'tech',
+    section: 'for_tech_workers',
     titleDE: 'Wien als Tech-Hub',
     titleEN: 'Vienna as Tech Hub',
     contentDE: `Wien ist das führende Technologie- und Start-up-Zentrum Österreichs und hat sich in den letzten Jahren zu einem bedeutenden Knotenpunkt im DACH-Ökosystem entwickelt.
@@ -470,7 +470,7 @@ The transition from Germany to Austria is bureaucratically easier than expected.
 
 Technically Vienna is more interesting than its reputation suggests. Tricentis, Bitpanda and several UN tech units (UNIDO, IAEA) have put Vienna on the international tech map in recent years. My salary is slightly below Berlin level, but net wealth is higher due to lower living costs.`,
     rating: 5,
-    isVerified: true,
+    isVerified: false,
   },
   {
     authorName: 'Stefan & Mara N.',
@@ -493,7 +493,7 @@ The healthcare system is world-class. As a doctor at AKH, I see daily what Austr
 
 Housing: We needed 5 months to find the right apartment. In the end: 120m² in Döbling (19th district) for €2,100/month — the same apartment in Berlin would have cost €3,500.`,
     rating: 5,
-    isVerified: true,
+    isVerified: false,
   },
   {
     authorName: 'Tobias K.',
@@ -516,7 +516,7 @@ SVS contributions (~€160/month minimum) are the biggest difference from German
 
 Top tip: George app (Erste Bank) for banking. Austria's best banking app, well ahead of German apps.`,
     rating: 4,
-    isVerified: true,
+    isVerified: false,
   },
 ];
 
