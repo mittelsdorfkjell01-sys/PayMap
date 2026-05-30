@@ -67,7 +67,7 @@ export function SalaryRefinement({ grossSalary, toCity, onChangeSalary, onChange
       {/* Salary */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">{t('grossLabel')}</span>
+          <span className="text-caption uppercase tracking-[0.04em] text-text-3">{t('grossLabel')}</span>
           <div className="flex items-center gap-1.5">
             <input
               type="number"
@@ -79,9 +79,9 @@ export function SalaryRefinement({ grossSalary, toCity, onChangeSalary, onChange
                 const v = parseInt(e.target.value, 10);
                 if (!isNaN(v) && v >= 10000 && v <= 300000) handleGrossChange(v);
               }}
-              className="w-24 text-right text-sm font-semibold text-gray-800 border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-400"
+              className="w-24 rounded-md border border-line bg-surface px-2 py-1 text-right text-data-sm tabular text-text focus:border-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--focus)_25%,transparent)] focus:outline-none"
             />
-            <span className="text-xs text-gray-400">€ / Jahr</span>
+            <span className="text-caption text-text-3">€ / Jahr</span>
           </div>
         </div>
         <Slider
@@ -95,7 +95,7 @@ export function SalaryRefinement({ grossSalary, toCity, onChangeSalary, onChange
 
       {/* Target city */}
       <div ref={containerRef} className="relative">
-        <label className="text-xs text-gray-500 font-medium uppercase tracking-wide block mb-1.5">
+        <label className="mb-1.5 block text-caption uppercase tracking-[0.04em] text-text-3">
           {t('targetCityLabel')}
         </label>
         <input
@@ -104,20 +104,20 @@ export function SalaryRefinement({ grossSalary, toCity, onChangeSalary, onChange
           onChange={(e) => { setCityInput(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           autoComplete="off"
-          className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-blue-400 bg-white"
+          className="w-full rounded-md border border-line bg-surface px-3 py-2 text-body text-text focus:border-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--focus)_25%,transparent)] focus:outline-none"
         />
         {open && options.length > 0 && (
-          <ul className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto py-1">
+          <ul className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-line bg-surface py-1 shadow-float">
             {options.map((opt) => (
               <li key={opt.id}>
                 <button
                   type="button"
-                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-body transition-colors hover:bg-surface-sub"
                   onMouseDown={() => { setCityInput(opt.nameDE); onChangeCity(opt.nameDE); setOpen(false); }}
                 >
                   <span>{opt.flag}</span>
-                  <span className="font-medium text-gray-800">{opt.nameDE}</span>
-                  <span className="text-gray-400 text-xs ml-auto">{opt.nameEN}</span>
+                  <span className="text-text">{opt.nameDE}</span>
+                  <span className="ml-auto text-sm text-text-3">{opt.nameEN}</span>
                 </button>
               </li>
             ))}

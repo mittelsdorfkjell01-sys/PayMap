@@ -56,25 +56,25 @@ export const RefineAccordion = forwardRef<HTMLDivElement, RefineAccordionProps>(
     if (value.children > 0) summaryParts.push(`${value.children} ${value.children === 1 ? t('childrenOne') : t('childrenMany')}`);
 
     return (
-      <div ref={ref} className="glass-card overflow-hidden shadow-sm">
+      <div ref={ref} className="overflow-hidden rounded-lg border border-line bg-surface">
         {/* Header row */}
         <button
           type="button"
           onClick={() => onOpenChange(!open)}
-          className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-surface-container/30 transition-colors"
+          className="focus-ring flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-surface-sub"
           aria-expanded={open}
         >
           <div className="min-w-0">
-            <p className="text-body-md font-semibold text-on-surface">{t('title')}</p>
+            <p className="text-h3 text-text">{t('title')}</p>
             {!open && summaryParts.length > 0 && (
-              <p className="text-label-sm text-on-surface-variant mt-0.5 truncate">
+              <p className="mt-0.5 truncate text-caption text-text-2">
                 {summaryParts.join(' · ')}
               </p>
             )}
           </div>
           <span
             className={cn(
-              'ml-3 shrink-0 text-on-surface-variant transition-transform duration-200 text-body-md',
+              'ml-3 shrink-0 text-text-3 transition-transform duration-200 ease-out',
               open && 'rotate-180',
             )}
           >
@@ -84,8 +84,7 @@ export const RefineAccordion = forwardRef<HTMLDivElement, RefineAccordionProps>(
 
         {/* Body — only when open */}
         {open && (
-          <div className="px-5 pb-5 space-y-5 border-t border-outline-variant/30 pt-4">
-            {/* Employment */}
+          <div className="space-y-5 border-t border-line px-5 pb-5 pt-4">
             <ChipGroup
               label={t('employmentLabel')}
               options={EMPLOYMENT_OPTIONS}
@@ -94,7 +93,6 @@ export const RefineAccordion = forwardRef<HTMLDivElement, RefineAccordionProps>(
               t={t}
             />
 
-            {/* Family status */}
             <ChipGroup
               label={t('familyStatusLabel')}
               options={FAMILY_OPTIONS}
@@ -105,7 +103,7 @@ export const RefineAccordion = forwardRef<HTMLDivElement, RefineAccordionProps>(
 
             {/* Children */}
             <div className="space-y-2">
-              <p className="text-label-sm font-medium text-on-surface-variant uppercase tracking-wider">
+              <p className="text-caption uppercase tracking-[0.04em] text-text-3">
                 {t('childrenLabel')}
               </p>
               <div className="flex items-center gap-3">
@@ -113,19 +111,19 @@ export const RefineAccordion = forwardRef<HTMLDivElement, RefineAccordionProps>(
                   type="button"
                   onClick={() => set('children', Math.max(0, value.children - 1))}
                   disabled={value.children === 0}
-                  className="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:border-outline hover:text-on-surface disabled:opacity-40 transition-all"
+                  className="focus-ring flex h-8 w-8 items-center justify-center rounded-full border border-line text-text-2 transition-colors hover:border-line-strong hover:text-text disabled:opacity-40"
                   aria-label={t('childrenDecrease')}
                 >
                   −
                 </button>
-                <span className="text-body-md font-semibold text-on-surface w-6 text-center select-none">
+                <span className="w-6 select-none text-center text-data-md tabular text-text">
                   {value.children}
                 </span>
                 <button
                   type="button"
                   onClick={() => set('children', Math.min(10, value.children + 1))}
                   disabled={value.children >= 10}
-                  className="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:border-outline hover:text-on-surface disabled:opacity-40 transition-all"
+                  className="focus-ring flex h-8 w-8 items-center justify-center rounded-full border border-line text-text-2 transition-colors hover:border-line-strong hover:text-text disabled:opacity-40"
                   aria-label={t('childrenIncrease')}
                 >
                   +
@@ -167,25 +165,27 @@ function ChipGroup({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-label-sm font-medium text-on-surface-variant uppercase tracking-wider">
-        {label}
-      </p>
+      <p className="text-caption uppercase tracking-[0.04em] text-text-3">{label}</p>
       <div className="flex flex-wrap gap-2">
-        {options.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onSelect(selected === opt.value ? null : opt.value)}
-            className={cn(
-              'px-3 py-1.5 rounded-full text-body-sm font-medium transition-all border',
-              selected === opt.value
-                ? 'bg-primary text-on-primary border-primary'
-                : 'border-outline-variant text-on-surface-variant hover:border-outline hover:text-on-surface',
-            )}
-          >
-            {t(opt.key)}
-          </button>
-        ))}
+        {options.map((opt) => {
+          const active = selected === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onSelect(active ? null : opt.value)}
+              className={cn(
+                'focus-ring rounded-md border px-3 py-1.5 text-sm transition-colors duration-150 ease-out',
+                active
+                  ? 'border-accent bg-accent text-accent-fg'
+                  : 'border-line text-text-2 hover:border-line-strong hover:text-text',
+              )}
+            >
+              {t(opt.key)}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

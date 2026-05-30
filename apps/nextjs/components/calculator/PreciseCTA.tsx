@@ -1,6 +1,7 @@
 'use client';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
 import type { RefineFields } from './RefineAccordion';
 
 interface PreciseCTAProps {
@@ -26,17 +27,11 @@ export function PreciseCTA({ isApproximate, refineFields, onScrollDown, onSaveTo
   if (!hasAnyField) {
     // Approximate result, no refinements yet → invite to refine
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-4">
-        <p className="text-sm text-amber-800">
-          {t('cta.hint')}
-        </p>
-        <button
-          type="button"
-          onClick={onScrollDown}
-          className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
-        >
+      <div className="flex items-center justify-between gap-4 rounded-md border border-line bg-surface-sub px-4 py-3">
+        <p className="text-sm text-text-2">{t('cta.hint')}</p>
+        <Button type="button" size="sm" onClick={onScrollDown} className="shrink-0 whitespace-nowrap">
           {t('cta.scrollDown')}
-        </button>
+        </Button>
       </div>
     );
   }
@@ -44,34 +39,27 @@ export function PreciseCTA({ isApproximate, refineFields, onScrollDown, onSaveTo
   if (!user) {
     // Fields set, not logged in → invite to save via login
     return (
-      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between gap-4">
-        <p className="text-sm text-on-surface-variant">
-          {t('cta.saveHint')}
-        </p>
-        <button
+      <div className="flex items-center justify-between gap-4 rounded-md border border-line bg-surface-sub px-4 py-3">
+        <p className="text-sm text-text-2">{t('cta.saveHint')}</p>
+        <Button
           type="button"
+          size="sm"
           onClick={() => openAuthModal('register')}
-          className="shrink-0 btn-primary text-sm px-4 py-2 whitespace-nowrap"
+          className="shrink-0 whitespace-nowrap"
         >
           {t('cta.signInToSave')}
-        </button>
+        </Button>
       </div>
     );
   }
 
   // Fields set and logged in → save to profile
   return (
-    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between gap-4">
-      <p className="text-sm text-on-surface-variant">
-        {t('cta.saveHint')}
-      </p>
-      <button
-        type="button"
-        onClick={onSaveToProfile}
-        className="shrink-0 btn-primary text-sm px-4 py-2 whitespace-nowrap"
-      >
+    <div className="flex items-center justify-between gap-4 rounded-md border border-line bg-surface-sub px-4 py-3">
+      <p className="text-sm text-text-2">{t('cta.saveHint')}</p>
+      <Button type="button" size="sm" onClick={onSaveToProfile} className="shrink-0 whitespace-nowrap">
         {t('cta.savePreferences')}
-      </button>
+      </Button>
     </div>
   );
 }

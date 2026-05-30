@@ -43,14 +43,14 @@ export function ShareButton({ payload }: ShareButtonProps) {
       onClick={handleShare}
       disabled={state === 'loading'}
       aria-label={t('share')}
-      className="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high border border-outline-variant rounded-xl px-4 py-2.5 transition-all"
+      className="focus-ring flex h-10 items-center gap-2 rounded-md border border-line bg-surface px-4 text-sm text-text-2 transition-colors duration-150 ease-out hover:border-line-strong hover:text-text disabled:opacity-40"
     >
       {state === 'loading' ? (
-        <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
       ) : state === 'copied' ? (
-        '✓'
+        <span className="text-pos">✓</span>
       ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
           <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
           <polyline points="16 6 12 2 8 6" />
           <line x1="12" y1="2" x2="12" y2="15" />

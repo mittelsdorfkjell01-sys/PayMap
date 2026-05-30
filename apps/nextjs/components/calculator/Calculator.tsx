@@ -10,6 +10,8 @@ import { RefineAccordion, type RefineFields } from './RefineAccordion';
 import { SalaryRefinement } from './SalaryRefinement';
 import { CityDetailsModal } from '@/components/city-details/CityDetailsModal';
 import { ShareButton } from './ShareButton';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface CalculatorFormState {
   fromCity: string;
@@ -109,7 +111,7 @@ function CityAutocomplete({
 
   return (
     <div ref={ref} className="relative">
-      <input
+      <Input
         id={id}
         name={name}
         type="text"
@@ -119,20 +121,19 @@ function CityAutocomplete({
         placeholder={placeholder}
         disabled={disabled}
         autoComplete="off"
-        className={cn('input-field', disabled && 'opacity-50 cursor-not-allowed')}
       />
       {open && options.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full glass-card-solid shadow-lg max-h-48 overflow-y-auto py-1">
+        <ul className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-line bg-surface py-1 shadow-float">
           {options.map((opt) => (
             <li key={opt.id}>
               <button
                 type="button"
-                className="w-full text-left px-4 py-2.5 text-body-md hover:bg-surface-container flex items-center gap-2 transition-colors"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-body transition-colors hover:bg-surface-sub"
                 onMouseDown={() => { onChange(opt.nameDE); setOpen(false); }}
               >
                 <span>{opt.flag}</span>
-                <span className="font-medium text-on-surface">{opt.nameDE}</span>
-                <span className="text-on-surface-variant text-label-sm ml-auto">{opt.nameEN}</span>
+                <span className="text-text">{opt.nameDE}</span>
+                <span className="ml-auto text-sm text-text-3">{opt.nameEN}</span>
               </button>
             </li>
           ))}
@@ -362,19 +363,19 @@ export default function Calculator() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="mx-auto max-w-2xl space-y-12">
       {/* Header */}
-      <div className="text-center space-y-3">
-        <h1 className="text-headline-xl-mobile md:text-headline-xl font-bold text-on-background">{t('title')}</h1>
-        <p className="text-body-lg text-on-surface-variant">{t('subtitle')}</p>
+      <div className="space-y-3 text-center">
+        <h1 className="text-h1 text-text sm:text-display">{t('title')}</h1>
+        <p className="text-body text-text-2">{t('subtitle')}</p>
       </div>
 
       {/* Form Card */}
-      <div className="glass-card p-6 space-y-5 shadow-sm">
+      <div className="rounded-lg border border-line bg-surface p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* From City */}
           <div className="space-y-1.5">
-            <label htmlFor="fromCity" className="label-field">{t('fromCity')}</label>
+            <label htmlFor="fromCity" className="block text-sm text-text-2">{t('fromCity')}</label>
             <CityAutocomplete
               id="fromCity"
               name="fromCity"
@@ -387,15 +388,14 @@ export default function Calculator() {
           {/* To City */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label htmlFor="toCity" className="label-field">{t('toCity')}</label>
+              <label htmlFor="toCity" className="block text-sm text-text-2">{t('toCity')}</label>
               <button
                 type="button"
+                aria-pressed={undecided}
                 onClick={() => setUndecided((v) => !v)}
                 className={cn(
-                  'text-label-sm font-semibold px-3 py-1 rounded-full transition-colors uppercase tracking-wider',
-                  undecided
-                    ? 'bg-secondary-container/60 text-secondary'
-                    : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high',
+                  'focus-ring rounded-sm px-2 py-1 text-caption uppercase tracking-[0.04em] transition-colors',
+                  undecided ? 'bg-surface-sub text-text' : 'text-text-2 hover:text-text',
                 )}
               >
                 {t('undecided')}
@@ -405,7 +405,7 @@ export default function Calculator() {
             {undecided ? (
               <div className="space-y-3">
                 {loadingSuggestions && (
-                  <p className="text-label-sm text-on-surface-variant py-2">{t('calculating')}</p>
+                  <p className="py-2 text-sm text-text-2">{t('calculating')}</p>
                 )}
                 {suggestions.length > 0 && (
                   <div className="grid grid-cols-3 gap-2">
@@ -414,21 +414,21 @@ export default function Calculator() {
                         key={city.id}
                         type="button"
                         onClick={() => selectSuggestion(city)}
-                        className="flex flex-col items-center gap-1 p-3 border border-outline-variant rounded-xl hover:border-primary hover:bg-primary/5 transition-all text-center"
+                        className="focus-ring flex flex-col items-center gap-1 rounded-md border border-line p-3 text-center transition-colors hover:border-line-strong hover:bg-surface-sub"
                       >
                         <span className="text-xl">{city.flag}</span>
-                        <span className="text-label-sm font-semibold text-on-surface leading-tight">{city.nameDE}</span>
+                        <span className="text-sm leading-tight text-text">{city.nameDE}</span>
                       </button>
                     ))}
                   </div>
                 )}
                 {!loadingSuggestions && suggestions.length === 0 && form.fromCity.length >= 2 && (
-                  <p className="text-label-sm text-on-surface-variant">{t('undecidedHint')}</p>
+                  <p className="text-sm text-text-2">{t('undecidedHint')}</p>
                 )}
                 <button
                   type="button"
                   onClick={() => setUndecided(false)}
-                  className="text-label-sm text-primary hover:underline uppercase tracking-wider"
+                  className="focus-ring rounded-sm text-caption uppercase tracking-[0.04em] text-focus hover:underline"
                 >
                   {t('undecidedBack')}
                 </button>
@@ -446,9 +446,9 @@ export default function Calculator() {
 
           {/* Gross Salary */}
           <div className="space-y-1.5">
-            <label htmlFor="grossSalary" className="label-field">{t('grossSalary')}</label>
+            <label htmlFor="grossSalary" className="block text-sm text-text-2">{t('grossSalary')}</label>
             <div className="relative">
-              <input
+              <Input
                 id="grossSalary"
                 name="grossSalary"
                 type="number"
@@ -457,32 +457,32 @@ export default function Calculator() {
                 value={form.grossSalary}
                 onChange={(e) => setForm((prev) => ({ ...prev, grossSalary: e.target.value }))}
                 placeholder={t('grossSalaryPlaceholder')}
-                className="input-field pr-20"
+                className="pr-20"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-label-sm text-on-surface-variant pointer-events-none uppercase tracking-wider">
+              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-caption uppercase tracking-[0.04em] text-text-3">
                 {t('grossSalaryUnit')}
               </span>
             </div>
           </div>
 
           {error && (
-            <p className="text-body-md text-error bg-error-container/30 border border-error/30 rounded-xl px-4 py-3">
+            <p className="rounded-md border border-line bg-surface-sub px-4 py-3 text-sm text-neg">
               {error}
             </p>
           )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-1">
-            <button
+            <Button
               type="submit"
               disabled={loading || !form.fromCity || (!undecided && !form.toCity) || !form.grossSalary}
-              className="flex-1 btn-primary"
+              className="flex-1"
             >
               {loading ? t('calculating') : t('calculate')}
-            </button>
-            <button type="button" onClick={handleReset} className="btn-secondary px-4">
+            </Button>
+            <Button type="button" variant="outline" onClick={handleReset}>
               {t('reset')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -530,8 +530,8 @@ export default function Calculator() {
 
       {/* Empty state */}
       {!result && (
-        <div className="border border-dashed border-outline-variant rounded-2xl p-10 text-center">
-          <p className="text-on-surface-variant text-body-md">
+        <div className="rounded-lg border border-dashed border-line p-10 text-center">
+          <p className="text-body text-text-2">
             {t('emptyState')}
           </p>
         </div>
