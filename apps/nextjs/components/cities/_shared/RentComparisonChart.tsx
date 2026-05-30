@@ -15,7 +15,8 @@ type Props = {
   source?: string;
 };
 
-const COLORS = { '1BR': '#60a5fa', '2BR': '#34d399', '3BR': '#f87171' };
+// Monochrom (Spec §9): Serien über Opazitätsstufen von --text statt Farbtönen.
+const TIER: Record<string, number> = { '1BR': 0.9, '2BR': 0.55, '3BR': 0.28 };
 const CELL_H = 26;
 const BAR_GAP = 2;
 const LEFT_W = 100;
@@ -38,14 +39,14 @@ export function RentComparisonChart({ rows, currency = 'EUR', locale = 'de', sou
 
   return (
     <div className="w-full overflow-x-auto">
-      {source && <p className="text-xs text-gray-400 mb-1 text-right">{source}</p>}
-      <svg viewBox={`0 0 ${CHART_W} ${svgH}`} className="w-full max-w-2xl mx-auto">
+      {source && <p className="mb-1 text-right text-caption text-text-3">{source}</p>}
+      <svg viewBox={`0 0 ${CHART_W} ${svgH}`} className="mx-auto w-full max-w-2xl">
         {/* Legend */}
         <g transform={`translate(${LEFT_W}, 8)`}>
           {keys.map((k, i) => (
             <g key={k} transform={`translate(${i * 90}, 0)`}>
-              <rect width="12" height="12" rx="2" fill={COLORS[k]} />
-              <text x="16" y="10" fontSize="10" fill="#374151">{k}</text>
+              <rect width="12" height="12" rx="2" fill="var(--text)" fillOpacity={TIER[k]} />
+              <text x="16" y="10" fontSize="10" fill="var(--text-2)">{k}</text>
             </g>
           ))}
         </g>
@@ -59,14 +60,14 @@ export function RentComparisonChart({ rows, currency = 'EUR', locale = 'de', sou
           ];
           return (
             <g key={row.nameDE}>
-              <text x={LEFT_W - 4} y={baseY + rowH / 2} textAnchor="end" fontSize="9" fill="#4b5563">{label}</text>
+              <text x={LEFT_W - 4} y={baseY + rowH / 2} textAnchor="end" fontSize="9" fill="var(--text-2)">{label}</text>
               {rents.map(([k, val], bi) => {
                 const barW = (val / maxRent) * BAR_AREA_W;
                 const y = baseY + bi * (CELL_H + BAR_GAP);
                 return (
                   <g key={k}>
-                    <rect x={LEFT_W} y={y} width={barW} height={CELL_H} rx="3" fill={COLORS[k]} />
-                    <text x={LEFT_W + barW + 4} y={y + CELL_H - 8} fontSize="9" fill="#374151">{fmt(val)}</text>
+                    <rect x={LEFT_W} y={y} width={barW} height={CELL_H} rx="3" fill="var(--text)" fillOpacity={TIER[k]} />
+                    <text x={LEFT_W + barW + 4} y={y + CELL_H - 8} fontSize="9" fill="var(--text-2)">{fmt(val)}</text>
                   </g>
                 );
               })}

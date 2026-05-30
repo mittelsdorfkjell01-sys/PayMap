@@ -21,12 +21,13 @@ type Props = {
   height?: number;
 };
 
-const PRICE_COLORS: Record<number, string> = {
-  1: '#bbf7d0',
-  2: '#86efac',
-  3: '#fcd34d',
-  4: '#fb923c',
-  5: '#f87171',
+// Monochrom (Spec §9): Preisniveau über Opazitätsrampe von --text, nicht über Farbtöne.
+const PRICE_OPACITY: Record<number, number> = {
+  1: 0.10,
+  2: 0.18,
+  3: 0.28,
+  4: 0.40,
+  5: 0.52,
 };
 
 const PRICE_LABELS: Record<number, [string, string]> = {
@@ -88,27 +89,27 @@ export function DistrictMapGeneric({ districts, locale = 'de', width = 480, heig
   return (
     <div className="w-full">
       <svg viewBox={`0 0 ${width} ${height}`}
-        className="w-full max-w-2xl mx-auto border border-gray-200 rounded-xl bg-slate-50">
+        className="mx-auto w-full max-w-2xl rounded-lg border border-line bg-surface-sub">
         {/* Districts as circles with labels */}
         {districts.map(d => {
           const p = pos.get(d.slug);
           if (!p) return null;
-          const color = PRICE_COLORS[d.priceLevel] ?? '#e5e7eb';
+          const op = PRICE_OPACITY[d.priceLevel] ?? 0.15;
           const isActive = active === d.slug;
           const name = locale === 'de' ? d.nameDE : d.nameEN;
           const shortName = name.length > 14 ? name.slice(0, 13) + '…' : name;
           return (
             <g key={d.slug} onClick={() => setActive(isActive ? null : d.slug)} className="cursor-pointer">
               <circle cx={p.cx} cy={p.cy} r={isActive ? 28 : 24}
-                fill={color}
-                stroke={isActive ? '#1d4ed8' : '#9ca3af'}
+                fill="var(--text)" fillOpacity={op}
+                stroke={isActive ? 'var(--focus)' : 'var(--line-strong)'}
                 strokeWidth={isActive ? 2.5 : 1}
-                opacity={active && !isActive ? 0.5 : 0.92}
+                opacity={active && !isActive ? 0.5 : 1}
               />
               <text x={p.cx} y={p.cy + 4} textAnchor="middle"
                 fontSize={isActive ? '8.5' : '7.5'}
                 fontWeight={isActive ? '700' : '500'}
-                fill="#1f2937">
+                fill="var(--text)">
                 {shortName}
               </text>
             </g>
@@ -117,14 +118,14 @@ export function DistrictMapGeneric({ districts, locale = 'de', width = 480, heig
 
         {/* Legend */}
         <g transform="translate(8, 8)">
-          <rect x="0" y="0" width="90" height={priceLevels.length * 14 + 18} rx="4" fill="white" opacity="0.88" />
-          <text x="5" y="13" fontSize="8" fontWeight="600" fill="#374151">
+          <rect x="0" y="0" width="90" height={priceLevels.length * 14 + 18} rx="4" fill="var(--surface)" opacity="0.88" />
+          <text x="5" y="13" fontSize="8" fontWeight="600" fill="var(--text-2)">
             {locale === 'de' ? 'Preisniveau' : 'Price level'}
           </text>
           {priceLevels.map((lvl, i) => (
             <g key={lvl} transform={`translate(5, ${18 + i * 14})`}>
-              <rect width="9" height="9" rx="2" fill={PRICE_COLORS[lvl]} />
-              <text x="13" y="8.5" fontSize="7.5" fill="#4b5563">
+              <rect width="9" height="9" rx="2" fill="var(--text)" fillOpacity={PRICE_OPACITY[lvl] ?? 0.15} />
+              <text x="13" y="8.5" fontSize="7.5" fill="var(--text-2)">
                 {PRICE_LABELS[lvl]?.[locale === 'de' ? 0 : 1] ?? lvl}
               </text>
             </g>
@@ -133,22 +134,22 @@ export function DistrictMapGeneric({ districts, locale = 'de', width = 480, heig
       </svg>
 
       {activeDistrict && (
-        <div className="mt-3 p-4 bg-white border border-blue-200 rounded-xl text-sm">
-          <div className="flex items-center justify-between mb-1">
-            <span className="font-semibold text-gray-900">
+        <div className="mt-3 rounded-md border border-line bg-surface p-4 text-sm">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-text">
               {locale === 'de' ? activeDistrict.nameDE : activeDistrict.nameEN}
             </span>
             {activeDistrict.vibe && (
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{activeDistrict.vibe}</span>
+              <span className="rounded-sm bg-surface-sub px-2 py-0.5 text-caption text-text-2">{activeDistrict.vibe}</span>
             )}
           </div>
-          <p className="text-gray-600 leading-relaxed">
+          <p className="leading-relaxed text-text-2">
             {locale === 'de' ? activeDistrict.descriptionDE : activeDistrict.descriptionEN}
           </p>
         </div>
       )}
       {!active && (
-        <p className="mt-2 text-center text-xs text-gray-400">
+        <p className="mt-2 text-center text-caption text-text-3">
           {locale === 'de' ? '↑ Stadtteil anklicken für Details' : '↑ Click a district for details'}
         </p>
       )}
