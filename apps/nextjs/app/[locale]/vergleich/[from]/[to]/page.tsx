@@ -121,7 +121,7 @@ function fmt(n: number) {
 function DiffCell({ diff }: { diff: number }) {
   const pos = diff >= 0;
   return (
-    <span className={`font-mono font-semibold ${pos ? 'text-green-600' : 'text-red-500'}`}>
+    <span className={`tabular ${pos ? 'text-pos' : 'text-neg'}`}>
       {pos ? '+' : ''}{fmt(diff)} €
     </span>
   );
@@ -196,19 +196,19 @@ export default async function ComparisonPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      <div className="max-w-3xl mx-auto space-y-10 py-6">
+      <div className="mx-auto max-w-reading space-y-10 py-6">
         {/* H1 */}
         <div>
-          <h1 className="text-3xl font-bold text-on-background">
+          <h1 className="text-h1 text-text">
             {fromCity.flag} {fromName} → {toCity.flag} {toName}
           </h1>
-          <p className="text-sm text-on-surface-variant mt-1 uppercase tracking-wider">
+          <p className="mt-1 text-caption uppercase tracking-[0.04em] text-text-3">
             {isDE ? `Netto-Vergleich ${year}` : `Net Salary Comparison ${year}`}
           </p>
         </div>
 
         {/* Intro */}
-        <p className="text-base text-on-surface-variant leading-relaxed">
+        <p className="text-body leading-relaxed text-text-2">
           {isDE
             ? `Bei 80.000 € Jahresbrutto beträgt die monatliche Nettodifferenz zwischen ${fromName} und ${toName}: ${diffStr}. ${fromCity.flag} ${fromName}: effektiv ${row80k.fromRate} % Steuerlast. ${toCity.flag} ${toName}: effektiv ${row80k.toRate} % Steuerlast. Alle Werte basieren auf dem Standardfall (angestellt, ledig, keine Kinder), ${year}.`
             : `At €80,000 annual gross, the monthly net difference between ${fromName} and ${toName} is ${diffStr}. ${fromCity.flag} ${fromName}: effective tax rate ${row80k.fromRate}%. ${toCity.flag} ${toName}: effective tax rate ${row80k.toRate}%. All values are based on the standard case (employed, single, no children), ${year}.`
@@ -217,33 +217,33 @@ export default async function ComparisonPage({ params }: Props) {
 
         {/* Salary table */}
         <section>
-          <h2 className="text-xl font-semibold mb-3">
+          <h2 className="mb-3 text-h2 text-text">
             {isDE ? 'Gehaltsvergleich' : 'Salary Comparison'}
           </h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm border border-outline-variant rounded-xl overflow-hidden">
-              <thead className="bg-surface-container text-on-surface-variant">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">
+            <table className="w-full overflow-hidden rounded-lg border border-line text-sm">
+              <thead>
+                <tr className="border-b border-line-strong">
+                  <th className="px-4 py-3 text-left text-caption uppercase tracking-[0.04em] text-text-3">
                     {isDE ? 'Brutto/Jahr' : 'Gross/Year'}
                   </th>
-                  <th className="text-right px-4 py-3 font-medium">
+                  <th className="px-4 py-3 text-right text-caption uppercase tracking-[0.04em] text-text-3">
                     {fromCity.flag} {isDE ? 'Netto/Mo' : 'Net/Mo'}
                   </th>
-                  <th className="text-right px-4 py-3 font-medium">
+                  <th className="px-4 py-3 text-right text-caption uppercase tracking-[0.04em] text-text-3">
                     {toCity.flag} {isDE ? 'Netto/Mo' : 'Net/Mo'}
                   </th>
-                  <th className="text-right px-4 py-3 font-medium">
+                  <th className="px-4 py-3 text-right text-caption uppercase tracking-[0.04em] text-text-3">
                     {isDE ? 'Differenz' : 'Difference'}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row, i) => (
-                  <tr key={row.eurGross} className={i % 2 === 1 ? 'bg-surface-container/30' : ''}>
-                    <td className="px-4 py-3 font-mono">{fmt(row.eurGross)} €</td>
-                    <td className="px-4 py-3 text-right font-mono">{fmt(row.fromNetEUR)} €</td>
-                    <td className="px-4 py-3 text-right font-mono">{fmt(row.toNetEUR)} €</td>
+                  <tr key={row.eurGross} className={i % 2 === 1 ? 'bg-surface-sub' : ''}>
+                    <td className="px-4 py-3 tabular text-text">{fmt(row.eurGross)} €</td>
+                    <td className="px-4 py-3 text-right tabular text-text">{fmt(row.fromNetEUR)} €</td>
+                    <td className="px-4 py-3 text-right tabular text-text">{fmt(row.toNetEUR)} €</td>
                     <td className="px-4 py-3 text-right">
                       <DiffCell diff={row.diffEUR} />
                     </td>
@@ -252,7 +252,7 @@ export default async function ComparisonPage({ params }: Props) {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-on-surface-variant mt-2">
+          <p className="mt-2 text-caption text-text-3">
             {isDE
               ? `Alle Werte in EUR (gerundet). Annahmen: angestellt, ledig, keine Kinder. Quelle: offizielle Steuertabellen ${year}.`
               : `All values in EUR (rounded). Assumptions: employed, single, no children. Source: official tax tables ${year}.`
@@ -262,19 +262,19 @@ export default async function ComparisonPage({ params }: Props) {
 
         {/* Special regime */}
         {specialRegimes.length > 0 && (
-          <section className="border border-primary/30 bg-primary/5 rounded-xl p-5 space-y-3">
-            <h2 className="text-lg font-semibold">
+          <section className="space-y-3 rounded-md border-l-2 border-warn bg-surface-sub p-5">
+            <h2 className="text-h3 text-text">
               {isDE ? 'Sondersteuerregime' : 'Special Tax Regime'}
             </h2>
             {specialRegimes.map((r) => (
               <div key={r.nameDE}>
-                <p className="font-semibold text-on-background">
+                <p className="text-text">
                   {isDE ? r.nameDE : r.nameEN}
                 </p>
-                <p className="text-sm text-on-surface-variant mt-1">
+                <p className="mt-1 text-sm text-text-2">
                   {isDE ? r.conditionsDE : r.conditionsEN}
                 </p>
-                <p className="text-xs text-on-surface-variant mt-1">
+                <p className="mt-1 text-caption text-text-3">
                   {isDE
                     ? `Pauschalsatz: ${r.flatRate} % · Dauer: bis zu ${r.durationYears} Jahre`
                     : `Flat rate: ${r.flatRate}% · Duration: up to ${r.durationYears} years`
@@ -287,45 +287,45 @@ export default async function ComparisonPage({ params }: Props) {
 
         {/* FAQ */}
         <section>
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="mb-4 text-h2 text-text">
             {isDE ? 'Häufige Fragen' : 'Frequently Asked Questions'}
           </h2>
           <div className="space-y-5">
             {faqs.map((faq) => (
               <div key={faq.q}>
-                <h3 className="text-base font-semibold text-on-background">{faq.q}</h3>
-                <p className="text-sm text-on-surface-variant mt-1 leading-relaxed">{faq.a}</p>
+                <h3 className="text-body text-text">{faq.q}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-text-2">{faq.a}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* CTA */}
-        <div className="border border-outline-variant rounded-2xl p-6 text-center space-y-3">
-          <p className="text-lg font-semibold">
+        <div className="space-y-3 rounded-lg border border-line p-6 text-center">
+          <p className="text-h3 text-text">
             {isDE ? 'Dein genaues Netto berechnen' : 'Calculate your exact net salary'}
           </p>
-          <p className="text-sm text-on-surface-variant">
+          <p className="text-sm text-text-2">
             {isDE
               ? 'Gib Familienstand und Beschäftigung ein für ein präzises Ergebnis.'
               : 'Enter your family status and employment type for a precise result.'
             }
           </p>
-          <a href={`/${params.locale}`} className="inline-block btn-primary mt-2">
+          <a href={`/${params.locale}`} className="mt-2 inline-flex h-10 items-center rounded-md bg-accent px-4 text-body text-accent-fg transition-opacity hover:opacity-90">
             {isDE ? 'Zum Rechner →' : 'Go to Calculator →'}
           </a>
         </div>
 
         {/* Premium guide cross-link for destination city */}
         {isPremiumCity(params.to) && (
-          <div className="border border-primary/30 bg-primary/5 rounded-2xl p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-line bg-surface-sub p-5">
             <div>
-              <p className="font-semibold text-on-surface">
+              <p className="text-text">
                 {isDE
                   ? `Schritt-für-Schritt Guide: Auswandern nach ${toName}`
                   : `Step-by-step guide: Emigrate to ${toName}`}
               </p>
-              <p className="text-sm text-on-surface-variant mt-0.5">
+              <p className="mt-0.5 text-sm text-text-2">
                 {isDE
                   ? 'Bürokratie, Steuern, Banking, Wohnen — alle Schritte geprüft.'
                   : 'Bureaucracy, taxes, banking, housing — all steps verified.'}
@@ -333,7 +333,7 @@ export default async function ComparisonPage({ params }: Props) {
             </div>
             <a
               href={isDE ? `/de/auswandern/${params.to}` : `/en/emigrate/${toEnSlug(params.to)}`}
-              className="shrink-0 text-sm font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+              className="focus-ring shrink-0 whitespace-nowrap rounded-sm text-sm text-focus transition-colors hover:underline"
             >
               {isDE ? 'Zum Guide →' : 'View Guide →'}
             </a>

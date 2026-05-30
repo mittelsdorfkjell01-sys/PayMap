@@ -2,11 +2,17 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Flag, Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 type Props = {
   citySlug?: string;
   locale?: string;
 };
+
+const FIELD_CLS =
+  'w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-text focus:border-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--focus)_25%,transparent)] focus:outline-none';
 
 export function FeedbackButton({ citySlug, locale = 'de' }: Props) {
   const [open, setOpen] = useState(false);
@@ -43,51 +49,49 @@ export function FeedbackButton({ citySlug, locale = 'de' }: Props) {
   }
 
   const modal = open && (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center" style={{ backgroundColor: 'rgba(14,14,14,0.4)' }}>
+      <div className="w-full max-w-md space-y-4 rounded-xl border border-line bg-surface p-6 shadow-float">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">{t('Daten veraltet? Melden', 'Data outdated? Report it')}</h2>
-          <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+          <h2 className="text-h3 text-text">{t('Daten veraltet? Melden', 'Data outdated? Report it')}</h2>
+          <button onClick={() => setOpen(false)} aria-label={t('Schließen', 'Close')} className="focus-ring rounded-md p-1 text-text-3 transition-colors hover:text-text">
+            <X className="h-5 w-5" aria-hidden />
+          </button>
         </div>
 
         {status === 'done' ? (
           <div className="py-6 text-center">
-            <div className="text-3xl mb-2">✓</div>
-            <p className="text-gray-700 font-medium">{t('Danke für dein Feedback!', 'Thank you for your feedback!')}</p>
-            <p className="text-sm text-gray-500 mt-1">{t('Wir prüfen es und aktualisieren die Daten wenn nötig.', 'We will review it and update the data if needed.')}</p>
-            <button onClick={() => { setOpen(false); setStatus('idle'); setDescription(''); setCategory(''); setEmail(''); }} className="mt-4 text-blue-600 text-sm underline">
+            <div className="mb-2 flex justify-center"><Check className="h-7 w-7 text-pos" aria-hidden /></div>
+            <p className="text-body text-text">{t('Danke für dein Feedback!', 'Thank you for your feedback!')}</p>
+            <p className="mt-1 text-sm text-text-2">{t('Wir prüfen es und aktualisieren die Daten wenn nötig.', 'We will review it and update the data if needed.')}</p>
+            <button onClick={() => { setOpen(false); setStatus('idle'); setDescription(''); setCategory(''); setEmail(''); }} className="focus-ring mt-4 rounded-sm text-sm text-focus underline">
               {t('Schließen', 'Close')}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">{t('Kategorie', 'Category')}</label>
-              <select value={category} onChange={e => setCategory(e.target.value)} required
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="mb-1 block text-caption uppercase tracking-[0.04em] text-text-3">{t('Kategorie', 'Category')}</label>
+              <select value={category} onChange={e => setCategory(e.target.value)} required className={FIELD_CLS}>
                 <option value="">{t('Bitte wählen…', 'Please select…')}</option>
                 {categories.map(c => <option key={c.value} value={c.value}>{locale === 'de' ? c.de : c.en}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">{t('Was stimmt nicht?', 'What is wrong?')}</label>
+              <label className="mb-1 block text-caption uppercase tracking-[0.04em] text-text-3">{t('Was stimmt nicht?', 'What is wrong?')}</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} required rows={3}
                 placeholder={t('Beschreibe kurz was veraltet oder falsch ist…', 'Briefly describe what is outdated or incorrect…')}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className={`${FIELD_CLS} resize-none placeholder:text-text-3`} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">{t('E-Mail (optional, für Rückmeldung)', 'Email (optional, for reply)')}</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="deine@email.de"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="mb-1 block text-caption uppercase tracking-[0.04em] text-text-3">{t('E-Mail (optional, für Rückmeldung)', 'Email (optional, for reply)')}</label>
+              <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="deine@email.de" />
             </div>
             {status === 'error' && (
-              <p className="text-red-600 text-sm">{t('Fehler beim Senden. Bitte nochmals versuchen.', 'Error sending. Please try again.')}</p>
+              <p className="text-sm text-neg">{t('Fehler beim Senden. Bitte nochmals versuchen.', 'Error sending. Please try again.')}</p>
             )}
-            <button type="submit" disabled={status === 'sending'}
-              className="w-full py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors">
+            <Button type="submit" disabled={status === 'sending'} className="w-full">
               {status === 'sending' ? t('Senden…', 'Sending…') : t('Feedback senden', 'Send feedback')}
-            </button>
+            </Button>
           </form>
         )}
       </div>
@@ -98,9 +102,9 @@ export function FeedbackButton({ citySlug, locale = 'de' }: Props) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+        className="focus-ring inline-flex items-center gap-1.5 rounded-sm text-caption text-text-3 underline-offset-2 transition-colors hover:text-text"
       >
-        <span>⚑</span>
+        <Flag className="h-3 w-3" aria-hidden />
         {t('Daten veraltet? Melden', 'Data outdated? Report')}
       </button>
       {typeof document !== 'undefined' && modal && createPortal(modal, document.body)}

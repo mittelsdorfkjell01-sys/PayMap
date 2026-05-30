@@ -25,17 +25,17 @@ export default function LocaleSwitcher() {
   }
 
   return (
-    <div className="flex items-center rounded-md border border-gray-200 overflow-hidden text-sm">
+    <div className="flex items-center overflow-hidden rounded-md border border-line text-sm">
       {(['de', 'en'] as const).map((loc) => (
         <button
           key={loc}
           onClick={() => switchLocale(loc)}
           disabled={isPending}
           className={cn(
-            'px-2.5 py-1 font-medium uppercase transition-colors',
+            'focus-ring px-2.5 py-1 uppercase transition-colors',
             locale === loc
-              ? 'bg-green-600 text-white'
-              : 'bg-white text-gray-600 hover:bg-gray-100'
+              ? 'bg-accent text-accent-fg'
+              : 'bg-surface text-text-2 hover:text-text'
           )}
         >
           {loc}

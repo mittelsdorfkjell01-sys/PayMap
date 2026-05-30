@@ -31,17 +31,6 @@ const config: Config = {
         pos: 'var(--pos)',
         neg: 'var(--neg)',
         warn: 'var(--warn)',
-
-        // DEPRECATED: Salbei-/Brand-Grün aus dem alten Endkonzept.
-        // Nur noch übergangsweise vorhanden, damit noch nicht migrierte
-        // Feature-Seiten nicht farblos werden. Bei der Feature-Migration
-        // (§11.6) ersatzlos entfernen.
-        brand: {
-          50: '#f0fdf4',
-          500: '#22c55e',
-          600: '#16a34a',
-          900: '#14532d',
-        },
       },
       borderRadius: {
         sm: '6px',

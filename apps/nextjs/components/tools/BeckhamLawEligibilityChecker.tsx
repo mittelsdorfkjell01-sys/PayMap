@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { StatusDot } from '@/components/ui/StatusDot';
 
 type Props = { locale?: string };
 
@@ -8,6 +11,14 @@ type MoveReason = 'employed_es' | 'employed_foreign_remote' | 'autonomo_foreign'
 
 const DISCLAIMER_DE = 'Diese Einschätzung ist nicht verbindlich und ersetzt keine Steuerberatung. Für einen Beckham-Antrag (Régimen de Impatriados) ist die Unterstützung eines zugelassenen spanischen Steuerberaters unbedingt erforderlich. Antrag muss innerhalb von 6 Monaten nach Umzug gestellt werden.';
 const DISCLAIMER_EN = 'This assessment is not binding and does not replace tax advice. The support of a licensed Spanish tax advisor is essential for a Beckham Law (Régimen de Impatriados) application. Application must be submitted within 6 months of moving.';
+
+const LEVEL_TONE = { green: 'pos', yellow: 'warn', red: 'neg' } as const;
+const LEVEL_BORDER = { green: 'border-l-pos', yellow: 'border-l-warn', red: 'border-l-neg' } as const;
+
+const choiceCls = (active: boolean) =>
+  cn('focus-ring rounded-md border px-4 py-2 text-sm transition-colors duration-150 ease-out', active ? 'border-accent bg-accent text-accent-fg' : 'border-line text-text-2 hover:border-line-strong hover:text-text');
+const optionCls = (active: boolean) =>
+  cn('focus-ring rounded-md border px-3 py-2 text-left text-sm transition-colors duration-150 ease-out', active ? 'border-accent bg-accent text-accent-fg' : 'border-line text-text-2 hover:border-line-strong hover:text-text');
 
 export function BeckhamLawEligibilityChecker({ locale = 'de' }: Props) {
   const [priorResidency, setPriorResidency] = useState<boolean | null>(null);
@@ -76,22 +87,22 @@ export function BeckhamLawEligibilityChecker({ locale = 'de' }: Props) {
   const showContractAfterForeign = showForeignIncomeQ && foreignIncomeShare !== null;
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
-      <h3 className="font-semibold text-gray-900">{t('Beckham-Gesetz Eligibility-Checker', 'Beckham Law Eligibility Checker')}</h3>
+    <div className="space-y-5 rounded-lg border border-line bg-surface p-5">
+      <h3 className="text-h3 text-text">{t('Beckham-Gesetz Eligibility-Checker', 'Beckham Law Eligibility Checker')}</h3>
 
-      <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
-        ⚠ {locale === 'de' ? DISCLAIMER_DE : DISCLAIMER_EN}
+      <div className="flex items-start gap-2 rounded-md border-l-2 border-warn bg-surface-sub p-3 text-caption text-text-2">
+        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warn" aria-hidden />
+        <span>{locale === 'de' ? DISCLAIMER_DE : DISCLAIMER_EN}</span>
       </div>
 
       <div className="space-y-4 text-sm">
         <div>
-          <p className="font-medium text-gray-800 mb-2">
+          <p className="mb-2 text-sm text-text">
             {t('Warst du in den letzten 5 Jahren steuerlich in Spanien ansässig?', 'Were you tax-resident in Spain in the last 5 years?')}
           </p>
           <div className="flex gap-3">
             {([true, false] as const).map(v => (
-              <button key={String(v)} onClick={() => { setPriorResidency(v); setMoveReason(null); setForeignIncomeShare(null); setHasContract(null); }}
-                className={`px-4 py-2 rounded-lg border font-medium transition-colors ${priorResidency === v ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-700 hover:border-blue-400'}`}>
+              <button key={String(v)} onClick={() => { setPriorResidency(v); setMoveReason(null); setForeignIncomeShare(null); setHasContract(null); }} className={choiceCls(priorResidency === v)}>
                 {v ? t('Ja', 'Yes') : t('Nein', 'No')}
               </button>
             ))}
@@ -100,11 +111,10 @@ export function BeckhamLawEligibilityChecker({ locale = 'de' }: Props) {
 
         {priorResidency === false && (
           <div>
-            <p className="font-medium text-gray-800 mb-2">{t('Warum ziehst du nach Spanien?', 'Why are you moving to Spain?')}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <p className="mb-2 text-sm text-text">{t('Warum ziehst du nach Spanien?', 'Why are you moving to Spain?')}</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {moveReasonOptions.map(opt => (
-                <button key={opt.value} onClick={() => { setMoveReason(opt.value); setForeignIncomeShare(null); setHasContract(null); }}
-                  className={`px-3 py-2 rounded-lg border text-left text-sm transition-colors ${moveReason === opt.value ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-700 hover:border-blue-400'}`}>
+                <button key={opt.value} onClick={() => { setMoveReason(opt.value); setForeignIncomeShare(null); setHasContract(null); }} className={optionCls(moveReason === opt.value)}>
                   {locale === 'de' ? opt.de : opt.en}
                 </button>
               ))}
@@ -114,13 +124,12 @@ export function BeckhamLawEligibilityChecker({ locale = 'de' }: Props) {
 
         {showForeignIncomeQ && (
           <div>
-            <p className="font-medium text-gray-800 mb-2">
+            <p className="mb-2 text-sm text-text">
               {t('Kommen über 80% deines Einkommens von ausländischen Kunden?', 'Does over 80% of your income come from foreign clients?')}
             </p>
             <div className="flex gap-3">
               {([true, false] as const).map(v => (
-                <button key={String(v)} onClick={() => setForeignIncomeShare(v)}
-                  className={`px-4 py-2 rounded-lg border font-medium transition-colors ${foreignIncomeShare === v ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-700 hover:border-blue-400'}`}>
+                <button key={String(v)} onClick={() => setForeignIncomeShare(v)} className={choiceCls(foreignIncomeShare === v)}>
                   {v ? t('Ja', 'Yes') : t('Nein', 'No')}
                 </button>
               ))}
@@ -130,13 +139,12 @@ export function BeckhamLawEligibilityChecker({ locale = 'de' }: Props) {
 
         {(showContractQ || showContractAfterForeign) && (
           <div>
-            <p className="font-medium text-gray-800 mb-2">
+            <p className="mb-2 text-sm text-text">
               {t('Hast du einen Arbeitsvertrag oder Nachweis deiner Tätigkeit?', 'Do you have an employment contract or proof of your activity?')}
             </p>
             <div className="flex gap-3">
               {([true, false] as const).map(v => (
-                <button key={String(v)} onClick={() => setHasContract(v)}
-                  className={`px-4 py-2 rounded-lg border font-medium transition-colors ${hasContract === v ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-700 hover:border-blue-400'}`}>
+                <button key={String(v)} onClick={() => setHasContract(v)} className={choiceCls(hasContract === v)}>
                   {v ? t('Ja', 'Yes') : t('Nein', 'No')}
                 </button>
               ))}
@@ -146,13 +154,13 @@ export function BeckhamLawEligibilityChecker({ locale = 'de' }: Props) {
       </div>
 
       {r && (
-        <div className={`rounded-lg p-4 text-sm ${r.level === 'green' ? 'bg-green-50 border border-green-200 text-green-900' : r.level === 'yellow' ? 'bg-amber-50 border border-amber-200 text-amber-900' : 'bg-red-50 border border-red-200 text-red-900'}`}>
-          <span className="font-semibold">{r.level === 'green' ? '✓' : r.level === 'yellow' ? '~' : '✗'} </span>
-          {locale === 'de' ? r.de : r.en}
+        <div className={cn('flex items-start gap-2 rounded-md border border-line border-l-2 bg-surface-sub p-4 text-sm text-text', LEVEL_BORDER[r.level])}>
+          <StatusDot tone={LEVEL_TONE[r.level]} className="mt-1" />
+          <span>{locale === 'de' ? r.de : r.en}</span>
         </div>
       )}
 
-      <p className="text-xs text-gray-400">
+      <p className="text-caption text-text-3">
         {t('Quelle: Agencia Tributaria — Régimen especial de trabajadores desplazados (Art. 93 LIRPF)', 'Source: Agencia Tributaria — Special regime for displaced workers (Art. 93 LIRPF)')}
       </p>
     </div>

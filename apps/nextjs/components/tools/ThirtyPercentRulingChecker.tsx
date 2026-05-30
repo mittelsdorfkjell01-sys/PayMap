@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 type Answer = 'yes' | 'no' | null;
 
@@ -60,10 +61,11 @@ function getResult(recruited: Answer, salary: Answer, expertise: Answer, distanc
   };
 }
 
-const COLOR = {
-  yes: 'border-green-300 bg-green-50 text-green-900',
-  likely: 'border-yellow-300 bg-yellow-50 text-yellow-900',
-  no: 'border-red-300 bg-red-50 text-red-900',
+// Ergebnis nur über Linksborder + Textfarbe (Spec §3.3), keine gesättigte Fläche.
+const RESULT_BORDER: Record<Result['eligible'], string> = {
+  yes: 'border-l-pos',
+  likely: 'border-l-warn',
+  no: 'border-l-neg',
 };
 
 export function ThirtyPercentRulingChecker({ locale = 'de' }: { locale?: string }) {
@@ -78,17 +80,19 @@ export function ThirtyPercentRulingChecker({ locale = 'de' }: { locale?: string 
   function RadioGroup({ label, value, onChange }: { label: string; value: Answer; onChange: (v: Answer) => void }) {
     return (
       <div className="space-y-2">
-        <p className="text-body-sm font-medium text-on-surface">{label}</p>
+        <p className="text-sm text-text">{label}</p>
         <div className="flex gap-3">
           {(['yes', 'no'] as const).map(opt => (
             <button
               key={opt}
               onClick={() => onChange(opt)}
-              className={`px-4 py-2 rounded-lg border text-body-sm font-medium transition-colors ${
+              aria-pressed={value === opt}
+              className={cn(
+                'focus-ring rounded-md border px-4 py-2 text-sm transition-colors duration-150 ease-out',
                 value === opt
-                  ? opt === 'yes' ? 'bg-primary text-on-primary border-primary' : 'bg-error/10 text-error border-error/40'
-                  : 'border-outline-variant text-on-surface-variant hover:border-outline'
-              }`}
+                  ? 'border-accent bg-accent text-accent-fg'
+                  : 'border-line text-text-2 hover:border-line-strong hover:text-text',
+              )}
             >
               {opt === 'yes' ? (de ? 'Ja' : 'Yes') : (de ? 'Nein' : 'No')}
             </button>
@@ -130,13 +134,13 @@ export function ThirtyPercentRulingChecker({ locale = 'de' }: { locale?: string 
       />
 
       {result && (
-        <div className={`rounded-xl border p-4 space-y-2 ${COLOR[result.eligible]}`}>
-          <p className="font-semibold text-body-md">{de ? result.titleDE : result.titleEN}</p>
-          <p className="text-body-sm leading-relaxed">{de ? result.textDE : result.textEN}</p>
+        <div className={cn('space-y-2 rounded-md border border-line border-l-2 bg-surface-sub p-4', RESULT_BORDER[result.eligible])}>
+          <p className="text-body text-text">{de ? result.titleDE : result.titleEN}</p>
+          <p className="text-sm leading-relaxed text-text-2">{de ? result.textDE : result.textEN}</p>
         </div>
       )}
 
-      <p className="text-label-sm text-on-surface-variant">
+      <p className="text-caption text-text-3">
         {de
           ? 'Kein Rechtsrat. Beantragung über Arbeitgeber beim Belastingdienst (belastingdienst.nl). Stand: 2024.'
           : 'Not legal advice. Apply through employer at Belastingdienst (belastingdienst.nl). As of 2024.'}

@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { StatusDot } from '@/components/ui/StatusDot';
 
 type Props = { locale?: string };
 
@@ -8,6 +11,14 @@ type IncomeType = 'employed_pt' | 'employed_foreign' | 'freelancer_pt' | 'freela
 
 const DISCLAIMER_DE = 'Diese Einschätzung ist nicht verbindlich und ersetzt keine Steuerberatung. Für einen IFICI-Antrag ist die Unterstützung eines zugelassenen portugiesischen Steuerberaters unbedingt erforderlich.';
 const DISCLAIMER_EN = 'This assessment is not binding and does not replace tax advice. The support of a licensed Portuguese tax advisor is essential for an IFICI application.';
+
+const LEVEL_TONE = { green: 'pos', yellow: 'warn', red: 'neg' } as const;
+const LEVEL_BORDER = { green: 'border-l-pos', yellow: 'border-l-warn', red: 'border-l-neg' } as const;
+
+const choiceCls = (active: boolean) =>
+  cn('focus-ring rounded-md border px-4 py-2 text-sm transition-colors duration-150 ease-out', active ? 'border-accent bg-accent text-accent-fg' : 'border-line text-text-2 hover:border-line-strong hover:text-text');
+const optionCls = (active: boolean) =>
+  cn('focus-ring rounded-md border px-3 py-2 text-left text-sm transition-colors duration-150 ease-out', active ? 'border-accent bg-accent text-accent-fg' : 'border-line text-text-2 hover:border-line-strong hover:text-text');
 
 export function IFICIEligibilityChecker({ locale = 'de' }: Props) {
   const [priorResidency, setPriorResidency] = useState<boolean | null>(null);
@@ -67,23 +78,23 @@ export function IFICIEligibilityChecker({ locale = 'de' }: Props) {
   ];
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-5">
-      <h3 className="font-semibold text-gray-900">{t('IFICI-Eligibility-Checker', 'IFICI Eligibility Checker')}</h3>
+    <div className="space-y-5 rounded-lg border border-line bg-surface p-5">
+      <h3 className="text-h3 text-text">{t('IFICI-Eligibility-Checker', 'IFICI Eligibility Checker')}</h3>
 
-      <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
-        ⚠ {locale === 'de' ? DISCLAIMER_DE : DISCLAIMER_EN}
+      <div className="flex items-start gap-2 rounded-md border-l-2 border-warn bg-surface-sub p-3 text-caption text-text-2">
+        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warn" aria-hidden />
+        <span>{locale === 'de' ? DISCLAIMER_DE : DISCLAIMER_EN}</span>
       </div>
 
       <div className="space-y-4 text-sm">
         {/* Q1: Prior residency */}
         <div>
-          <p className="font-medium text-gray-800 mb-2">
+          <p className="mb-2 text-sm text-text">
             {t('Warst du in den letzten 5 Jahren steuerlich in Portugal ansässig?', 'Were you tax-resident in Portugal in the last 5 years?')}
           </p>
           <div className="flex gap-3">
             {([true, false] as const).map(v => (
-              <button key={String(v)} onClick={() => setPriorResidency(v)}
-                className={`px-4 py-2 rounded-lg border font-medium transition-colors ${priorResidency === v ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-700 hover:border-blue-400'}`}>
+              <button key={String(v)} onClick={() => setPriorResidency(v)} className={choiceCls(priorResidency === v)}>
                 {v ? t('Ja', 'Yes') : t('Nein', 'No')}
               </button>
             ))}
@@ -93,11 +104,10 @@ export function IFICIEligibilityChecker({ locale = 'de' }: Props) {
         {/* Q2: Income type */}
         {priorResidency === false && (
           <div>
-            <p className="font-medium text-gray-800 mb-2">{t('Deine primäre Einkommensquelle?', 'Your primary income source?')}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <p className="mb-2 text-sm text-text">{t('Deine primäre Einkommensquelle?', 'Your primary income source?')}</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {incomeOptions.map(opt => (
-                <button key={opt.value} onClick={() => setIncomeType(opt.value)}
-                  className={`px-3 py-2 rounded-lg border text-left text-sm transition-colors ${incomeType === opt.value ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-700 hover:border-blue-400'}`}>
+                <button key={opt.value} onClick={() => setIncomeType(opt.value)} className={optionCls(incomeType === opt.value)}>
                   {locale === 'de' ? opt.de : opt.en}
                 </button>
               ))}
@@ -108,13 +118,12 @@ export function IFICIEligibilityChecker({ locale = 'de' }: Props) {
         {/* Q3: High value activity */}
         {priorResidency === false && incomeType && !['pension', 'investment'].includes(incomeType) && (
           <div>
-            <p className="font-medium text-gray-800 mb-2">
+            <p className="mb-2 text-sm text-text">
               {t('Arbeitest du in Tech, Wissenschaft, Forschung oder kreativer Wirtschaft?', 'Do you work in tech, science, research or creative industries?')}
             </p>
             <div className="flex gap-3">
               {([true, false] as const).map(v => (
-                <button key={String(v)} onClick={() => setHighValueActivity(v)}
-                  className={`px-4 py-2 rounded-lg border font-medium transition-colors ${highValueActivity === v ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-700 hover:border-blue-400'}`}>
+                <button key={String(v)} onClick={() => setHighValueActivity(v)} className={choiceCls(highValueActivity === v)}>
                   {v ? t('Ja', 'Yes') : t('Nein', 'No')}
                 </button>
               ))}
@@ -125,13 +134,13 @@ export function IFICIEligibilityChecker({ locale = 'de' }: Props) {
 
       {/* Result */}
       {r && (
-        <div className={`rounded-lg p-4 text-sm ${r.level === 'green' ? 'bg-green-50 border border-green-200 text-green-900' : r.level === 'yellow' ? 'bg-amber-50 border border-amber-200 text-amber-900' : 'bg-red-50 border border-red-200 text-red-900'}`}>
-          <span className="font-semibold">{r.level === 'green' ? '✓' : r.level === 'yellow' ? '~' : '✗'} </span>
-          {locale === 'de' ? r.de : r.en}
+        <div className={cn('flex items-start gap-2 rounded-md border border-line border-l-2 bg-surface-sub p-4 text-sm text-text', LEVEL_BORDER[r.level])}>
+          <StatusDot tone={LEVEL_TONE[r.level]} className="mt-1" />
+          <span>{locale === 'de' ? r.de : r.en}</span>
         </div>
       )}
 
-      <p className="text-xs text-gray-400">
+      <p className="text-caption text-text-3">
         {t('Quellen: AT (at.gov.pt/en/at/tax-information/personal-income-tax/ifici)', 'Source: AT (at.gov.pt/en/at/tax-information/personal-income-tax/ifici)')}
       </p>
     </div>

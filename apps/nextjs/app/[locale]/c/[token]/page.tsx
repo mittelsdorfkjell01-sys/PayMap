@@ -68,11 +68,11 @@ export default async function SharePage({
   const toName = locale === 'de' ? calc.toCity.nameDE : (calc.toCity.nameEN ?? calc.toCity.nameDE);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 py-4">
+    <div className="mx-auto max-w-2xl space-y-8 py-4">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <p className="text-label-sm text-on-surface-variant uppercase tracking-wider">Vergleich</p>
-        <h1 className="text-headline-xl-mobile font-bold text-on-background">
+      <div className="space-y-2 text-center">
+        <p className="text-caption uppercase tracking-[0.04em] text-text-3">Vergleich</p>
+        <h1 className="text-h1 text-text">
           {calc.fromCity.flag} {fromName} → {calc.toCity.flag} {toName}
         </h1>
       </div>
@@ -84,11 +84,11 @@ export default async function SharePage({
       <div className="flex flex-col items-center gap-3 pt-2">
         <Link
           href={`/${locale}`}
-          className="btn-primary px-8"
+          className="inline-flex h-10 items-center rounded-md bg-accent px-8 text-body text-accent-fg transition-opacity hover:opacity-90"
         >
           Eigene Werte vergleichen →
         </Link>
-        <p className="text-label-sm text-on-surface-variant">
+        <p className="text-caption text-text-3">
           Berechne deinen persönlichen Netto-Vergleich auf paymap.io
         </p>
       </div>

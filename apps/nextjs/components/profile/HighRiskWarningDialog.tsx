@@ -2,6 +2,8 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
+import { AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface Props {
   open: boolean;
@@ -24,43 +26,44 @@ export function HighRiskWarningDialog({ open, highRiskTitles, onConfirm, onCance
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} aria-hidden="true" />
+      {/* Backdrop ohne Blur (Spec §6) */}
+      <div className="absolute inset-0" style={{ backgroundColor: 'rgba(14,14,14,0.4)' }} onClick={onCancel} aria-hidden="true" />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="risk-dialog-title"
-        className="relative z-10 w-full max-w-md bg-background rounded-2xl shadow-2xl border border-error/30 overflow-hidden"
+        className="relative z-10 w-full max-w-md overflow-hidden rounded-xl border border-line border-l-2 border-l-neg bg-surface shadow-float"
       >
         {/* Header */}
-        <div className="bg-error/8 border-b border-error/20 px-6 py-4 flex items-center gap-3">
-          <span className="text-2xl leading-none">⚠️</span>
-          <h2 id="risk-dialog-title" className="text-title-md font-bold text-error">
+        <div className="flex items-center gap-3 border-b border-line px-6 py-4">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-neg" aria-hidden />
+          <h2 id="risk-dialog-title" className="text-h3 text-text">
             {t('title')}
           </h2>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 space-y-4">
-          <p className="text-body-md text-on-surface font-medium">{t('intro')}</p>
+        <div className="space-y-4 px-6 py-5">
+          <p className="text-body text-text">{t('intro')}</p>
 
           {highRiskTitles.length > 0 && (
             <ul className="space-y-1.5">
               {highRiskTitles.slice(0, 6).map((title, i) => (
-                <li key={i} className="flex items-start gap-2 text-body-sm text-on-surface">
-                  <span className="text-error mt-0.5 shrink-0">▸</span>
+                <li key={i} className="flex items-start gap-2 text-sm text-text">
+                  <span className="mt-0.5 shrink-0 text-neg">▸</span>
                   <span>{title}</span>
                 </li>
               ))}
             </ul>
           )}
 
-          <div className="border-t border-outline-variant/30 pt-4 space-y-3">
-            <p className="text-body-sm text-on-surface-variant">{t('body1')}</p>
-            <p className="text-body-sm text-on-surface font-medium">{t('body2')}</p>
+          <div className="space-y-3 border-t border-line pt-4">
+            <p className="text-sm text-text-2">{t('body1')}</p>
+            <p className="text-sm text-text">{t('body2')}</p>
             <ul className="space-y-1">
               {(['bullet1', 'bullet2', 'bullet3'] as const).map((key) => (
-                <li key={key} className="flex items-start gap-2 text-body-sm text-on-surface-variant">
-                  <span className="shrink-0 mt-0.5">•</span>
+                <li key={key} className="flex items-start gap-2 text-sm text-text-2">
+                  <span className="mt-0.5 shrink-0">•</span>
                   <span>{t(key)}</span>
                 </li>
               ))}
@@ -69,19 +72,13 @@ export function HighRiskWarningDialog({ open, highRiskTitles, onConfirm, onCance
         </div>
 
         {/* Actions */}
-        <div className="px-6 pb-5 flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={onConfirm}
-            className="flex-1 btn-primary bg-error hover:bg-error/90 text-on-error py-3 rounded-xl font-semibold text-body-sm"
-          >
+        <div className="flex flex-col gap-3 px-6 pb-5 sm:flex-row">
+          <Button onClick={onConfirm} className="flex-1">
             {t('confirm')}
-          </button>
-          <button
-            onClick={onCancel}
-            className="flex-1 px-4 py-3 border border-outline-variant rounded-xl text-body-sm text-on-surface-variant hover:border-outline hover:text-on-surface transition-colors"
-          >
+          </Button>
+          <Button variant="outline" onClick={onCancel} className="flex-1">
             {t('cancel')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

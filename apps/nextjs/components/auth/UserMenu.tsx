@@ -4,20 +4,19 @@ import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
-import { cn } from '@/lib/utils';
 
 export function AuthButton() {
   const t = useTranslations('auth');
   const { user, loading, openAuthModal } = useAuth();
 
-  if (loading) return <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />;
+  if (loading) return <div className="h-8 w-8 animate-pulse rounded-full bg-surface-sub" />;
 
   if (user) return <UserMenu />;
 
   return (
     <button
       onClick={() => openAuthModal('login')}
-      className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+      className="focus-ring rounded-md border border-line px-3 py-1.5 text-sm text-text-2 transition-colors hover:border-line-strong hover:text-text"
     >
       {t('login')}
     </button>
@@ -46,26 +45,26 @@ function UserMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-8 h-8 rounded-full bg-green-600 text-white text-xs font-bold flex items-center justify-center hover:bg-green-700 transition-colors"
+        className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-accent text-data-sm tabular text-accent-fg transition-opacity hover:opacity-90"
       >
         {initials}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-10 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-50">
-          <div className="px-3 py-2 border-b border-gray-100">
-            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+        <div className="absolute right-0 top-10 z-50 w-48 rounded-md border border-line bg-surface py-1 shadow-float">
+          <div className="border-b border-line px-3 py-2">
+            <p className="truncate text-caption text-text-2">{user?.email}</p>
           </div>
           <Link
             href={`/${locale}/onboarding`}
             onClick={() => setOpen(false)}
-            className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center px-3 py-2 text-sm text-text transition-colors hover:bg-surface-sub"
           >
             Profil bearbeiten
           </Link>
           <button
             onClick={async () => { setOpen(false); await signOut(); }}
-            className="w-full text-left flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            className="flex w-full items-center px-3 py-2 text-left text-sm text-neg transition-colors hover:bg-surface-sub"
           >
             {t('logout')}
           </button>

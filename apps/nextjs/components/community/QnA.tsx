@@ -24,23 +24,23 @@ export function QnA({ items, locale = 'de', titleDE = 'Häufige Fragen', titleEN
 
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold text-gray-900 text-base">{t(titleDE, titleEN)}</h3>
+      <h3 className="text-h3 text-text">{t(titleDE, titleEN)}</h3>
       {items.map((item, i) => {
         const isOpen = openIndex === i;
         return (
-          <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
+          <div key={i} className="overflow-hidden rounded-md border border-line">
             <button
               onClick={() => setOpenIndex(isOpen ? null : i)}
-              className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-gray-50 transition-colors"
+              className="focus-ring flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-surface-sub"
             >
-              <span className="font-medium text-sm text-gray-900 pr-4">
+              <span className="pr-4 text-sm text-text">
                 {t(item.questionDE, item.questionEN)}
               </span>
-              <span className="text-gray-400 text-sm shrink-0">{isOpen ? '▲' : '▼'}</span>
+              <span className="shrink-0 text-sm text-text-3">{isOpen ? '▲' : '▼'}</span>
             </button>
             {isOpen && (
-              <div className="px-4 pb-4 pt-0 border-t border-gray-100">
-                <p className="text-sm text-gray-600 leading-relaxed pt-3">
+              <div className="border-t border-line px-4 pb-4 pt-0">
+                <p className="pt-3 text-sm leading-relaxed text-text-2">
                   {t(item.answerDE, item.answerEN)}
                 </p>
               </div>

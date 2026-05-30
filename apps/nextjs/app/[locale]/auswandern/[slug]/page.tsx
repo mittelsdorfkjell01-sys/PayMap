@@ -108,25 +108,25 @@ export default async function AuswandernPage({ params }: Props) {
       {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
-      <div className="max-w-3xl mx-auto space-y-8 px-4 py-8">
+      <div className="mx-auto max-w-reading space-y-8 px-4 py-8">
         {/* Header */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-label-sm text-on-surface-variant uppercase tracking-wider">
-            <a href="/de/auswandern" className="hover:text-primary transition-colors">Auswandern-Guides</a>
+          <div className="flex items-center gap-2 text-caption uppercase tracking-[0.04em] text-text-3">
+            <a href="/de/auswandern" className="focus-ring rounded-sm transition-colors hover:text-text">Auswandern-Guides</a>
             <span>/</span>
             <span>{data.city.nameDE}</span>
           </div>
-          <h1 className="text-headline-xl-mobile md:text-headline-lg font-bold text-on-background">
+          <h1 className="text-h1 text-text">
             {data.city.flag} Auswandern nach {data.city.nameDE}
           </h1>
-          <p className="text-body-lg text-on-surface-variant">
+          <p className="text-body text-text-2">
             {data.totalSteps} geprüfte Schritte · {data.sections.length} Themenbereiche
             {data.highRiskCount > 0 && ` · ${data.highRiskCount} Hochrisiko-Hinweise`}
             {premiumData && ' · Premium-Guide'}
           </p>
           {data.highRiskCount > 0 && (
-            <div className="border border-error/30 bg-error/5 rounded-xl px-4 py-3 text-body-sm text-error leading-relaxed">
-              ⚠ Dieser Guide enthält <strong>{data.highRiskCount} Hinweise mit hohem rechtlichen/steuerlichen Risiko</strong>. Konsultiere vor dem Wegzug einen Steuerberater mit internationalem Profil.
+            <div className="rounded-md border-l-2 border-neg bg-surface-sub px-4 py-3 text-sm leading-relaxed text-neg">
+              Dieser Guide enthält <strong className="text-text">{data.highRiskCount} Hinweise mit hohem rechtlichen/steuerlichen Risiko</strong>. Konsultiere vor dem Wegzug einen Steuerberater mit internationalem Profil.
             </div>
           )}
         </div>

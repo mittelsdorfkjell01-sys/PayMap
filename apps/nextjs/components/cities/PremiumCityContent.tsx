@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { BookOpen, FileText, List, Zap, Paperclip, CheckSquare, ExternalLink, type LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { DistrictMapGeneric } from '@/components/cities/_shared/DistrictMapGeneric';
 import { RentComparisonChart } from '@/components/cities/_shared/RentComparisonChart';
 import { FeedbackButton } from '@/components/community/FeedbackButton';
@@ -27,26 +29,33 @@ const NARRATIVE_LABELS: Record<string, { de: string; en: string }> = {
   for_crypto_investors: { de: 'Crypto-Investoren', en: 'Crypto Investors' },
 };
 
-const RESOURCE_TYPE_ICONS: Record<string, string> = {
-  checklist: '✓',
-  glossary:  '📖',
-  template:  '📄',
-  directory: '📋',
-  cheatsheet: '⚡',
+const RESOURCE_TYPE_ICONS: Record<string, LucideIcon> = {
+  checklist: CheckSquare,
+  glossary:  BookOpen,
+  template:  FileText,
+  directory: List,
+  cheatsheet: Zap,
 };
+
+// Tab-Pill (aktiv = accent), durchgängig Spec-konform.
+const pillCls = (active: boolean) =>
+  cn(
+    'focus-ring rounded-md border px-3.5 py-1.5 text-sm transition-colors duration-150 ease-out',
+    active ? 'border-accent bg-accent text-accent-fg' : 'border-line text-text-2 hover:border-line-strong hover:text-text',
+  );
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(true);
   return (
-    <div className="rounded-2xl border border-outline-variant/40 overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-line">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-5 py-4 bg-surface-container/50 hover:bg-surface-container transition-colors text-left"
+        className="focus-ring flex w-full items-center gap-3 bg-surface-sub px-5 py-4 text-left transition-colors hover:bg-surface-sub"
       >
-        <span className="flex-1 text-label-lg font-bold text-on-surface uppercase tracking-wider">{title}</span>
-        <span className="text-on-surface-variant text-sm">{open ? '▲' : '▼'}</span>
+        <span className="flex-1 text-h3 text-text">{title}</span>
+        <span className="text-sm text-text-3">{open ? '▲' : '▼'}</span>
       </button>
-      {open && <div className="px-4 py-5 bg-surface space-y-4">{children}</div>}
+      {open && <div className="space-y-4 bg-surface px-4 py-5">{children}</div>}
     </div>
   );
 }
@@ -79,14 +88,14 @@ function DistrictsSection({ districts, locale }: { districts: DistrictWithCoL[];
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
+        <p className="mb-3 text-caption uppercase tracking-[0.04em] text-text-3">
           {locale === 'de' ? 'Stadtteil-Karte' : 'District Map'}
         </p>
         <DistrictMapGeneric districts={mapDistricts} locale={locale} />
       </div>
       {rentRows.length > 0 && (
         <div>
-          <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
+          <p className="mb-3 text-caption uppercase tracking-[0.04em] text-text-3">
             {locale === 'de' ? 'Mietpreise im Vergleich' : 'Rent Comparison'}
           </p>
           <RentComparisonChart rows={rentRows} currency="EUR" locale={locale} source="Idealista Q1 2026" />
@@ -106,8 +115,7 @@ function NarrativesSection({ narratives, locale }: { narratives: PremiumCityData
         {narratives.map(n => {
           const label = NARRATIVE_LABELS[n.section] ?? { de: n.section, en: n.section };
           return (
-            <button key={n.section} onClick={() => setActiveSection(n.section)}
-              className={`px-3.5 py-1.5 rounded-full text-label-sm font-semibold transition-colors ${activeSection === n.section ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'}`}>
+            <button key={n.section} onClick={() => setActiveSection(n.section)} className={pillCls(activeSection === n.section)}>
               {locale === 'de' ? label.de : label.en}
             </button>
           );
@@ -115,10 +123,10 @@ function NarrativesSection({ narratives, locale }: { narratives: PremiumCityData
       </div>
       {active && (
         <div className="space-y-3">
-          <h3 className="font-bold text-on-surface text-lg">
+          <h3 className="text-h3 text-text">
             {locale === 'de' ? active.titleDE : active.titleEN}
           </h3>
-          <div className="prose prose-sm max-w-none text-on-surface-variant leading-relaxed whitespace-pre-line">
+          <div className="prose prose-sm max-w-none whitespace-pre-line leading-relaxed text-text-2">
             {locale === 'de' ? active.contentDE : active.contentEN}
           </div>
           {active.sourceUrls.length > 0 && (
@@ -128,8 +136,8 @@ function NarrativesSection({ narratives, locale }: { narratives: PremiumCityData
                   const host = new URL(url).hostname.replace('www.', '');
                   return (
                     <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                      className="text-label-sm text-primary underline underline-offset-2 hover:text-primary/80">
-                      🔗 {host}
+                      className="focus-ring inline-flex items-center gap-1.5 rounded-sm text-caption text-focus underline-offset-2 hover:underline">
+                      <ExternalLink className="h-3 w-3" aria-hidden /> {host}
                     </a>
                   );
                 } catch {
@@ -139,7 +147,7 @@ function NarrativesSection({ narratives, locale }: { narratives: PremiumCityData
             </div>
           )}
           {active.lastVerified && (
-            <p className="text-label-sm text-on-surface-variant">
+            <p className="text-caption text-text-3">
               {locale === 'de' ? 'Geprüft' : 'Verified'}: {new Date(active.lastVerified).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { month: 'long', year: 'numeric' })}
             </p>
           )}
@@ -156,8 +164,7 @@ function ToolsSection({ tools, citySlug, locale }: { tools: PremiumCityData['too
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         {tools.map(tool => (
-          <button key={tool.toolType} onClick={() => setActiveTool(activeTool === tool.toolType ? null : tool.toolType)}
-            className={`px-3.5 py-1.5 rounded-full text-label-sm font-semibold transition-colors ${activeTool === tool.toolType ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'}`}>
+          <button key={tool.toolType} onClick={() => setActiveTool(activeTool === tool.toolType ? null : tool.toolType)} className={pillCls(activeTool === tool.toolType)}>
             {locale === 'de' ? tool.nameDE : tool.nameEN}
           </button>
         ))}
@@ -187,8 +194,8 @@ function ToolsSection({ tools, citySlug, locale }: { tools: PremiumCityData['too
           }
         }
         return (
-          <div key={tool.toolType} className="rounded-xl border border-gray-200 p-4 text-sm text-gray-600">
-            <p className="font-medium mb-1">{locale === 'de' ? tool.nameDE : tool.nameEN}</p>
+          <div key={tool.toolType} className="rounded-md border border-line p-4 text-sm text-text-2">
+            <p className="mb-1 text-text">{locale === 'de' ? tool.nameDE : tool.nameEN}</p>
             <p>{locale === 'de' ? tool.descriptionDE : tool.descriptionEN}</p>
           </div>
         );
@@ -204,25 +211,25 @@ function ResourcesSection({ resources, locale }: { resources: PremiumCityData['r
     <div className="space-y-2">
       {resources.map(r => {
         const isOpen = openId === r.id;
-        const icon = RESOURCE_TYPE_ICONS[r.resourceType] ?? '📎';
+        const Icon = RESOURCE_TYPE_ICONS[r.resourceType] ?? Paperclip;
         const content = r.content as Record<string, unknown>;
         return (
-          <div key={r.id} className="rounded-xl border border-outline-variant/40 overflow-hidden">
+          <div key={r.id} className="overflow-hidden rounded-md border border-line">
             <button onClick={() => setOpenId(isOpen ? null : r.id)}
-              className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-surface-container/50 transition-colors">
-              <span className="text-lg">{icon}</span>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-on-surface">{locale === 'de' ? r.titleDE : r.titleEN}</p>
+              className="focus-ring flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-surface-sub">
+              <Icon className="h-4 w-4 shrink-0 text-text-3" aria-hidden />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-text">{locale === 'de' ? r.titleDE : r.titleEN}</p>
                 {(r.descriptionDE || r.descriptionEN) && (
-                  <p className="text-xs text-on-surface-variant truncate">
+                  <p className="truncate text-caption text-text-2">
                     {locale === 'de' ? r.descriptionDE : r.descriptionEN}
                   </p>
                 )}
               </div>
-              <span className="text-on-surface-variant text-sm shrink-0">{isOpen ? '▲' : '▼'}</span>
+              <span className="shrink-0 text-sm text-text-3">{isOpen ? '▲' : '▼'}</span>
             </button>
             {isOpen && (
-              <div className="px-4 pb-4 pt-1 border-t border-outline-variant/20 space-y-3">
+              <div className="space-y-3 border-t border-line px-4 pb-4 pt-1">
                 <ResourceContent content={content} resourceType={r.resourceType} locale={locale} />
               </div>
             )}
@@ -242,11 +249,11 @@ function ResourceContent({ content, resourceType, locale }: { content: Record<st
       <div className="space-y-4">
         {sections.map((sec, si) => (
           <div key={si}>
-            <p className="font-semibold text-sm text-on-surface mb-2">{t(sec.titleDE, sec.titleEN)}</p>
+            <p className="mb-2 text-sm text-text">{t(sec.titleDE, sec.titleEN)}</p>
             <ul className="space-y-1.5">
               {sec.items.map((item, ii) => (
-                <li key={ii} className="flex items-start gap-2 text-sm text-on-surface-variant">
-                  <span className="text-primary mt-0.5 shrink-0">□</span>
+                <li key={ii} className="flex items-start gap-2 text-sm text-text-2">
+                  <span className="mt-0.5 shrink-0 text-text-3">□</span>
                   <span>{t(item.de, item.en)}</span>
                 </li>
               ))}
@@ -263,9 +270,9 @@ function ResourceContent({ content, resourceType, locale }: { content: Record<st
       <div className="space-y-2">
         {entries.map((e, i) => (
           <div key={i} className="text-sm">
-            <span className="font-semibold text-on-surface">{t(e.de, e.en)}</span>
-            {e.es && <span className="text-primary ml-2">→ {e.es}</span>}
-            {e.note && <span className="text-on-surface-variant ml-2 text-xs">({e.note})</span>}
+            <span className="text-text">{t(e.de, e.en)}</span>
+            {e.es && <span className="ml-2 text-text-2">→ {e.es}</span>}
+            {e.note && <span className="ml-2 text-caption text-text-3">({e.note})</span>}
           </div>
         ))}
       </div>
@@ -278,12 +285,12 @@ function ResourceContent({ content, resourceType, locale }: { content: Record<st
       <div className="space-y-3">
         {entries.map((e, i) => (
           <div key={i} className="text-sm">
-            <p className="font-semibold text-on-surface">{e.name}</p>
-            <p className="text-on-surface-variant text-xs">{e.description}</p>
-            {e.address && <p className="text-xs text-on-surface-variant">{e.address}</p>}
+            <p className="text-text">{e.name}</p>
+            <p className="text-caption text-text-2">{e.description}</p>
+            {e.address && <p className="text-caption text-text-2">{e.address}</p>}
             {e.url && (
               <a href={e.url} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-primary underline underline-offset-2 hover:text-primary/80">
+                className="focus-ring rounded-sm text-caption text-focus underline-offset-2 hover:underline">
                 {e.url.replace('https://', '').replace('http://', '')}
               </a>
             )}
@@ -297,16 +304,16 @@ function ResourceContent({ content, resourceType, locale }: { content: Record<st
     const tmpl = (content as { template: { de: string; en: string }; note?: string });
     return (
       <div className="space-y-2">
-        <pre className="text-xs bg-gray-50 rounded-lg p-3 whitespace-pre-wrap text-gray-700 leading-relaxed overflow-auto">
+        <pre className="overflow-auto whitespace-pre-wrap rounded-md bg-surface-sub p-3 text-caption leading-relaxed text-text-2">
           {t(tmpl.template.de, tmpl.template.en)}
         </pre>
-        {tmpl.note && <p className="text-xs text-on-surface-variant">{tmpl.note}</p>}
+        {tmpl.note && <p className="text-caption text-text-3">{tmpl.note}</p>}
       </div>
     );
   }
 
   return (
-    <pre className="text-xs text-on-surface-variant whitespace-pre-wrap overflow-auto max-h-64">
+    <pre className="max-h-64 overflow-auto whitespace-pre-wrap text-caption text-text-2">
       {JSON.stringify(content, null, 2)}
     </pre>
   );
@@ -323,27 +330,27 @@ function LastUpdatedBadge({ lastVerifiedAt, changeLogs, locale }: { lastVerified
     : null;
 
   return (
-    <div className="rounded-xl border border-outline-variant/30 px-4 py-3 bg-surface-container/30">
+    <div className="rounded-md border border-line bg-surface-sub px-4 py-3">
       <button
         onClick={() => setExpanded(e => !e)}
-        className="flex items-center gap-2 w-full text-left"
+        className="focus-ring flex w-full items-center gap-2 rounded-sm text-left"
       >
-        <span className="text-label-sm text-on-surface-variant">
+        <span className="text-caption text-text-2">
           {dateStr
             ? `${t('Zuletzt geprüft', 'Last verified')}: ${dateStr}`
             : t('Inhalt noch nicht geprüft', 'Content not yet verified')}
         </span>
         {changeLogs.length > 0 && (
-          <span className="ml-auto text-label-sm text-primary shrink-0">
+          <span className="ml-auto shrink-0 text-caption text-focus">
             {expanded ? t('Änderungen schließen', 'Close changes') : t(`${changeLogs.length} Änderung${changeLogs.length !== 1 ? 'en' : ''}`, `${changeLogs.length} change${changeLogs.length !== 1 ? 's' : ''}`)}
           </span>
         )}
       </button>
       {expanded && changeLogs.length > 0 && (
-        <ul className="mt-3 space-y-1.5 border-t border-outline-variant/20 pt-3">
+        <ul className="mt-3 space-y-1.5 border-t border-line pt-3">
           {changeLogs.map(log => (
-            <li key={log.id} className="flex items-start gap-2 text-xs text-on-surface-variant">
-              <span className="text-on-surface-variant/50 shrink-0 tabular-nums">
+            <li key={log.id} className="flex items-start gap-2 text-caption text-text-2">
+              <span className="shrink-0 tabular text-text-3">
                 {new Date(log.createdAt).toLocaleDateString(locale === 'de' ? 'de-DE' : 'en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </span>
               <span>{locale === 'de' ? log.descriptionDE : log.descriptionEN}</span>
@@ -365,30 +372,30 @@ function TestimonialsSection({ testimonials, locale }: { testimonials: PremiumCi
         const isOpen = openId === test.id;
         const preview = (locale === 'de' ? test.contentDE : test.contentEN).slice(0, 160) + '…';
         return (
-          <div key={test.id} className="rounded-xl border border-outline-variant/40 overflow-hidden">
+          <div key={test.id} className="overflow-hidden rounded-md border border-line">
             <button onClick={() => setOpenId(isOpen ? null : test.id)}
-              className="w-full px-4 py-3.5 text-left hover:bg-surface-container/50 transition-colors">
+              className="focus-ring w-full px-4 py-3.5 text-left transition-colors hover:bg-surface-sub">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm text-on-surface">{test.authorName}</span>
-                    {test.authorAge && <span className="text-xs text-on-surface-variant">{test.authorAge} J.</span>}
-                    {test.authorProfession && <span className="text-xs text-on-surface-variant">· {test.authorProfession}</span>}
-                    <span className="text-xs text-on-surface-variant">· {t('seit', 'since')} {test.yearMoved}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-text">{test.authorName}</span>
+                    {test.authorAge && <span className="text-caption text-text-2">{test.authorAge} J.</span>}
+                    {test.authorProfession && <span className="text-caption text-text-2">· {test.authorProfession}</span>}
+                    <span className="text-caption text-text-2">· {t('seit', 'since')} {test.yearMoved}</span>
                     {!test.isVerified && (
-                      <span className="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">
+                      <span className="rounded-sm bg-surface-sub px-2 py-0.5 text-caption text-text-2">
                         {t('konstruierte Persona', 'constructed persona')}
                       </span>
                     )}
                   </div>
-                  {!isOpen && <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">{preview}</p>}
+                  {!isOpen && <p className="mt-1 text-caption leading-relaxed text-text-2">{preview}</p>}
                 </div>
-                <span className="text-on-surface-variant text-sm shrink-0 mt-0.5">{isOpen ? '▲' : '▼'}</span>
+                <span className="mt-0.5 shrink-0 text-sm text-text-3">{isOpen ? '▲' : '▼'}</span>
               </div>
             </button>
             {isOpen && (
-              <div className="px-4 pb-4 border-t border-outline-variant/20 pt-3">
-                <p className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line">
+              <div className="border-t border-line px-4 pb-4 pt-3">
+                <p className="whitespace-pre-line text-sm leading-relaxed text-text-2">
                   {locale === 'de' ? test.contentDE : test.contentEN}
                 </p>
               </div>
@@ -438,8 +445,8 @@ export function PremiumCityContent({ data, citySlug, locale = 'de' }: Props) {
   return (
     <div className="space-y-6">
       {/* Divider */}
-      <div className="border-t border-outline-variant/30 pt-2">
-        <p className="text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">
+      <div className="border-t border-line pt-2">
+        <p className="text-caption uppercase tracking-[0.04em] text-text-3">
           {t('Premium-Inhalte', 'Premium Content')}
         </p>
       </div>
@@ -494,13 +501,13 @@ export function PremiumCityContent({ data, citySlug, locale = 'de' }: Props) {
       )}
 
       {/* Calculator CTA */}
-      <div className="border border-outline-variant/40 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 bg-surface-container/30">
-        <p className="text-sm text-on-surface-variant">
+      <div className="flex items-center justify-between gap-4 rounded-md border border-line bg-surface-sub px-5 py-4">
+        <p className="text-sm text-text-2">
           {t('Genaues Netto für dein Gehalt berechnen?', 'Calculate your exact net salary?')}
         </p>
         <a
           href={`/${locale}`}
-          className="shrink-0 text-sm font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+          className="focus-ring shrink-0 whitespace-nowrap rounded-sm text-sm text-focus transition-colors hover:underline"
         >
           {t('Zum Rechner →', 'Go to Calculator →')}
         </a>
