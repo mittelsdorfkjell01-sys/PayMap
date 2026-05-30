@@ -4,6 +4,10 @@ import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
+/**
+ * TabBar (Spec §6). Aktiver Tab: text-text + 2px untere Border in --text.
+ * Inaktiv: text-2. Keine Flächen, keine Grün-Hervorhebung.
+ */
 const tabs = [
   { key: 'calculator', path: '' },
   { key: 'ranking', path: '/ranking' },
@@ -25,7 +29,7 @@ export default function TabBar() {
   }
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+    <div className="scrollbar-none flex items-center gap-6 overflow-x-auto">
       {tabs.map((tab) => {
         const href = `/${locale}${tab.path}`;
         const active = isActive(tab.path);
@@ -33,11 +37,12 @@ export default function TabBar() {
           <Link
             key={tab.key}
             href={href}
+            aria-current={active ? 'page' : undefined}
             className={cn(
-              'px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap transition-colors',
+              'focus-ring whitespace-nowrap border-b-2 py-[18px] text-sm transition-colors duration-150 ease-out',
               active
-                ? 'text-green-600 bg-green-50 border-b-2 border-green-600'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'border-text text-text'
+                : 'border-transparent text-text-2 hover:text-text'
             )}
           >
             {t(tab.key)}

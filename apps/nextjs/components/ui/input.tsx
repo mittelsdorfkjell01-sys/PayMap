@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+/**
+ * Input (Spec §6). Surface + Hairline, 44px Höhe, Fokus: Border --focus + 3px-Ring.
+ */
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
@@ -10,7 +12,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          'flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+          'flex h-11 w-full rounded-md border border-line bg-surface px-[14px] text-body text-text transition-colors duration-150 ease-out',
+          'placeholder:text-text-3',
+          'focus:outline-none focus:border-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--focus)_25%,transparent)]',
+          'disabled:cursor-not-allowed disabled:opacity-40',
           className
         )}
         ref={ref}

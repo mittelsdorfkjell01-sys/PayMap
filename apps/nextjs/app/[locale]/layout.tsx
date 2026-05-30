@@ -1,6 +1,7 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { GeistSans } from 'geist/font/sans';
 import { AuthProvider } from '@/lib/auth';
 import { AuthModal } from '@/components/auth/AuthModal';
 import Nav from '@/components/nav/Nav';
@@ -43,18 +44,24 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={GeistSans.variable}>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}",
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
         />
       </head>
-      <body>
+      <body className="font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
             <Nav />
-            <main className="max-w-6xl mx-auto px-4 py-6">{children}</main>
+            <main className="max-w-content mx-auto px-4 py-12 sm:px-6">{children}</main>
             <Footer />
             <AuthModal />
           </AuthProvider>

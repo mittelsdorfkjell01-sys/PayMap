@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Slider (Spec §6). 2px-Track in --line, Füllung --accent links vom Thumb,
+ * 16px-Thumb (--surface + 1px --line-strong). API unverändert (label/value/onChange).
+ */
 interface SliderProps {
   label: string;
   value: number;
@@ -10,11 +14,13 @@ interface SliderProps {
 }
 
 export function Slider({ label, value, min = 0, max = 100, onChange, className }: SliderProps) {
+  const pct = max > min ? ((value - min) / (max - min)) * 100 : 0;
+
   return (
     <div className={`space-y-1 ${className ?? ''}`}>
-      <div className="flex justify-between items-center">
-        <span className="text-xs font-medium text-on-surface-variant">{label}</span>
-        <span className="text-xs font-bold text-on-surface tabular-nums w-7 text-right">{value}</span>
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-text-2">{label}</span>
+        <span className="text-data-sm tabular text-text w-7 text-right">{value}</span>
       </div>
       <input
         type="range"
@@ -27,8 +33,10 @@ export function Slider({ label, value, min = 0, max = 100, onChange, className }
         aria-valuemax={max}
         aria-valuenow={value}
         aria-label={label}
-        className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-primary"
-        style={{ minHeight: '44px', display: 'flex', alignItems: 'center' }}
+        className="slider-token"
+        style={{
+          background: `linear-gradient(to right, var(--accent) ${pct}%, var(--line) ${pct}%)`,
+        }}
       />
     </div>
   );
