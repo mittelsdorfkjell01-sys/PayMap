@@ -36,11 +36,11 @@ function Modal({ country, onClose, onSaved }: { country: Country | null; onClose
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(14,14,14,0.4)' }}>
+      <div className="w-full max-w-lg space-y-4 rounded-xl border border-line bg-surface p-6 shadow-float">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">{isEdit ? 'Land bearbeiten' : 'Neues Land'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+          <h2 className="text-h3 text-text">{isEdit ? 'Land bearbeiten' : 'Neues Land'}</h2>
+          <button onClick={onClose} className="text-xl text-text-3 transition-colors hover:text-text">✕</button>
         </div>
         <form onSubmit={submit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
@@ -57,14 +57,14 @@ function Modal({ country, onClose, onSaved }: { country: Country | null; onClose
               </select>
             </div>
             <div className="flex items-end pb-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} className="rounded" />
-                <span className="text-sm text-gray-700">Aktiv</span>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} className="accent-accent" />
+                <span className="text-sm text-text">Aktiv</span>
               </label>
             </div>
           </div>
           <div><label className="label-admin">Quell-URL (optional)</label><input type="url" value={form.sourceUrl ?? ''} onChange={(e) => set('sourceUrl', e.target.value)} className="input-admin" /></div>
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {error && <p className="text-sm text-neg">{error}</p>}
           <div className="flex gap-3 pt-1">
             <button type="submit" disabled={saving} className="btn-admin-primary">{saving ? 'Speichern…' : 'Speichern'}</button>
             <button type="button" onClick={onClose} className="btn-admin-ghost">Abbrechen</button>
@@ -97,61 +97,55 @@ export default function CountriesEditor() {
 
   const visible = showInactive ? countries : countries.filter((c) => c.isActive);
 
-  const taxTypeBadge: Record<string, string> = {
-    progressive: 'bg-blue-100 text-blue-700',
-    flat:        'bg-amber-100 text-amber-700',
-    zero:        'bg-green-100 text-green-700',
-  };
-
   return (
-    <div className="space-y-5 max-w-5xl">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="max-w-5xl space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Länder</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{countries.filter((c) => c.isActive).length} aktive Länder</p>
+          <h1 className="text-h1 text-text">Länder</h1>
+          <p className="mt-0.5 text-sm text-text-2">{countries.filter((c) => c.isActive).length} aktive Länder</p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-            <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-text-2">
+            <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} className="accent-accent" />
             Inaktive anzeigen
           </label>
           <button onClick={() => setModal('new')} className="btn-admin-primary">+ Neues Land</button>
         </div>
       </div>
 
-      {loading ? <p className="text-gray-500 text-sm">Lade…</p> : (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      {loading ? <p className="text-sm text-text-2">Lade…</p> : (
+        <div className="overflow-hidden rounded-lg border border-line bg-surface">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-left text-xs text-gray-500">
-                <th className="px-4 py-3 font-semibold">Slug</th>
-                <th className="px-4 py-3 font-semibold">Name (DE)</th>
-                <th className="px-4 py-3 font-semibold">Name (EN)</th>
-                <th className="px-4 py-3 font-semibold">Währung</th>
-                <th className="px-4 py-3 font-semibold">Steuertyp</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">Aktualisiert</th>
+              <tr className="border-b border-line-strong bg-surface-sub text-left text-caption uppercase tracking-[0.04em] text-text-3">
+                <th className="px-4 py-3">Slug</th>
+                <th className="px-4 py-3">Name (DE)</th>
+                <th className="px-4 py-3">Name (EN)</th>
+                <th className="px-4 py-3">Währung</th>
+                <th className="px-4 py-3">Steuertyp</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Aktualisiert</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-line-soft">
               {visible.map((c) => (
-                <tr key={c.id} className={`hover:bg-gray-50 ${!c.isActive ? 'opacity-50' : ''}`}>
-                  <td className="px-4 py-2.5 font-mono text-xs font-semibold text-gray-700">{c.slug}</td>
-                  <td className="px-4 py-2.5 font-medium text-gray-900">{c.nameDE}</td>
-                  <td className="px-4 py-2.5 text-gray-600">{c.nameEN}</td>
-                  <td className="px-4 py-2.5 font-mono text-xs">{c.currency}</td>
+                <tr key={c.id} className={`hover:bg-surface-sub ${!c.isActive ? 'opacity-50' : ''}`}>
+                  <td className="px-4 py-2.5 tabular text-caption text-text-2">{c.slug}</td>
+                  <td className="px-4 py-2.5 text-text">{c.nameDE}</td>
+                  <td className="px-4 py-2.5 text-text-2">{c.nameEN}</td>
+                  <td className="px-4 py-2.5 tabular text-caption text-text-2">{c.currency}</td>
                   <td className="px-4 py-2.5">
-                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${taxTypeBadge[c.taxType] ?? 'bg-gray-100 text-gray-600'}`}>{c.taxType}</span>
+                    <span className="rounded-sm bg-surface-sub px-2 py-0.5 text-caption text-text-2">{c.taxType}</span>
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${c.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{c.isActive ? 'Aktiv' : 'Inaktiv'}</span>
+                    <span className={`rounded-sm bg-surface-sub px-2 py-0.5 text-caption ${c.isActive ? 'text-pos' : 'text-text-3'}`}>{c.isActive ? 'Aktiv' : 'Inaktiv'}</span>
                   </td>
-                  <td className="px-4 py-2.5 text-gray-400 text-xs">{new Date(c.updatedAt).toLocaleDateString('de-DE')}</td>
+                  <td className="px-4 py-2.5 text-caption text-text-3">{new Date(c.updatedAt).toLocaleDateString('de-DE')}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex gap-3">
-                      <button onClick={() => setModal(c)} className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Bearbeiten</button>
-                      {c.isActive && <button onClick={() => deactivate(c.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Deaktivieren</button>}
+                      <button onClick={() => setModal(c)} className="text-sm text-focus hover:underline">Bearbeiten</button>
+                      {c.isActive && <button onClick={() => deactivate(c.id)} className="btn-admin-danger">Deaktivieren</button>}
                     </div>
                   </td>
                 </tr>

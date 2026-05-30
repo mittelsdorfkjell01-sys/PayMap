@@ -75,19 +75,19 @@ export default function DeductionsEditor() {
   }
 
   return (
-    <div className="space-y-5 max-w-4xl">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="max-w-4xl space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Freibeträge & Abzüge</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Pauschalbeträge und Prozentabzüge pro Land und Jahr</p>
+          <h1 className="text-h1 text-text">Freibeträge & Abzüge</h1>
+          <p className="mt-0.5 text-sm text-text-2">Pauschalbeträge und Prozentabzüge pro Land und Jahr</p>
         </div>
         <div className="flex items-center gap-3">
-          {saved && !dirty && <span className="text-sm text-green-600 font-medium">Gespeichert ✓</span>}
+          {saved && !dirty && <span className="text-sm text-pos">Gespeichert ✓</span>}
           <button onClick={save} disabled={!dirty || saving} className="btn-admin-primary">{saving ? 'Speichern…' : 'Speichern'}</button>
         </div>
       </div>
 
-      <div className="flex gap-4 flex-wrap">
+      <div className="flex flex-wrap gap-4">
         <div>
           <label className="label-admin">Land</label>
           <select value={countrySlug} onChange={(e) => setCountrySlug(e.target.value)} className="input-admin w-48">
@@ -102,21 +102,21 @@ export default function DeductionsEditor() {
         </div>
       </div>
 
-      {loading ? <p className="text-gray-500 text-sm">Lade…</p> : (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      {loading ? <p className="text-sm text-text-2">Lade…</p> : (
+        <div className="overflow-hidden rounded-lg border border-line bg-surface">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 text-left">
-                <th className="px-4 py-3 font-semibold">Typ / Bezeichnung</th>
-                <th className="px-4 py-3 font-semibold">Betrag (€ / Währung)</th>
-                <th className="px-4 py-3 font-semibold">Prozent (%)</th>
-                <th className="px-4 py-3 font-semibold">Bedingung</th>
+              <tr className="border-b border-line-strong bg-surface-sub text-left text-caption uppercase tracking-[0.04em] text-text-3">
+                <th className="px-4 py-3">Typ / Bezeichnung</th>
+                <th className="px-4 py-3">Betrag (€ / Währung)</th>
+                <th className="px-4 py-3">Prozent (%)</th>
+                <th className="px-4 py-3">Bedingung</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-line-soft">
               {items.map((item, idx) => (
-                <tr key={item.id || idx} className="hover:bg-gray-50">
+                <tr key={item.id || idx} className="hover:bg-surface-sub">
                   <td className="px-3 py-2">
                     <input value={item.type} onChange={(e) => update(idx, 'type', e.target.value)} className="input-admin w-44" placeholder="z.B. grundfreibetrag" />
                   </td>
@@ -126,7 +126,7 @@ export default function DeductionsEditor() {
                       value={item.amount ?? ''}
                       placeholder="—"
                       onChange={(e) => update(idx, 'amount', e.target.value ? parseFloat(e.target.value) : null)}
-                      className="input-admin w-32 font-mono"
+                      className="input-admin w-32 tabular"
                     />
                   </td>
                   <td className="px-3 py-2">
@@ -135,24 +135,24 @@ export default function DeductionsEditor() {
                       value={item.percentage != null ? (item.percentage * 100).toFixed(1) : ''}
                       placeholder="—"
                       onChange={(e) => update(idx, 'percentage', e.target.value ? parseFloat(e.target.value) / 100 : null)}
-                      className="input-admin w-24 font-mono"
+                      className="input-admin w-24 tabular"
                     />
                   </td>
                   <td className="px-3 py-2">
                     <input value={item.condition ?? ''} onChange={(e) => update(idx, 'condition', e.target.value || null)} className="input-admin w-36" placeholder="z.B. employed" />
                   </td>
                   <td className="px-3 py-2">
-                    <button onClick={() => deleteRow(item, idx)} className="text-xs text-red-500 hover:text-red-700 font-medium">Entfernen</button>
+                    <button onClick={() => deleteRow(item, idx)} className="btn-admin-danger">Entfernen</button>
                   </td>
                 </tr>
               ))}
               {items.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Keine Freibeträge für {countrySlug.toUpperCase()} / {year}</td></tr>
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-text-3">Keine Freibeträge für {countrySlug.toUpperCase()} / {year}</td></tr>
               )}
             </tbody>
           </table>
-          <div className="px-4 py-3 border-t border-gray-100">
-            <button onClick={addRow} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Zeile hinzufügen</button>
+          <div className="border-t border-line px-4 py-3">
+            <button onClick={addRow} className="text-sm text-focus hover:underline">+ Zeile hinzufügen</button>
           </div>
         </div>
       )}

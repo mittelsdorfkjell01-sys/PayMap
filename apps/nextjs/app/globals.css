@@ -153,27 +153,30 @@
 }
 
 /* ------------------------------------------------------------
-   Admin-Tooling (intern, nicht Teil des öffentlichen Produkts).
-   Bewusst von der Token-Spec ausgenommen, damit die CRUD-Oberfläche
-   nicht bricht. Nicht in öffentlichen Komponenten verwenden.
+   Admin-Tooling (intern). Nutzt dasselbe Token-System wie das
+   öffentliche Produkt (near-black Akzent, Hairlines, Tabular-Figures).
    ------------------------------------------------------------ */
 @layer components {
   .input-admin {
-    @apply w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm outline-none transition-shadow;
+    @apply w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm text-text outline-none transition-shadow;
+  }
+  .input-admin::placeholder {
+    color: var(--text-3);
   }
   .input-admin:focus {
-    @apply border-indigo-500 ring-2 ring-indigo-500/20;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 25%, transparent);
   }
   .label-admin {
-    @apply block text-xs font-semibold text-gray-600 mb-1;
+    @apply mb-1 block text-sm text-text-2;
   }
   .btn-admin-primary {
-    @apply px-4 py-1.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-40 transition-colors;
+    @apply rounded-md bg-accent px-4 py-1.5 text-sm text-accent-fg transition-opacity hover:opacity-90 disabled:opacity-40;
   }
   .btn-admin-ghost {
-    @apply px-4 py-1.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-colors;
+    @apply rounded-md border border-line bg-surface px-4 py-1.5 text-sm text-text-2 transition-colors hover:border-line-strong hover:text-text;
   }
   .btn-admin-danger {
-    @apply text-xs text-red-500 hover:text-red-700 font-medium;
+    @apply text-sm font-medium text-neg transition-opacity hover:opacity-80;
   }
 }

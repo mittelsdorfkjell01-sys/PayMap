@@ -68,44 +68,40 @@ export default function CitiesEditor() {
   const isDirty = Object.keys(changes).length > 0;
 
   if (loading) {
-    return <div className="text-gray-500 text-sm">Lade Städte…</div>;
+    return <div className="text-sm text-text-2">Lade Städte…</div>;
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="max-w-6xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Städte — Lifestyle Scores</h1>
-          <p className="text-sm text-gray-500 mt-1">Scores 0–100 pro Kategorie und Stadt</p>
+          <h1 className="text-h1 text-text">Städte — Lifestyle Scores</h1>
+          <p className="mt-1 text-sm text-text-2">Scores 0–100 pro Kategorie und Stadt</p>
         </div>
         <div className="flex items-center gap-3">
-          {saved && !isDirty && <span className="text-sm text-green-600 font-medium">Gespeichert ✓</span>}
-          <button
-            onClick={save}
-            disabled={!isDirty || saving}
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-40 transition-colors"
-          >
+          {saved && !isDirty && <span className="text-sm text-pos">Gespeichert ✓</span>}
+          <button onClick={save} disabled={!isDirty || saving} className="btn-admin-primary">
             {saving ? 'Speichern…' : `Speichern${isDirty ? ` (${Object.values(changes).reduce((s, c) => s + Object.keys(c).length, 0)} Änderungen)` : ''}`}
           </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+      <div className="overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="sticky left-0 bg-gray-50 px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap min-w-[160px]">Stadt</th>
+            <tr className="border-b border-line-strong bg-surface-sub">
+              <th className="sticky left-0 min-w-[160px] whitespace-nowrap bg-surface-sub px-4 py-3 text-left text-caption uppercase tracking-[0.04em] text-text-3">Stadt</th>
               {CATEGORIES.map((cat) => (
-                <th key={cat} className="px-3 py-3 text-center font-semibold text-gray-600 whitespace-nowrap min-w-[80px] capitalize">
+                <th key={cat} className="min-w-[80px] whitespace-nowrap px-3 py-3 text-center text-caption uppercase tracking-[0.04em] text-text-3">
                   {cat.replace('_', ' ')}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line-soft">
             {cities.map((city) => (
-              <tr key={city.id} className="hover:bg-gray-50">
-                <td className="sticky left-0 bg-white px-4 py-2 font-medium text-gray-900 whitespace-nowrap">
+              <tr key={city.id} className="hover:bg-surface-sub">
+                <td className="sticky left-0 whitespace-nowrap bg-surface px-4 py-2 text-text">
                   {city.flag} {city.nameDE}
                 </td>
                 {CATEGORIES.map((cat) => {
@@ -119,8 +115,8 @@ export default function CitiesEditor() {
                         max={100}
                         value={score}
                         onChange={(e) => setScore(city.id, cat, parseInt(e.target.value) || 0)}
-                        className={`w-16 px-2 py-1 text-center text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 ${
-                          isChanged ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200'
+                        className={`w-16 rounded-md border px-2 py-1 text-center text-data-sm tabular text-text focus:border-focus focus:outline-none ${
+                          isChanged ? 'border-accent bg-surface-sub' : 'border-line'
                         }`}
                       />
                     </td>

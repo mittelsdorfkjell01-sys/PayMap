@@ -9,7 +9,7 @@ export default function AdminLogoutButton() {
     <button
       type="button"
       onClick={logout}
-      className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+      className="w-full rounded-md px-3 py-2 text-left text-sm text-neg transition-colors hover:bg-surface-sub"
     >
       Abmelden
     </button>

@@ -115,53 +115,50 @@ export default async function StaleContentPage() {
   return (
     <div className="max-w-5xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Veraltete Inhalte</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-h1 text-text">Veraltete Inhalte</h1>
+        <p className="mt-1 text-sm text-text-2">
           Inhalte ohne Prüfung seit mehr als {STALE_DAYS} Tagen (vor {cutoff.toLocaleDateString('de-DE')}).
-          {totalItems > 0 && <span className="ml-2 text-amber-600 font-medium">{totalItems} Einträge zu prüfen.</span>}
-          {totalItems === 0 && <span className="ml-2 text-green-600 font-medium">Alles aktuell.</span>}
+          {totalItems > 0 && <span className="ml-2 text-warn">{totalItems} Einträge zu prüfen.</span>}
+          {totalItems === 0 && <span className="ml-2 text-pos">Alles aktuell.</span>}
         </p>
       </div>
 
       {/* Guide Steps + Narratives by City */}
       {byCity.length === 0 ? (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-green-700">
+        <div className="rounded-md border-l-2 border-pos bg-surface-sub p-6 text-text-2">
           Alle Guide-Steps und Narratives sind aktuell.
         </div>
       ) : (
         <div className="space-y-6">
           {byCity.map(([cityId, { cityName, guideSteps, narratives }]) => (
-            <div key={cityId} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-200">
-                <h2 className="font-semibold text-gray-900">
+            <div key={cityId} className="overflow-hidden rounded-lg border border-line bg-surface">
+              <div className="flex items-center justify-between border-b border-line bg-surface-sub px-5 py-3">
+                <h2 className="text-text">
                   {cityName}
-                  <span className="ml-2 text-xs text-gray-500 font-normal">
+                  <span className="ml-2 text-caption text-text-2">
                     {guideSteps.length} Steps · {narratives.length} Narratives
                   </span>
                 </h2>
                 <form action={markCityAllVerified.bind(null, cityId)}>
-                  <button
-                    type="submit"
-                    className="text-xs px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
+                  <button type="submit" className="btn-admin-primary text-sm">
                     Alle als geprüft markieren
                   </button>
                 </form>
               </div>
 
               {guideSteps.length > 0 && (
-                <div className="divide-y divide-gray-100">
-                  <p className="px-5 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide bg-gray-50/50">
+                <div className="divide-y divide-line-soft">
+                  <p className="bg-surface-sub px-5 py-2 text-caption uppercase tracking-[0.04em] text-text-3">
                     Guide-Steps
                   </p>
                   {guideSteps.map((s: GuideStepRow) => (
                     <div key={s.id} className="flex items-center justify-between px-5 py-3">
                       <div>
-                        <p className="text-sm text-gray-800">{s.titleDE}</p>
-                        <p className="text-xs text-gray-400">{s.section} · {daysAgo(s.lastVerified)}</p>
+                        <p className="text-sm text-text">{s.titleDE}</p>
+                        <p className="text-caption text-text-3">{s.section} · {daysAgo(s.lastVerified)}</p>
                       </div>
                       <form action={markGuideVerified.bind(null, s.id)}>
-                        <button type="submit" className="text-xs px-2 py-1 border border-gray-200 rounded hover:bg-gray-50 text-gray-600">
+                        <button type="submit" className="btn-admin-ghost text-sm">
                           Geprüft
                         </button>
                       </form>
@@ -171,18 +168,18 @@ export default async function StaleContentPage() {
               )}
 
               {narratives.length > 0 && (
-                <div className="divide-y divide-gray-100">
-                  <p className="px-5 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide bg-gray-50/50">
+                <div className="divide-y divide-line-soft">
+                  <p className="bg-surface-sub px-5 py-2 text-caption uppercase tracking-[0.04em] text-text-3">
                     Narratives
                   </p>
                   {narratives.map((n: NarrativeRow) => (
                     <div key={n.id} className="flex items-center justify-between px-5 py-3">
                       <div>
-                        <p className="text-sm text-gray-800">{n.titleDE}</p>
-                        <p className="text-xs text-gray-400">{n.section} · {daysAgo(n.lastVerified)}</p>
+                        <p className="text-sm text-text">{n.titleDE}</p>
+                        <p className="text-caption text-text-3">{n.section} · {daysAgo(n.lastVerified)}</p>
                       </div>
                       <form action={markNarrativeVerified.bind(null, n.id)}>
-                        <button type="submit" className="text-xs px-2 py-1 border border-gray-200 rounded hover:bg-gray-50 text-gray-600">
+                        <button type="submit" className="btn-admin-ghost text-sm">
                           Geprüft
                         </button>
                       </form>
@@ -197,24 +194,24 @@ export default async function StaleContentPage() {
 
       {/* CoL section */}
       {staleCoL.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <div className="px-5 py-3 bg-amber-50 border-b border-amber-200">
-            <h2 className="font-semibold text-amber-900">
+        <div className="overflow-hidden rounded-lg border border-line bg-surface">
+          <div className="border-b border-line border-l-2 border-l-warn bg-surface-sub px-5 py-3">
+            <h2 className="text-text">
               Veraltete Mietdaten (DistrictCostOfLiving)
-              <span className="ml-2 text-xs font-normal">{staleCoL.length} Einträge älter als {STALE_DAYS} Tage — via Seed aktualisieren</span>
+              <span className="ml-2 text-caption text-text-2">{staleCoL.length} Einträge älter als {STALE_DAYS} Tage — via Seed aktualisieren</span>
             </h2>
           </div>
-          <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto">
+          <div className="max-h-64 divide-y divide-line-soft overflow-y-auto">
             {staleCoL.map(c => (
               <div key={c.id} className="flex items-center justify-between px-5 py-2">
-                <p className="text-sm text-gray-700">
-                  {c.district?.city?.nameDE ?? '?'} — {c.district?.nameDE ?? c.districtId} · <span className="text-gray-400">{c.category}</span>
+                <p className="text-sm text-text-2">
+                  {c.district?.city?.nameDE ?? '?'} — {c.district?.nameDE ?? c.districtId} · <span className="text-text-3">{c.category}</span>
                 </p>
-                <p className="text-xs text-gray-400">{daysAgo(c.validFrom)}</p>
+                <p className="text-caption text-text-3">{daysAgo(c.validFrom)}</p>
               </div>
             ))}
           </div>
-          <p className="px-5 py-3 text-xs text-gray-400 border-t border-gray-100">
+          <p className="border-t border-line px-5 py-3 text-caption text-text-3">
             Mietdaten werden durch erneutes Ausführen des Stadt-Premium-Seeds aktualisiert.
           </p>
         </div>

@@ -91,24 +91,24 @@ function StepModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(14,14,14,0.4)' }}>
+      <div className="max-h-[90vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-xl border border-line bg-surface p-6 shadow-float">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900">{isEdit ? 'Schritt bearbeiten' : 'Neuer Schritt'}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+          <h2 className="text-h3 text-text">{isEdit ? 'Schritt bearbeiten' : 'Neuer Schritt'}</h2>
+          <button onClick={onClose} className="text-xl leading-none text-text-3 transition-colors hover:text-text">✕</button>
         </div>
 
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Stadt</label>
+              <label className="label-admin">Stadt</label>
               <select value={form.cityId} onChange={(e) => setForm((f) => ({ ...f, cityId: e.target.value }))} className="input-admin" required>
                 <option value="">— wählen —</option>
                 {cityOptions.map((c) => <option key={c.id} value={c.id}>{c.nameDE}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Phase</label>
+              <label className="label-admin">Phase</label>
               <select value={form.phase} onChange={(e) => setForm((f) => ({ ...f, phase: e.target.value }))} className="input-admin">
                 {PHASES.map((p) => <option key={p} value={p}>{p}</option>)}
               </select>
@@ -117,48 +117,48 @@ function StepModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Titel (DE)</label>
+              <label className="label-admin">Titel (DE)</label>
               <input value={form.titleDE} onChange={(e) => setForm((f) => ({ ...f, titleDE: e.target.value }))} className="input-admin" required />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Titel (EN)</label>
+              <label className="label-admin">Titel (EN)</label>
               <input value={form.titleEN} onChange={(e) => setForm((f) => ({ ...f, titleEN: e.target.value }))} className="input-admin" required />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Untertitel (DE)</label>
+              <label className="label-admin">Untertitel (DE)</label>
               <input value={form.subtitleDE} onChange={(e) => setForm((f) => ({ ...f, subtitleDE: e.target.value }))} className="input-admin" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Untertitel (EN)</label>
+              <label className="label-admin">Untertitel (EN)</label>
               <input value={form.subtitleEN} onChange={(e) => setForm((f) => ({ ...f, subtitleEN: e.target.value }))} className="input-admin" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Timing (DE)</label>
+              <label className="label-admin">Timing (DE)</label>
               <input value={form.timingDE} onChange={(e) => setForm((f) => ({ ...f, timingDE: e.target.value }))} className="input-admin" required />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Timing (EN)</label>
+              <label className="label-admin">Timing (EN)</label>
               <input value={form.timingEN} onChange={(e) => setForm((f) => ({ ...f, timingEN: e.target.value }))} className="input-admin" required />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Info-Box Text (DE)</label>
+            <label className="label-admin">Info-Box Text (DE)</label>
             <textarea value={form.infoBoxDE} onChange={(e) => setForm((f) => ({ ...f, infoBoxDE: e.target.value }))} rows={2} className="input-admin" />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-2">Tags</label>
+            <label className="label-admin">Tags</label>
             <div className="flex flex-wrap gap-2">
               {TAGS.map((tag) => (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
-                  className={`px-3 py-1 text-xs rounded-full font-semibold transition-colors ${
+                  className={`focus-ring rounded-md border px-3 py-1 text-caption transition-colors ${
                     form.tags.includes(tag)
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'border-accent bg-accent text-accent-fg'
+                      : 'border-line text-text-2 hover:border-line-strong hover:text-text'
                   }`}
                 >
                   {tag}
@@ -169,20 +169,20 @@ function StepModal({
 
           <div className="flex flex-wrap gap-4 text-sm">
             {(['isWarning', 'forEmployed', 'forFreelancer', 'forFamily', 'isActive'] as const).map((key) => (
-              <label key={key} className="flex items-center gap-2 cursor-pointer">
+              <label key={key} className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
                   checked={form[key] as boolean}
                   onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.checked }))}
-                  className="rounded"
+                  className="accent-accent"
                 />
-                <span className="text-gray-700">{key}</span>
+                <span className="text-text-2">{key}</span>
               </label>
             ))}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Reihenfolge</label>
+            <label className="label-admin">Reihenfolge</label>
             <input
               type="number"
               value={form.stepOrder}
@@ -191,13 +191,13 @@ function StepModal({
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-neg">{error}</p>}
 
           <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving} className="px-5 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="btn-admin-primary py-2">
               {saving ? 'Speichern…' : 'Speichern'}
             </button>
-            <button type="button" onClick={onClose} className="px-5 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200">
+            <button type="button" onClick={onClose} className="btn-admin-ghost py-2">
               Abbrechen
             </button>
           </div>
@@ -240,11 +240,11 @@ export default function MovingGuideEditor() {
   }, {});
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="max-w-5xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Moving Guide</h1>
-          <p className="text-sm text-gray-500 mt-1">{steps.length} aktive Schritte</p>
+          <h1 className="text-h1 text-text">Moving Guide</h1>
+          <p className="mt-1 text-sm text-text-2">{steps.length} aktive Schritte</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -255,55 +255,52 @@ export default function MovingGuideEditor() {
             <option value="">Alle Städte</option>
             {cityOptions.map((c) => <option key={c.id} value={c.slug}>{c.nameDE}</option>)}
           </select>
-          <button
-            onClick={() => setModalStep('new')}
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700"
-          >
+          <button onClick={() => setModalStep('new')} className="btn-admin-primary">
             + Neuer Schritt
           </button>
         </div>
       </div>
 
       {loading ? (
-        <p className="text-gray-500 text-sm">Lade…</p>
+        <p className="text-sm text-text-2">Lade…</p>
       ) : (
         <div className="space-y-6">
           {Object.entries(grouped).map(([city, citySteps]) => (
-            <div key={city} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-              <div className="px-5 py-3 bg-gray-50 border-b border-gray-200">
-                <h2 className="font-semibold text-gray-800">{city}</h2>
+            <div key={city} className="overflow-hidden rounded-lg border border-line bg-surface">
+              <div className="border-b border-line bg-surface-sub px-5 py-3">
+                <h2 className="text-h3 text-text">{city}</h2>
               </div>
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
-                    <th className="px-5 py-2 font-semibold">#</th>
-                    <th className="px-5 py-2 font-semibold">Phase</th>
-                    <th className="px-5 py-2 font-semibold">Titel (DE)</th>
-                    <th className="px-5 py-2 font-semibold">Timing</th>
-                    <th className="px-5 py-2 font-semibold">Tags</th>
-                    <th className="px-5 py-2 font-semibold"></th>
+                  <tr className="border-b border-line text-left text-caption uppercase tracking-[0.04em] text-text-3">
+                    <th className="px-5 py-2">#</th>
+                    <th className="px-5 py-2">Phase</th>
+                    <th className="px-5 py-2">Titel (DE)</th>
+                    <th className="px-5 py-2">Timing</th>
+                    <th className="px-5 py-2">Tags</th>
+                    <th className="px-5 py-2"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-line-soft">
                   {citySteps.map((s) => (
-                    <tr key={s.id} className="hover:bg-gray-50">
-                      <td className="px-5 py-2.5 text-gray-500 font-mono">{s.stepOrder}</td>
+                    <tr key={s.id} className="hover:bg-surface-sub">
+                      <td className="px-5 py-2.5 tabular text-text-2">{s.stepOrder}</td>
                       <td className="px-5 py-2.5">
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{s.phase}</span>
+                        <span className="rounded-sm bg-surface-sub px-2 py-0.5 text-caption text-text-2">{s.phase}</span>
                       </td>
-                      <td className="px-5 py-2.5 font-medium text-gray-900">{s.titleDE}</td>
-                      <td className="px-5 py-2.5 text-gray-500">{s.timingDE}</td>
+                      <td className="px-5 py-2.5 text-text">{s.titleDE}</td>
+                      <td className="px-5 py-2.5 text-text-2">{s.timingDE}</td>
                       <td className="px-5 py-2.5">
                         <div className="flex flex-wrap gap-1">
                           {s.tags.map((t) => (
-                            <span key={t} className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 text-xs rounded">{t}</span>
+                            <span key={t} className="rounded-sm bg-surface-sub px-1.5 py-0.5 text-caption text-text-2">{t}</span>
                           ))}
                         </div>
                       </td>
                       <td className="px-5 py-2.5">
                         <div className="flex gap-2">
-                          <button onClick={() => setModalStep(s)} className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Bearbeiten</button>
-                          <button onClick={() => deleteStep(s.id)} className="text-xs text-red-500 hover:text-red-700 font-medium">Löschen</button>
+                          <button onClick={() => setModalStep(s)} className="text-sm text-focus hover:underline">Bearbeiten</button>
+                          <button onClick={() => deleteStep(s.id)} className="btn-admin-danger">Löschen</button>
                         </div>
                       </td>
                     </tr>
@@ -313,7 +310,7 @@ export default function MovingGuideEditor() {
             </div>
           ))}
           {steps.length === 0 && (
-            <p className="text-center text-gray-500 text-sm py-12">Keine Schritte gefunden.</p>
+            <p className="py-12 text-center text-sm text-text-2">Keine Schritte gefunden.</p>
           )}
         </div>
       )}

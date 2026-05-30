@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { GeistSans } from 'geist/font/sans';
 import { isAdmin } from '@/lib/admin-auth';
 import AdminLoginForm from './_components/AdminLoginForm';
 import AdminLogoutButton from './_components/AdminLogoutButton';
@@ -31,8 +32,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!await isAdmin()) {
     return (
-      <html lang="de">
-        <body className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <html lang="de" className={GeistSans.variable}>
+        <body className="flex min-h-screen items-center justify-center bg-bg font-sans">
           <AdminLoginForm />
         </body>
       </html>
@@ -40,29 +41,29 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <html lang="de">
-      <body className="min-h-screen bg-gray-50 flex text-gray-900 text-sm">
-        <nav className="w-56 bg-white border-r border-gray-200 flex flex-col py-5 px-3 gap-4 shrink-0 min-h-screen">
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 px-2">PayMap Admin</p>
+    <html lang="de" className={GeistSans.variable}>
+      <body className="flex min-h-screen bg-bg font-sans text-sm text-text">
+        <nav className="flex min-h-screen w-56 shrink-0 flex-col gap-4 border-r border-line bg-surface px-3 py-5">
+          <p className="px-2 text-caption font-medium uppercase tracking-[0.04em] text-text-3">PayMap Admin</p>
           {navSections.map((section) => (
             <div key={section.label} className="space-y-0.5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-1">{section.label}</p>
+              <p className="mb-1 px-2 text-caption uppercase tracking-[0.04em] text-text-3">{section.label}</p>
               {section.links.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-text-2 transition-colors hover:bg-surface-sub hover:text-text"
                 >
                   {l.label}
                 </Link>
               ))}
             </div>
           ))}
-          <div className="mt-auto pt-4 border-t border-gray-100">
+          <div className="mt-auto border-t border-line pt-4">
             <AdminLogoutButton />
           </div>
         </nav>
-        <main className="flex-1 p-8 min-h-screen overflow-y-auto">{children}</main>
+        <main className="min-h-screen flex-1 overflow-y-auto p-8">{children}</main>
       </body>
     </html>
   );
