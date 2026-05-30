@@ -2,8 +2,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
+import { AlertTriangle, Check, FileText, ExternalLink, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { StatusDot, riskTone } from '@/components/ui/StatusDot';
 import CityGuideContent from '@/components/guide/CityGuideContent';
 import type { CityGuideData } from '@/lib/city-guide';
 import { toEnSlug } from '@/lib/city-guide-slugs';
@@ -70,13 +75,14 @@ interface PlanData {
   steps: GuideStep[];
 }
 
+// Phasen unterscheiden sich über Label + Hairline; kritische Phase mit neg-Linksborder.
 const PHASES = [
-  { key: 'critical', color: 'border-error/60 bg-error/5', badge: 'bg-error text-on-error', icon: '⚠️' },
-  { key: 'before_move', color: 'border-primary/40 bg-primary/5', badge: 'bg-primary text-on-primary', icon: '📋' },
-  { key: '3_months', color: 'border-secondary/40 bg-secondary/5', badge: 'bg-secondary text-on-secondary', icon: '🏠' },
-  { key: 'arrival', color: 'border-tertiary/40 bg-tertiary/5', badge: 'bg-tertiary text-on-tertiary', icon: '✈️' },
-  { key: 'first_month', color: 'border-outline/40 bg-surface-container', badge: 'bg-surface-container-high text-on-surface', icon: '📝' },
-  { key: 'first_3_months', color: 'border-outline/40 bg-surface-container', badge: 'bg-surface-container-high text-on-surface', icon: '🎯' },
+  { key: 'critical' },
+  { key: 'before_move' },
+  { key: '3_months' },
+  { key: 'arrival' },
+  { key: 'first_month' },
+  { key: 'first_3_months' },
 ] as const;
 
 function formatCurrency(n: number): string {
@@ -87,16 +93,22 @@ function daysUntil(dateStr: string): number {
   return Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
+// Selektions-Button (Wizard / City-Picker): aktiv = accent-Border + surface-sub.
+const selectableCls = (active: boolean) =>
+  cn(
+    'focus-ring rounded-md border px-4 py-3 text-body transition-colors duration-150 ease-out',
+    active ? 'border-accent bg-surface-sub text-text' : 'border-line text-text-2 hover:border-line-strong hover:text-text',
+  );
+
 // ─── WarnBox ──────────────────────────────────────────────────────────────────
 
 function WarnBox({ type, text }: { type: string; text: string }) {
-  const styles: Record<string, string> = {
-    danger: 'bg-error-container/40 border-error/40 text-error',
-    warning: 'bg-warning-container/40 border-warning/40 text-on-surface',
-    info: 'bg-primary/8 border-primary/20 text-on-surface',
-  };
+  const tone =
+    type === 'danger' ? 'border-l-2 border-neg text-neg' :
+    type === 'warning' ? 'border-l-2 border-warn text-text-2' :
+    'border-l-2 border-line text-text-2';
   return (
-    <div className={cn('border rounded-xl px-4 py-3 text-body-sm leading-relaxed', styles[type] ?? styles.info)}>
+    <div className={cn('rounded-md bg-surface-sub px-4 py-3 text-sm leading-relaxed', tone)}>
       {text}
     </div>
   );
@@ -130,55 +142,52 @@ function StepItem({
 
   return (
     <div className={cn(
-      'border rounded-xl overflow-hidden transition-all',
-      completed ? 'border-outline-variant/30 opacity-60' :
-        isHighRisk ? 'border-l-4 border-l-error/70 border-error/40 bg-error/5' :
-        isMediumRisk ? 'border-l-4 border-l-warning/70 border-warning/30 bg-warning/5' :
-        step.isWarning ? 'border-error/40' : 'border-outline-variant/40',
+      'overflow-hidden rounded-md border border-line',
+      completed ? 'opacity-60' :
+        isHighRisk ? 'border-l-2 border-l-neg' :
+        isMediumRisk ? 'border-l-2 border-l-warn' :
+        step.isWarning ? 'border-l-2 border-l-neg' : '',
     )}>
       <div className="flex items-start gap-3 px-4 py-3.5">
         <button
           onClick={() => onToggle(step.id)}
+          aria-pressed={completed}
           className={cn(
-            'mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors',
+            'focus-ring mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors',
             completed
-              ? 'bg-primary border-primary text-on-primary'
-              : 'border-outline hover:border-primary',
+              ? 'border-accent bg-accent text-accent-fg'
+              : 'border-line-strong hover:border-text',
           )}
         >
-          {completed && <span className="text-xs">✓</span>}
+          {completed && <Check className="h-3 w-3" aria-hidden />}
         </button>
-        <div className="flex-1 min-w-0 space-y-1.5">
-          <div className="flex items-start justify-between gap-2 flex-wrap">
-            <div className="flex-1 min-w-0">
-              <p className={cn('text-body-md font-semibold text-on-surface', completed && 'line-through text-on-surface-variant')}>
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <p className={cn('text-body text-text', completed && 'text-text-2 line-through')}>
                 {title}
               </p>
-              {subtitle && <p className="text-label-sm text-on-surface-variant">{subtitle}</p>}
+              {subtitle && <p className="text-caption text-text-2">{subtitle}</p>}
             </div>
-            <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
               {isHighRisk && (
-                <span className="text-[10px] font-bold bg-error text-on-error px-2 py-0.5 rounded-full">
-                  {isDE ? '⚠ Hohes Risiko' : '⚠ High Risk'}
-                </span>
+                <StatusDot tone={riskTone('high')} label={isDE ? 'Hohes Risiko' : 'High Risk'} />
               )}
               {isMediumRisk && (
-                <span className="text-[10px] font-bold bg-warning text-on-surface px-2 py-0.5 rounded-full">
-                  {isDE ? '◈ Mittleres Risiko' : '◈ Medium Risk'}
-                </span>
+                <StatusDot tone={riskTone('medium')} label={isDE ? 'Mittleres Risiko' : 'Medium Risk'} />
               )}
               {step.requiresLegalAdvice && (
-                <span className="text-[10px] font-semibold bg-error-container/60 text-error px-2 py-0.5 rounded-full">
+                <span className="text-caption text-neg">
                   {isDE ? 'Rechtsberatung' : 'Legal Advice'}
                 </span>
               )}
-              <span className="text-label-sm text-on-surface-variant leading-tight">{timing}</span>
+              <span className="text-caption leading-tight text-text-3">{timing}</span>
             </div>
           </div>
           {step.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {(step.tags as string[]).map((tag) => (
-                <span key={tag} className="text-label-sm bg-surface-container px-2 py-0.5 rounded-full text-on-surface-variant">
+                <span key={tag} className="rounded-sm bg-surface-sub px-2 py-0.5 text-caption text-text-2">
                   {tagLabels[tag] ?? tag}
                 </span>
               ))}
@@ -192,8 +201,8 @@ function StepItem({
               {step.documents.map((doc, i) => {
                 const docTitle = isDE ? doc.titleDE : doc.titleEN;
                 return docTitle ? (
-                  <span key={i} className="text-label-sm border border-outline-variant/60 rounded-full px-2.5 py-0.5 text-on-surface-variant flex items-center gap-1">
-                    <span>📄</span>{docTitle}
+                  <span key={i} className="flex items-center gap-1.5 rounded-sm border border-line px-2.5 py-0.5 text-caption text-text-2">
+                    <FileText className="h-3 w-3" aria-hidden />{docTitle}
                   </span>
                 ) : null;
               })}
@@ -204,9 +213,9 @@ function StepItem({
               href="https://www.steuerberaterverband.de/steuerberater-suchen"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex text-label-sm text-error border border-error/40 rounded-full px-3 py-1 hover:bg-error/5 transition-colors"
+              className="focus-ring inline-flex items-center gap-1.5 rounded-md border border-line px-3 py-1 text-caption text-neg transition-colors hover:border-line-strong"
             >
-              🔍 {t('riskWarning.legalAdviceBtn')}
+              <Search className="h-3 w-3" aria-hidden /> {t('riskWarning.legalAdviceBtn')}
             </a>
           )}
         </div>
@@ -321,57 +330,49 @@ function PlanView({ data, onUpdate }: { data: PlanData; onUpdate: (planId: strin
   const documents = plan.documents as PlanDocument[];
 
   const docStatusColors: Record<string, string> = {
-    available: 'text-primary',
-    uploaded: 'text-primary',
-    pending: 'text-on-surface-variant',
-    notYetDue: 'text-on-surface-variant opacity-60',
+    available: 'text-pos',
+    uploaded: 'text-pos',
+    pending: 'text-text-2',
+    notYetDue: 'text-text-3',
   };
 
   return (
     <div className="space-y-6">
       {/* Plan header */}
-      <div className="glass-card p-5 space-y-4 shadow-sm">
-        <div className="flex items-start justify-between flex-wrap gap-3">
+      <div className="space-y-4 rounded-lg border border-line bg-surface p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-headline-md font-bold text-on-surface">
+            <h2 className="text-h2 text-text">
               {plan.fromCity.flag} {plan.fromCity.nameDE} → {plan.toCity.flag} {plan.toCity.nameDE}
             </h2>
-            <p className="text-label-sm text-on-surface-variant uppercase tracking-wider mt-1">
+            <p className="mt-1 text-caption uppercase tracking-[0.04em] text-text-3">
               {t('countdown').replace('{days}', String(Math.max(0, days)))}
             </p>
           </div>
           <div className="text-right">
-            <p className="font-mono font-bold text-2xl text-on-surface">{progress}%</p>
-            <p className="text-label-sm text-on-surface-variant">{t('progress').replace('{done}', String(doneSteps)).replace('{total}', String(totalSteps))}</p>
+            <p className="text-data-xl tabular text-text">{progress}%</p>
+            <p className="text-caption text-text-3">{t('progress').replace('{done}', String(doneSteps)).replace('{total}', String(totalSteps))}</p>
           </div>
         </div>
-        <div className="w-full bg-surface-container rounded-full h-2">
-          <div className="bg-primary h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+        <div className="h-1 w-full overflow-hidden rounded-full bg-line">
+          <div className="h-1 rounded-full bg-text transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
-        <div className="flex flex-wrap gap-4 text-label-sm">
-          <span className="text-primary font-semibold">{doneSteps} {t('stats.done')}</span>
-          <span className="text-on-surface-variant">{totalSteps - doneSteps} {t('stats.open')}</span>
+        <div className="flex flex-wrap gap-4 text-sm">
+          <span className="text-pos">{doneSteps} {t('stats.done')}</span>
+          <span className="text-text-2">{totalSteps - doneSteps} {t('stats.open')}</span>
           {steps.filter((s) => s.isWarning && !completedIds.has(s.id)).length > 0 && (
-            <span className="text-error font-semibold">{steps.filter((s) => s.isWarning && !completedIds.has(s.id)).length} {t('stats.urgent')}</span>
+            <span className="text-neg">{steps.filter((s) => s.isWarning && !completedIds.has(s.id)).length} {t('stats.urgent')}</span>
           )}
         </div>
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex gap-1 p-1 bg-surface-container rounded-2xl w-fit">
-        {subTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setSubTab(tab.key)}
-            className={cn(
-              'px-4 py-2 rounded-xl text-label-sm font-semibold uppercase tracking-wider transition-colors',
-              subTab === tab.key ? 'bg-surface text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface',
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        aria-label={t('tabs.plan')}
+        value={subTab}
+        onChange={setSubTab}
+        options={subTabs.map((tab) => ({ value: tab.key, label: tab.label }))}
+      />
 
       {/* Mein Plan */}
       {subTab === 'plan' && (
@@ -382,9 +383,10 @@ function PlanView({ data, onUpdate }: { data: PlanData; onUpdate: (planId: strin
               <button
                 key={f}
                 onClick={() => setFilterKey(f)}
+                aria-pressed={filterKey === f}
                 className={cn(
-                  'px-3 py-1.5 rounded-full text-label-sm font-semibold uppercase tracking-wider transition-colors',
-                  filterKey === f ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high',
+                  'focus-ring rounded-md border px-3 py-1.5 text-sm transition-colors duration-150 ease-out',
+                  filterKey === f ? 'border-accent bg-accent text-accent-fg' : 'border-line text-text-2 hover:border-line-strong hover:text-text',
                 )}
               >
                 {t(`filter.${f}` as Parameters<typeof t>[0])}
@@ -394,16 +396,18 @@ function PlanView({ data, onUpdate }: { data: PlanData; onUpdate: (planId: strin
 
           {/* Phase-Warnung Wegzugssteuer */}
           {hasGmbhOrDepot && (
-            <div className="border-2 border-error/40 rounded-xl p-4 bg-error/5 space-y-2">
-              <p className="font-semibold text-error flex items-center gap-2">⚠️ Wichtig: Wegzugsbesteuerung (§6 AStG)</p>
-              <p className="text-body-sm text-on-surface leading-relaxed">
-                Du hast GmbH-Anteile oder Wertpapierdepots angegeben. Bei deinem Wegzug greift möglicherweise §6 AStG (fiktive Veräußerung). Bei EU-Zielland ist eine Stundung möglich — aber Zinsen laufen. <strong>Steuerberater beauftragen.</strong>
+            <div className="space-y-2 rounded-md border-l-2 border-neg bg-surface-sub p-4">
+              <p className="flex items-center gap-2 text-text">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-neg" aria-hidden /> Wichtig: Wegzugsbesteuerung (§6 AStG)
+              </p>
+              <p className="text-sm leading-relaxed text-text-2">
+                Du hast GmbH-Anteile oder Wertpapierdepots angegeben. Bei deinem Wegzug greift möglicherweise §6 AStG (fiktive Veräußerung). Bei EU-Zielland ist eine Stundung möglich — aber Zinsen laufen. <strong className="text-text">Steuerberater beauftragen.</strong>
               </p>
             </div>
           )}
 
           {/* Phases */}
-          {PHASES.map(({ key, color, badge, icon }) => {
+          {PHASES.map(({ key }) => {
             const phaseSteps = filterSteps(steps.filter((s) => s.phase === key));
             if (phaseSteps.length === 0 && filterKey !== 'all') return null;
             const allStepsForPhase = steps.filter((s) => s.phase === key);
@@ -411,22 +415,19 @@ function PlanView({ data, onUpdate }: { data: PlanData; onUpdate: (planId: strin
             const isExpanded = expandedPhases.has(key);
 
             return (
-              <div key={key} className={cn('border rounded-2xl overflow-hidden', color)}>
+              <div key={key} className={cn('overflow-hidden rounded-lg border border-line', key === 'critical' && 'border-l-2 border-l-neg')}>
                 <button
                   onClick={() => togglePhase(key)}
-                  className="w-full px-4 py-3.5 flex items-center gap-3 text-left hover:bg-black/5 transition-colors"
+                  className="focus-ring flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-surface-sub"
                 >
-                  <span className="text-lg">{icon}</span>
-                  <div className="flex-1">
-                    <span className={cn('text-label-sm font-bold px-2.5 py-1 rounded-full mr-2', badge)}>
-                      {t(`phases.${key}` as Parameters<typeof t>[0])}
-                    </span>
-                  </div>
-                  <span className="text-label-sm text-on-surface-variant font-mono">{doneInPhase}/{allStepsForPhase.length}</span>
-                  <span className="text-on-surface-variant ml-1">{isExpanded ? '▲' : '▼'}</span>
+                  <span className="flex-1 text-h3 text-text">
+                    {t(`phases.${key}` as Parameters<typeof t>[0])}
+                  </span>
+                  <span className="text-caption tabular text-text-3">{doneInPhase}/{allStepsForPhase.length}</span>
+                  <span className="text-sm text-text-3">{isExpanded ? '▲' : '▼'}</span>
                 </button>
                 {isExpanded && phaseSteps.length > 0 && (
-                  <div className="px-4 pb-4 space-y-2.5">
+                  <div className="space-y-2.5 px-4 pb-4">
                     {phaseSteps.map((step) => (
                       <StepItem
                         key={step.id}
@@ -439,15 +440,15 @@ function PlanView({ data, onUpdate }: { data: PlanData; onUpdate: (planId: strin
                   </div>
                 )}
                 {isExpanded && phaseSteps.length === 0 && filterKey !== 'all' && (
-                  <p className="px-4 pb-4 text-label-sm text-on-surface-variant">Keine Schritte für diesen Filter.</p>
+                  <p className="px-4 pb-4 text-caption text-text-3">Keine Schritte für diesen Filter.</p>
                 )}
               </div>
             );
           })}
 
           {steps.length === 0 && (
-            <div className="border border-dashed border-outline-variant rounded-2xl p-12 text-center">
-              <p className="text-on-surface-variant text-body-md">Noch keine Guide-Schritte für {plan.toCity.nameDE} vorhanden.</p>
+            <div className="rounded-lg border border-dashed border-line p-12 text-center">
+              <p className="text-body text-text-2">Noch keine Guide-Schritte für {plan.toCity.nameDE} vorhanden.</p>
             </div>
           )}
         </div>
@@ -456,40 +457,40 @@ function PlanView({ data, onUpdate }: { data: PlanData; onUpdate: (planId: strin
       {/* Budget */}
       {subTab === 'budget' && (
         <div className="space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="glass-card p-4 space-y-1">
-              <p className="text-label-sm text-on-surface-variant uppercase tracking-wider">{t('budget.movingCosts')}</p>
-              <p className="text-2xl font-bold font-mono text-on-surface">{formatCurrency(totalBudget)}</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-1 rounded-lg border border-line bg-surface p-4">
+              <p className="text-caption uppercase tracking-[0.04em] text-text-3">{t('budget.movingCosts')}</p>
+              <p className="text-data-xl tabular text-text">{formatCurrency(totalBudget)}</p>
             </div>
-            <div className="glass-card p-4 space-y-1 col-span-2">
-              <p className="text-label-sm text-on-surface-variant uppercase tracking-wider">{t('budget.breakEven')}</p>
-              <p className="text-body-md text-on-surface-variant">{t('budget.breakEvenHint')}</p>
+            <div className="col-span-2 space-y-1 rounded-lg border border-line bg-surface p-4">
+              <p className="text-caption uppercase tracking-[0.04em] text-text-3">{t('budget.breakEven')}</p>
+              <p className="text-body text-text-2">{t('budget.breakEvenHint')}</p>
             </div>
           </div>
 
-          <div className="glass-card shadow-sm overflow-hidden">
-            <div className="divide-y divide-outline-variant/20">
+          <div className="overflow-hidden rounded-lg border border-line bg-surface">
+            <div className="divide-y divide-line-soft">
               {budgetItems.map((item, i) => (
                 <div key={i} className="flex items-center gap-4 px-5 py-3.5">
-                  <span className="flex-1 text-body-md text-on-surface">{item.label}</span>
+                  <span className="flex-1 text-body text-text">{item.label}</span>
                   {item.isEditable ? (
                     <div className="relative">
-                      <input
+                      <Input
                         type="number"
                         value={item.amount}
                         onChange={(e) => updateBudget(i, parseFloat(e.target.value) || 0)}
-                        className="w-28 text-right input-field pr-8 py-1.5 text-body-md"
+                        className="h-9 w-28 pr-8 text-right text-data-sm"
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-label-sm text-on-surface-variant pointer-events-none">€</span>
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-caption text-text-3">€</span>
                     </div>
                   ) : (
-                    <span className="font-mono font-bold text-on-surface">{formatCurrency(item.amount)}</span>
+                    <span className="tabular text-text">{formatCurrency(item.amount)}</span>
                   )}
                 </div>
               ))}
-              <div className="flex items-center gap-4 px-5 py-4 bg-surface-container-low/50">
-                <span className="flex-1 text-body-md font-bold text-on-surface">Gesamt</span>
-                <span className="font-mono font-bold text-xl text-on-surface">{formatCurrency(totalBudget)}</span>
+              <div className="flex items-center gap-4 bg-surface-sub px-5 py-4">
+                <span className="flex-1 text-body text-text">Gesamt</span>
+                <span className="text-data-md tabular text-text">{formatCurrency(totalBudget)}</span>
               </div>
             </div>
           </div>
@@ -516,41 +517,37 @@ function PlanView({ data, onUpdate }: { data: PlanData; onUpdate: (planId: strin
             const canUpload = doc.status === 'pending' || doc.status === 'available';
             const isUploading = uploadingIdx === i;
             return (
-              <div key={i} className="glass-card px-5 py-4 flex items-center gap-4">
-                <span className="text-xl">{doc.status === 'uploaded' ? '✅' : '📄'}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-body-md font-semibold text-on-surface">{doc.name}</p>
-                  {doc.note && <p className="text-label-sm text-on-surface-variant">{doc.note}</p>}
+              <div key={i} className="flex items-center gap-4 rounded-lg border border-line bg-surface px-5 py-4">
+                <FileText className={cn('h-5 w-5 shrink-0', doc.status === 'uploaded' ? 'text-pos' : 'text-text-3')} aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <p className="text-body text-text">{doc.name}</p>
+                  {doc.note && <p className="text-caption text-text-2">{doc.note}</p>}
                   {doc.uploadUrl && (
-                    <a href={doc.uploadUrl} target="_blank" rel="noopener noreferrer" className="text-label-sm text-primary underline">
-                      Datei ansehen
+                    <a href={doc.uploadUrl} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center gap-1 rounded-sm text-caption text-focus underline">
+                      <ExternalLink className="h-3 w-3" aria-hidden /> Datei ansehen
                     </a>
                   )}
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className={cn('text-label-sm font-semibold uppercase tracking-wider', docStatusColors[doc.status] ?? '')}>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className={cn('text-caption uppercase tracking-[0.04em]', docStatusColors[doc.status] ?? '')}>
                     {statusLabel[doc.status] ?? doc.status}
                   </span>
                   {canUpload && (
-                    <button
-                      onClick={() => triggerUpload(i)}
-                      disabled={isUploading}
-                      className="text-label-sm px-3 py-1.5 border border-outline-variant rounded-lg hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
-                    >
+                    <Button variant="outline" size="sm" onClick={() => triggerUpload(i)} disabled={isUploading}>
                       {isUploading ? '…' : 'Hochladen'}
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
             );
           })}
           {documents.length === 0 && (
-            <p className="text-center text-on-surface-variant py-8">Keine Dokumente im Plan.</p>
+            <p className="py-8 text-center text-text-2">Keine Dokumente im Plan.</p>
           )}
           {uploadError && (
-            <p className="text-error bg-error-container/30 border border-error/30 rounded-xl px-4 py-3 text-body-sm">{uploadError}</p>
+            <p className="rounded-md border border-line bg-surface-sub px-4 py-3 text-sm text-neg">{uploadError}</p>
           )}
-          <p className="text-label-sm text-on-surface-variant px-1">{t('documents.uploadHint')}</p>
+          <p className="px-1 text-caption text-text-3">{t('documents.uploadHint')}</p>
         </div>
       )}
     </div>
@@ -593,6 +590,9 @@ interface WizardState {
   assets: string[];
   targetDate: string;
 }
+
+const SELECT_CLS =
+  'h-11 w-full rounded-md border border-line bg-surface px-[14px] text-body text-text focus:border-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--focus)_25%,transparent)] focus:outline-none';
 
 function PlanWizard({ onCreated }: { onCreated: () => void }) {
   const t = useTranslations('guide');
@@ -652,36 +652,27 @@ function PlanWizard({ onCreated }: { onCreated: () => void }) {
   ];
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-headline-xl-mobile font-bold text-on-background">{t('wizard.title')}</h2>
+    <div className="mx-auto max-w-lg space-y-6">
+      <div className="space-y-2 text-center">
+        <h2 className="text-h1 text-text">{t('wizard.title')}</h2>
       </div>
 
       <div className="space-y-2">
-        <div className="flex justify-between text-label-sm text-on-surface-variant uppercase tracking-wider">
+        <div className="flex justify-between text-caption uppercase tracking-[0.04em] text-text-3">
           <span>Schritt {step} von {steps.length}</span>
         </div>
-        <div className="w-full bg-surface-container rounded-full h-1.5">
-          <div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${((step - 1) / steps.length) * 100}%` }} />
+        <div className="h-1 w-full overflow-hidden rounded-full bg-line">
+          <div className="h-1 rounded-full bg-text transition-all" style={{ width: `${((step - 1) / steps.length) * 100}%` }} />
         </div>
       </div>
 
-      <div className="glass-card p-6 space-y-5 shadow-sm">
+      <div className="space-y-5 rounded-lg border border-line bg-surface p-6">
         {step === 1 && (
           <div className="space-y-4">
-            <h3 className="text-headline-md font-semibold text-on-surface">{t('wizard.step1')}</h3>
+            <h3 className="text-h2 text-text">{t('wizard.step1')}</h3>
             <div className="grid grid-cols-2 gap-2">
               {CITIES_SLUGS.map((c) => (
-                <button
-                  key={c.slug}
-                  onClick={() => update('toCitySlug', c.slug)}
-                  className={cn(
-                    'text-left px-4 py-3 border rounded-xl text-body-md transition-all',
-                    state.toCitySlug === c.slug
-                      ? 'border-primary bg-primary/8 font-semibold text-on-surface'
-                      : 'border-outline-variant text-on-surface-variant hover:border-outline',
-                  )}
-                >
+                <button key={c.slug} onClick={() => update('toCitySlug', c.slug)} className={cn('text-left', selectableCls(state.toCitySlug === c.slug))}>
                   {c.nameDE}
                 </button>
               ))}
@@ -691,19 +682,19 @@ function PlanWizard({ onCreated }: { onCreated: () => void }) {
 
         {step === 2 && (
           <div className="space-y-4">
-            <h3 className="text-headline-md font-semibold text-on-surface">{t('wizard.step2')}</h3>
+            <h3 className="text-h2 text-text">{t('wizard.step2')}</h3>
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => update('nationality', 'eu')} className={cn('px-4 py-3 border rounded-xl text-body-md transition-all', state.nationality === 'eu' ? 'border-primary bg-primary/8 font-semibold' : 'border-outline-variant text-on-surface-variant')}>🇪🇺 EU-Bürger</button>
-              <button onClick={() => update('nationality', 'non-eu')} className={cn('px-4 py-3 border rounded-xl text-body-md transition-all', state.nationality === 'non-eu' ? 'border-primary bg-primary/8 font-semibold' : 'border-outline-variant text-on-surface-variant')}>🌍 Nicht-EU</button>
+              <button onClick={() => update('nationality', 'eu')} className={selectableCls(state.nationality === 'eu')}>🇪🇺 EU-Bürger</button>
+              <button onClick={() => update('nationality', 'non-eu')} className={selectableCls(state.nationality === 'non-eu')}>Nicht-EU</button>
             </div>
           </div>
         )}
 
         {step === 3 && (
           <div className="space-y-4">
-            <h3 className="text-headline-md font-semibold text-on-surface">{t('wizard.step3')}</h3>
+            <h3 className="text-h2 text-text">{t('wizard.step3')}</h3>
             {[['single', 'Single'], ['pair', 'Paar'], ['family', 'Familie']].map(([v, l]) => (
-              <button key={v} onClick={() => update('situation', v)} className={cn('w-full text-left px-4 py-3 border rounded-xl text-body-md transition-all', state.situation === v ? 'border-primary bg-primary/8 font-semibold' : 'border-outline-variant text-on-surface-variant')}>
+              <button key={v} onClick={() => update('situation', v)} className={cn('w-full text-left', selectableCls(state.situation === v))}>
                 {l}
               </button>
             ))}
@@ -712,9 +703,9 @@ function PlanWizard({ onCreated }: { onCreated: () => void }) {
 
         {step === 4 && (
           <div className="space-y-4">
-            <h3 className="text-headline-md font-semibold text-on-surface">{t('wizard.step4')}</h3>
+            <h3 className="text-h2 text-text">{t('wizard.step4')}</h3>
             {[['employed', 'Angestellt'], ['freelancer', 'Freiberufler'], ['founder', 'Gründer'], ['passive', 'Passiveinkommen']].map(([v, l]) => (
-              <button key={v} onClick={() => update('employment', v)} className={cn('w-full text-left px-4 py-3 border rounded-xl text-body-md transition-all', state.employment === v ? 'border-primary bg-primary/8 font-semibold' : 'border-outline-variant text-on-surface-variant')}>
+              <button key={v} onClick={() => update('employment', v)} className={cn('w-full text-left', selectableCls(state.employment === v))}>
                 {l}
               </button>
             ))}
@@ -723,17 +714,17 @@ function PlanWizard({ onCreated }: { onCreated: () => void }) {
 
         {step === 5 && (
           <div className="space-y-4">
-            <h3 className="text-headline-md font-semibold text-on-surface">{t('wizard.step5')}</h3>
-            <p className="text-body-md text-on-surface-variant">Welche Vermögenswerte hast du in Deutschland? (Mehrfachauswahl)</p>
+            <h3 className="text-h2 text-text">{t('wizard.step5')}</h3>
+            <p className="text-body text-text-2">Welche Vermögenswerte hast du in Deutschland? (Mehrfachauswahl)</p>
             <div className="space-y-2">
               {[['gmbh', 'GmbH-Anteile'], ['depot', 'Wertpapierdepot > 1%'], ['immobilie', 'Immobilien'], ['pkv', 'Private Krankenversicherung']].map(([v, l]) => (
                 <button
                   key={v}
                   onClick={() => toggleAsset(v)}
-                  className={cn('w-full text-left px-4 py-3 border rounded-xl text-body-md transition-all flex items-center justify-between', state.assets.includes(v) ? 'border-primary bg-primary/8 font-semibold' : 'border-outline-variant text-on-surface-variant')}
+                  className={cn('flex w-full items-center justify-between text-left', selectableCls(state.assets.includes(v)))}
                 >
                   <span>{l}</span>
-                  {state.assets.includes(v) && <span className="text-primary">✓</span>}
+                  {state.assets.includes(v) && <Check className="h-4 w-4 text-text" aria-hidden />}
                 </button>
               ))}
             </div>
@@ -742,39 +733,38 @@ function PlanWizard({ onCreated }: { onCreated: () => void }) {
 
         {step === 6 && (
           <div className="space-y-4">
-            <h3 className="text-headline-md font-semibold text-on-surface">{t('wizard.step6')}</h3>
+            <h3 className="text-h2 text-text">{t('wizard.step6')}</h3>
             <div className="space-y-1.5">
-              <label className="label-field">{t('wizard.targetDate')}</label>
-              <input
+              <label className="block text-sm text-text-2">{t('wizard.targetDate')}</label>
+              <Input
                 type="date"
                 value={state.targetDate}
                 onChange={(e) => update('targetDate', e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
-                className="input-field"
               />
-              <p className="text-label-sm text-on-surface-variant">{t('wizard.targetDateHint')}</p>
+              <p className="text-caption text-text-3">{t('wizard.targetDateHint')}</p>
             </div>
             <div className="space-y-1.5">
-              <label className="label-field">Heimatstadt</label>
-              <select value={state.fromCitySlug} onChange={(e) => update('fromCitySlug', e.target.value)} className="input-field">
+              <label className="block text-sm text-text-2">Heimatstadt</label>
+              <select value={state.fromCitySlug} onChange={(e) => update('fromCitySlug', e.target.value)} className={SELECT_CLS}>
                 {HOME_CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.nameDE}</option>)}
               </select>
             </div>
           </div>
         )}
 
-        {error && <p className="text-error bg-error-container/30 border border-error/30 rounded-xl px-4 py-3 text-body-md">{error}</p>}
+        {error && <p className="rounded-md border border-line bg-surface-sub px-4 py-3 text-sm text-neg">{error}</p>}
       </div>
 
       <div className="flex gap-3">
-        {step > 1 && <button onClick={() => setStep((s) => s - 1)} className="btn-secondary px-5">Zurück</button>}
+        {step > 1 && <Button variant="outline" onClick={() => setStep((s) => s - 1)}>Zurück</Button>}
         <div className="flex-1" />
         {step < steps.length ? (
-          <button onClick={() => setStep((s) => s + 1)} disabled={step === 1 && !state.toCitySlug} className="btn-primary">Weiter</button>
+          <Button onClick={() => setStep((s) => s + 1)} disabled={step === 1 && !state.toCitySlug}>Weiter</Button>
         ) : (
-          <button onClick={handleCreate} disabled={saving || !state.toCitySlug} className="btn-primary">
+          <Button onClick={handleCreate} disabled={saving || !state.toCitySlug}>
             {saving ? '…' : t('wizard.create')}
-          </button>
+          </Button>
         )}
       </div>
     </div>
@@ -828,25 +818,20 @@ function CityBrowse() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-headline-sm font-bold text-on-background">{t('cityBrowse.title')}</h2>
-        <p className="text-body-md text-on-surface-variant">{t('cityBrowse.subtitle')}</p>
+        <h2 className="text-h2 text-text">{t('cityBrowse.title')}</h2>
+        <p className="text-body text-text-2">{t('cityBrowse.subtitle')}</p>
       </div>
 
       {/* City picker */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
         {citiesWithGuide.map((city) => (
           <button
             key={city.slug}
             onClick={() => setSelectedSlug((s) => s === city.slug ? null : city.slug)}
-            className={cn(
-              'flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left transition-all text-body-sm',
-              selectedSlug === city.slug
-                ? 'border-primary bg-primary/8 font-semibold text-on-surface'
-                : 'border-outline-variant text-on-surface-variant hover:border-outline hover:text-on-surface',
-            )}
+            className={cn('flex items-center gap-2 text-left', selectableCls(selectedSlug === city.slug))}
           >
-            <span className="text-lg leading-none shrink-0">{city.flag}</span>
-            <span className="flex-1 min-w-0 truncate">{isDE ? city.nameDE : city.nameEN}</span>
+            <span className="shrink-0 text-lg leading-none">{city.flag}</span>
+            <span className="min-w-0 flex-1 truncate">{isDE ? city.nameDE : city.nameEN}</span>
           </button>
         ))}
       </div>
@@ -854,29 +839,26 @@ function CityBrowse() {
       {/* Selected city guide */}
       {selectedSlug && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <h3 className="text-headline-md font-bold text-on-background">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-h2 text-text">
               {guideData?.city.flag} {cityName}
               {guideData && (
-                <span className="text-label-sm text-on-surface-variant font-normal ml-2">
+                <span className="ml-2 text-caption text-text-2">
                   {guideData.totalSteps} {t('cityBrowse.steps')}
                 </span>
               )}
             </h3>
             {guideLink && (
-              <a
-                href={guideLink}
-                className="text-label-sm text-primary font-semibold hover:text-primary/80 transition-colors"
-              >
+              <a href={guideLink} className="focus-ring rounded-sm text-sm text-focus transition-colors hover:underline">
                 {t('cityBrowse.viewFull')}
               </a>
             )}
           </div>
 
           {loadingGuide && (
-            <div className="space-y-3 animate-pulse">
+            <div className="animate-pulse space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-16 bg-surface-container rounded-xl" />
+                <div key={i} className="h-16 rounded-md bg-surface-sub" />
               ))}
             </div>
           )}
@@ -886,7 +868,7 @@ function CityBrowse() {
           )}
 
           {!loadingGuide && !guideData && (
-            <p className="text-body-md text-on-surface-variant py-8 text-center">
+            <p className="py-8 text-center text-body text-text-2">
               {t('cityBrowse.noGuide')}
             </p>
           )}
@@ -894,7 +876,7 @@ function CityBrowse() {
       )}
 
       {/* Disclaimer */}
-      <p className="text-label-sm text-on-surface-variant border border-outline-variant/30 rounded-xl px-4 py-3 leading-relaxed">
+      <p className="rounded-md border border-line px-4 py-3 text-caption leading-relaxed text-text-3">
         {t('cityBrowse.disclaimer')}
       </p>
     </div>
@@ -975,7 +957,7 @@ export default function GuidePage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <HighRiskWarningDialog
         open={showRiskDialog}
         highRiskTitles={highRiskTitles}
@@ -983,28 +965,20 @@ export default function GuidePage() {
         onCancel={() => setShowRiskDialog(false)}
       />
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-headline-xl-mobile md:text-headline-lg font-bold text-on-background">{t('title')}</h1>
-          <p className="text-body-lg text-on-surface-variant">{t('subtitle')}</p>
+          <h1 className="text-h1 text-text">{t('title')}</h1>
+          <p className="text-body text-text-2">{t('subtitle')}</p>
         </div>
       </div>
 
       {/* Top-level tabs */}
-      <div className="flex gap-1 p-1 bg-surface-container rounded-2xl w-fit">
-        {topTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setTopTab(tab.key)}
-            className={cn(
-              'px-4 py-2 rounded-xl text-label-sm font-semibold uppercase tracking-wider transition-colors',
-              topTab === tab.key ? 'bg-surface text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface',
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        aria-label={t('title')}
+        value={topTab}
+        onChange={setTopTab}
+        options={topTabs.map((tab) => ({ value: tab.key, label: tab.label }))}
+      />
 
       {/* City guide browser */}
       {topTab === 'cityGuide' && <CityBrowse />}
@@ -1013,27 +987,27 @@ export default function GuidePage() {
       {topTab === 'plan' && (
         <>
           {loading && (
-            <div className="space-y-4 animate-pulse">
-              <div className="glass-card h-32 bg-surface-container" />
-              <div className="glass-card h-64 bg-surface-container" />
+            <div className="animate-pulse space-y-4">
+              <div className="h-32 rounded-lg border border-line bg-surface-sub" />
+              <div className="h-64 rounded-lg border border-line bg-surface-sub" />
             </div>
           )}
           {!loading && (!user || !planData) && (
-            <div className="border border-dashed border-outline-variant rounded-2xl p-16 text-center space-y-4">
-              <p className="text-on-surface font-semibold text-headline-sm">{t('noPlan')}</p>
-              <p className="text-on-surface-variant text-body-md">{t('noPlanHint')}</p>
-              {!user && <p className="text-label-sm text-on-surface-variant">{t('loginRequired')}</p>}
-              <button onClick={handleCreateClick} className="btn-primary">
-                {t('createPlan')}
-              </button>
+            <div className="space-y-4 rounded-lg border border-dashed border-line p-16 text-center">
+              <p className="text-h3 text-text">{t('noPlan')}</p>
+              <p className="text-body text-text-2">{t('noPlanHint')}</p>
+              {!user && <p className="text-caption text-text-3">{t('loginRequired')}</p>}
+              <div className="flex justify-center pt-2">
+                <Button onClick={handleCreateClick}>{t('createPlan')}</Button>
+              </div>
             </div>
           )}
           {!loading && planData && highRiskTitles.length > 0 && !riskConfirmed && (
             <button
               onClick={() => setShowRiskDialog(true)}
-              className="w-full border border-error/40 bg-error/5 rounded-xl px-4 py-3 text-body-sm text-error text-left hover:bg-error/10 transition-colors"
+              className="focus-ring flex w-full items-center gap-2 rounded-md border-l-2 border-neg bg-surface-sub px-4 py-3 text-left text-sm text-neg transition-colors hover:bg-surface-sub"
             >
-              ⚠ {t('riskWarning.banner')}
+              <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden /> {t('riskWarning.banner')}
             </button>
           )}
           {!loading && planData && <PlanView data={planData} onUpdate={handleUpdate} />}

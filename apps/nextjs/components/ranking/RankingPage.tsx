@@ -7,6 +7,10 @@ import { cn, formatCurrency } from '@/lib/utils';
 import type { RankingRow, RankingResponse } from '@/app/api/ranking/route';
 import { CityDetailsModal } from '@/components/city-details/CityDetailsModal';
 import { Slider } from '@/components/ui/Slider';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { ScoreBar } from '@/components/ui/ScoreBar';
+import { StatusDot } from '@/components/ui/StatusDot';
 import { useDebouncedValue } from '@/lib/hooks/use-debounced-value';
 import { computeWeightedScore } from '@/lib/ranking';
 
@@ -92,19 +96,11 @@ function readCalcState(): { fromCity: string; gross: string } | null {
   }
 }
 
-// ─── Score badge ──────────────────────────────────────────────────────────────
+// ─── Score value (monochrom, Spec: Farbe nur für Delta/Risiko) ─────────────────
 
-function ScoreBadge({ value, size = 'sm' }: { value: number; size?: 'sm' | 'md' }) {
-  const cls =
-    value >= 75 ? 'bg-primary/10 text-primary' :
-    value >= 50 ? 'bg-secondary-container/50 text-secondary' :
-    'bg-surface-container text-on-surface-variant';
+function ScoreValue({ value, size = 'sm' }: { value: number; size?: 'sm' | 'md' }) {
   return (
-    <span className={cn(
-      'inline-flex items-center justify-center rounded-full font-bold font-mono tabular-nums',
-      cls,
-      size === 'md' ? 'px-3 py-1 text-data-mono' : 'px-2 py-0.5 text-label-sm',
-    )}>
+    <span className={cn('tabular text-text', size === 'md' ? 'text-data-md' : 'text-data-sm')}>
       {value}
     </span>
   );
@@ -142,44 +138,39 @@ function RankingInputBar({
   }
 
   return (
-    <div className="glass-card p-5 shadow-sm">
+    <div className="rounded-lg border border-line bg-surface p-5">
       {fromCalc && (
-        <p className="text-label-sm text-primary bg-primary/8 border border-primary/20 rounded-xl px-4 py-2 mb-4 flex items-center gap-2 uppercase tracking-wider">
-          <span>✓</span> {t('inputBarHint')}
-        </p>
+        <div className="mb-4">
+          <StatusDot tone="pos" label={t('inputBarHint')} />
+        </div>
       )}
-      <form onSubmit={handleSubmit} className="flex flex-wrap gap-3 items-end">
-        <div className="space-y-1.5 flex-1 min-w-[140px]">
-          <label className="label-field">{t('homeCity')}</label>
-          <input
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
+        <div className="min-w-[140px] flex-1 space-y-1.5">
+          <label className="block text-sm text-text-2">{t('homeCity')}</label>
+          <Input
             type="text"
             value={from}
             onChange={(e) => { setFrom(e.target.value); setFromCalc(false); }}
             placeholder={t('homeCityPlaceholder')}
-            className="input-field"
           />
         </div>
-        <div className="space-y-1.5 flex-1 min-w-[130px]">
-          <label className="label-field">{t('gross')}</label>
+        <div className="min-w-[130px] flex-1 space-y-1.5">
+          <label className="block text-sm text-text-2">{t('gross')}</label>
           <div className="relative">
-            <input
+            <Input
               type="number"
               value={gross}
               onChange={(e) => setGross(e.target.value)}
               placeholder="80000"
               min={0}
-              className="input-field pr-16"
+              className="pr-16"
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-label-sm text-on-surface-variant pointer-events-none uppercase tracking-wider">{t('grossUnit')}</span>
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-caption uppercase tracking-[0.04em] text-text-3">{t('grossUnit')}</span>
           </div>
         </div>
-        <button
-          type="submit"
-          disabled={loading || !from || !gross}
-          className="btn-primary"
-        >
+        <Button type="submit" disabled={loading || !from || !gross}>
           {loading ? '…' : tCalc('calculate')}
-        </button>
+        </Button>
       </form>
     </div>
   );
@@ -192,48 +183,45 @@ function ExpandedRow({ row, locale }: { row: RankingRow; locale: string }) {
   const tResults = useTranslations('results');
 
   return (
-    <div className="px-5 pb-5 pt-3 bg-surface-container-low/60 border-t border-outline-variant/30 space-y-4">
+    <div className="space-y-4 border-t border-line bg-surface-sub px-5 pb-5 pt-3">
       {/* All 11 score categories */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
         {WEIGHT_KEYS.map((key) => {
           const value = row.scores[key] ?? 50;
           return (
-            <div key={key} className="glass-card-solid p-3 text-center space-y-2">
-              <p className="text-label-sm text-on-surface-variant uppercase tracking-wider leading-tight">
+            <div key={key} className="space-y-1">
+              <p className="text-caption uppercase tracking-[0.04em] text-text-3">
                 {t(`weights.${key}`)}
               </p>
-              <ScoreBadge value={value} size="md" />
-              <div className="w-full bg-outline-variant/30 rounded-full h-1">
-                <div className="bg-primary h-1 rounded-full transition-all" style={{ width: `${value}%` }} />
-              </div>
+              <ScoreBar value={value} aria-label={t(`weights.${key}`)} />
             </div>
           );
         })}
       </div>
 
       {/* Financial breakdown */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/40 px-4 py-3 space-y-1">
-          <p className="table-header">{tResults('netMonthly')}</p>
-          <p className="table-value">{formatCurrency(row.netMonthlyEUR)}</p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="space-y-1 rounded-md bg-surface px-4 py-3">
+          <p className="text-caption uppercase tracking-[0.04em] text-text-3">{tResults('netMonthly')}</p>
+          <p className="text-data-sm tabular text-text">{formatCurrency(row.netMonthlyEUR)}</p>
         </div>
-        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/40 px-4 py-3 space-y-1">
-          <p className="table-header">{tResults('netAfterCosts')}</p>
-          <p className={cn('table-value font-bold', row.surplusEUR >= 0 ? 'text-primary' : 'text-error')}>
+        <div className="space-y-1 rounded-md bg-surface px-4 py-3">
+          <p className="text-caption uppercase tracking-[0.04em] text-text-3">{tResults('netAfterCosts')}</p>
+          <p className={cn('text-data-sm tabular', row.surplusEUR >= 0 ? 'text-pos' : 'text-neg')}>
             {row.surplusEUR >= 0 ? '+' : ''}{formatCurrency(row.surplusEUR)}
           </p>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 flex-wrap items-center">
-        <p className="text-label-sm text-on-surface-variant uppercase tracking-wider">
-          {tResults('effectiveTaxRate')}: <span className="font-mono font-bold text-on-surface">{(row.effectiveRate * 100).toFixed(1)}%</span>
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="text-caption uppercase tracking-[0.04em] text-text-3">
+          {tResults('effectiveTaxRate')}: <span className="tabular text-text">{(row.effectiveRate * 100).toFixed(1)}%</span>
         </p>
         <div className="flex-1" />
         <Link
           href={`/${locale}?toCity=${encodeURIComponent(row.city.nameDE)}`}
-          className="text-label-sm font-semibold text-primary hover:text-primary-container bg-primary/8 hover:bg-primary/15 border border-primary/20 px-4 py-2 rounded-full transition-all uppercase tracking-wider"
+          className="focus-ring inline-flex h-8 items-center rounded-md border border-line px-3 text-sm text-text-2 transition-colors hover:border-line-strong hover:text-text"
         >
           {t('compareWith').replace('{city}', row.city.nameDE)}
         </Link>
@@ -254,6 +242,8 @@ interface TableProps {
   onCityClick: (slug: string) => void;
   locale: string;
 }
+
+const TH = 'text-caption uppercase tracking-[0.04em] text-text-3';
 
 function RankingTable({ rows, sortKey, sortDir, onSort, expandedId, onExpand, onCityClick, locale }: TableProps) {
   const t = useTranslations('ranking');
@@ -278,24 +268,25 @@ function RankingTable({ rows, sortKey, sortDir, onSort, expandedId, onExpand, on
       <button
         onClick={() => onSort(colKey)}
         className={cn(
-          'flex items-center gap-1 table-header whitespace-nowrap transition-colors',
-          active ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface',
+          'focus-ring inline-flex items-center gap-1 whitespace-nowrap rounded-sm transition-colors',
+          TH,
+          active ? 'text-text' : 'hover:text-text',
         )}
       >
         {label}
-        <span className="opacity-50 ml-0.5">{active ? (sortDir === 'desc' ? '↓' : '↑') : '↕'}</span>
+        <span className="ml-0.5 opacity-50">{active ? (sortDir === 'desc' ? '↓' : '↑') : '↕'}</span>
       </button>
     );
   }
 
   return (
-    <div className="glass-card overflow-hidden shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-line bg-surface">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead>
-            <tr className="border-b border-outline-variant/40 bg-surface-container-low/50">
-              <th className="text-left px-4 py-3.5 table-header w-10">{t('columns.rank')}</th>
-              <th className="text-left px-4 py-3.5 table-header">{t('columns.city')}</th>
+            <tr className="border-b border-line-strong">
+              <th className={cn('w-10 px-4 py-3.5 text-left', TH)}>{t('columns.rank')}</th>
+              <th className={cn('px-4 py-3.5 text-left', TH)}>{t('columns.city')}</th>
               <th className="px-3 py-3.5 text-right">
                 <SortHeader label={t('columns.purchasingPower')} colKey="purchasingPowerDelta" />
               </th>
@@ -327,14 +318,14 @@ function RankingTable({ rows, sortKey, sortDir, onSort, expandedId, onExpand, on
                 <Fragment key={row.city.id}>
                   <tr
                     className={cn(
-                      'border-b border-outline-variant/20 hover:bg-surface-container-low/60 cursor-pointer transition-colors',
-                      isHome && 'bg-primary/5',
-                      isExpanded && 'bg-surface-container-low/60',
+                      'cursor-pointer border-b border-line-soft transition-colors hover:bg-surface-sub',
+                      isHome && 'bg-surface-sub',
+                      isExpanded && 'bg-surface-sub',
                     )}
                     onClick={() => onExpand(row.city.id)}
                     title={t('expandHint')}
                   >
-                    <td className="px-4 py-3.5 table-value text-on-surface-variant">{row.rank}</td>
+                    <td className="px-4 py-3.5 text-data-sm tabular text-text-2">{row.rank}</td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2.5">
                         <span className="text-lg leading-none">{row.city.flag}</span>
@@ -342,29 +333,29 @@ function RankingTable({ rows, sortKey, sortDir, onSort, expandedId, onExpand, on
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); onCityClick(row.city.slug); }}
-                            className="text-body-md font-semibold text-on-surface hover:text-primary hover:underline transition-colors text-left"
+                            className="focus-ring rounded-sm text-left text-body text-text transition-colors hover:underline"
                           >
                             {row.city.nameDE}
                           </button>
                           {isHome && (
-                            <span className="block text-label-sm text-primary font-semibold uppercase tracking-wider">{t('homeCity')}</span>
+                            <span className="block text-caption uppercase tracking-[0.04em] text-text-3">{t('homeCity')}</span>
                           )}
                         </div>
                       </div>
                     </td>
                     <td className="px-3 py-3.5 text-right">
-                      <span className={cn('table-value font-bold', ppPositive ? 'text-primary' : 'text-error')}>
+                      <span className={cn('text-data-sm tabular', ppPositive ? 'text-pos' : 'text-neg')}>
                         {ppPositive ? '+' : ''}{formatCurrency(row.purchasingPowerDelta)}
                       </span>
                     </td>
-                    <td className="px-3 py-3.5 text-right"><ScoreBadge value={row.scores['tax_burden_score'] ?? 50} /></td>
-                    <td className="px-3 py-3.5 text-right"><ScoreBadge value={row.scores['crime_index'] ?? 50} /></td>
-                    <td className="px-3 py-3.5 text-right"><ScoreBadge value={row.scores['healthcare_quality'] ?? 50} /></td>
-                    <td className="px-3 py-3.5 text-right"><ScoreBadge value={row.scores['air_quality_pm25'] ?? 50} /></td>
+                    <td className="px-3 py-3.5 text-right"><ScoreValue value={row.scores['tax_burden_score'] ?? 50} /></td>
+                    <td className="px-3 py-3.5 text-right"><ScoreValue value={row.scores['crime_index'] ?? 50} /></td>
+                    <td className="px-3 py-3.5 text-right"><ScoreValue value={row.scores['healthcare_quality'] ?? 50} /></td>
+                    <td className="px-3 py-3.5 text-right"><ScoreValue value={row.scores['air_quality_pm25'] ?? 50} /></td>
                     <td className="px-3 py-3.5 text-right">
-                      <ScoreBadge value={row.score} size="md" />
+                      <ScoreValue value={row.score} size="md" />
                     </td>
-                    <td className="px-2 py-3.5 text-on-surface-variant text-label-sm">
+                    <td className="px-2 py-3.5 text-right text-sm text-text-3">
                       {isExpanded ? '▲' : '▼'}
                     </td>
                   </tr>
@@ -454,11 +445,11 @@ export default function RankingPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       {/* Header */}
-      <div className="text-center space-y-3">
-        <h1 className="text-headline-xl-mobile md:text-headline-lg font-bold text-on-background">{t('title')}</h1>
-        <p className="text-body-lg text-on-surface-variant">{t('subtitle')}</p>
+      <div className="space-y-3 text-center">
+        <h1 className="text-h1 text-text">{t('title')}</h1>
+        <p className="text-body text-text-2">{t('subtitle')}</p>
       </div>
 
       {/* Input bar */}
@@ -466,30 +457,30 @@ export default function RankingPage() {
 
       {/* Purchasing power hint */}
       {data && (
-        <p className="text-label-sm text-on-surface-variant px-1 uppercase tracking-wider">
-          <span className="font-semibold text-on-surface">{t('columns.purchasingPower')}:</span>{' '}
+        <p className="px-1 text-caption uppercase tracking-[0.04em] text-text-3">
+          <span className="text-text-2">{t('columns.purchasingPower')}:</span>{' '}
           {t('purchasingPowerHint')} · Basis:{' '}
-          <span className="font-mono font-bold text-on-surface">{formatCurrency(data.homeNetMonthlyEUR)}/mo</span> netto in {data.homeCity.nameDE}
+          <span className="tabular text-text">{formatCurrency(data.homeNetMonthlyEUR)}/mo</span> netto in {data.homeCity.nameDE}
         </p>
       )}
 
       {/* Error */}
       {error && (
-        <p className="text-body-md text-error bg-error-container/30 border border-error/30 rounded-xl px-4 py-3">
+        <p className="rounded-md border border-line bg-surface-sub px-4 py-3 text-sm text-neg">
           {error}
         </p>
       )}
 
       {/* Loading skeleton */}
       {loading && (
-        <div className="glass-card p-8 space-y-3 animate-pulse">
+        <div className="animate-pulse space-y-3 rounded-lg border border-line bg-surface p-8">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex gap-4 items-center">
-              <div className="w-6 h-4 bg-surface-container rounded" />
-              <div className="w-32 h-4 bg-surface-container rounded" />
-              <div className="flex-1 flex gap-2 justify-end">
+            <div key={i} className="flex items-center gap-4">
+              <div className="h-4 w-6 rounded bg-surface-sub" />
+              <div className="h-4 w-32 rounded bg-surface-sub" />
+              <div className="flex flex-1 justify-end gap-2">
                 {Array.from({ length: 7 }).map((_, j) => (
-                  <div key={j} className="w-12 h-4 bg-surface-container rounded" />
+                  <div key={j} className="h-4 w-12 rounded bg-surface-sub" />
                 ))}
               </div>
             </div>
@@ -499,21 +490,21 @@ export default function RankingPage() {
 
       {/* Weights panel */}
       {data && (
-        <div className="glass-card shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-line bg-surface">
           <button
             type="button"
             onClick={() => setWeightsOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-5 py-3.5 text-left"
+            className="focus-ring flex w-full items-center justify-between px-5 py-3.5 text-left"
           >
-            <span className="text-label-sm font-bold text-on-surface uppercase tracking-wider">
+            <span className="text-caption uppercase tracking-[0.04em] text-text-2">
               {t('weights.title')}
             </span>
-            <span className="text-on-surface-variant text-label-sm">{weightsOpen ? '▲' : '▼'}</span>
+            <span className="text-sm text-text-3">{weightsOpen ? '▲' : '▼'}</span>
           </button>
 
           {weightsOpen && (
-            <div className="px-5 pb-5 border-t border-outline-variant/30 pt-4 space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
+            <div className="space-y-4 border-t border-line px-5 pb-5 pt-4">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
                 {WEIGHT_KEYS.map((key) => (
                   <Slider
                     key={key}
@@ -526,7 +517,7 @@ export default function RankingPage() {
               <button
                 type="button"
                 onClick={() => setWeights(DEFAULT_WEIGHTS)}
-                className="text-label-sm font-semibold text-primary hover:underline uppercase tracking-wider"
+                className="focus-ring rounded-sm text-caption uppercase tracking-[0.04em] text-focus hover:underline"
               >
                 {t('weights.resetDefaults')}
               </button>
@@ -551,8 +542,8 @@ export default function RankingPage() {
 
       {/* Empty state */}
       {!data && !loading && !error && (
-        <div className="border border-dashed border-outline-variant rounded-2xl p-12 text-center">
-          <p className="text-on-surface-variant text-body-md">{t('enterDetails')}</p>
+        <div className="rounded-lg border border-dashed border-line p-12 text-center">
+          <p className="text-body text-text-2">{t('enterDetails')}</p>
         </div>
       )}
 

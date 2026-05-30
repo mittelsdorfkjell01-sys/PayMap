@@ -1,9 +1,13 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
+import { AlertTriangle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { calculate, calculateApproximate } from '@paymap/tax-engine';
 
 interface SpecialRegime {
@@ -31,6 +35,10 @@ interface SpecialRegime {
 type Filter = 'all' | 'employed' | 'freelancer' | 'euOnly' | 'nonEu' | 'flatTax' | 'zeroTax';
 
 const EU_COUNTRIES = new Set(['de', 'at', 'ch', 'nl', 'pt', 'es', 'fr', 'it', 'ie', 'ee', 'pl', 'cz', 'hu', 'ro']);
+
+// Token-styled native select (kein Select-Primitive nötig)
+const SELECT_CLS =
+  'h-11 w-full rounded-md border border-line bg-surface px-[14px] text-body text-text focus:border-focus focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--focus)_25%,transparent)] focus:outline-none';
 
 function formatCurrency(n: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
@@ -95,41 +103,33 @@ function QuickCalculator({ regimes }: { regimes: SpecialRegime[] }) {
   ];
 
   return (
-    <div className="glass-card p-6 space-y-5 shadow-sm">
-      <h2 className="text-headline-sm font-semibold text-on-surface">{t('quickCalc')}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="space-y-5 rounded-lg border border-line bg-surface p-6">
+      <h2 className="text-h2 text-text">{t('quickCalc')}</h2>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <label className="label-field">{t('gross')}</label>
+          <label className="block text-sm text-text-2">{t('gross')}</label>
           <div className="relative">
-            <input
+            <Input
               type="number"
               value={gross}
               onChange={(e) => setGross(e.target.value)}
-              className="input-field pr-20"
+              className="pr-20"
               placeholder="80000"
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-label-sm text-on-surface-variant pointer-events-none uppercase tracking-wider">€/Jahr</span>
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-caption uppercase tracking-[0.04em] text-text-3">€/Jahr</span>
           </div>
         </div>
         <div className="space-y-1.5">
-          <label className="label-field">{t('homeCountry')}</label>
-          <select
-            value={homeCountry}
-            onChange={(e) => setHomeCountry(e.target.value)}
-            className="input-field"
-          >
+          <label className="block text-sm text-text-2">{t('homeCountry')}</label>
+          <select value={homeCountry} onChange={(e) => setHomeCountry(e.target.value)} className={SELECT_CLS}>
             {countries.map((c) => (
               <option key={c.code} value={c.code}>{c.name}</option>
             ))}
           </select>
         </div>
         <div className="space-y-1.5">
-          <label className="label-field">{t('targetRegime')}</label>
-          <select
-            value={regimeId}
-            onChange={(e) => setRegimeId(e.target.value)}
-            className="input-field"
-          >
+          <label className="block text-sm text-text-2">{t('targetRegime')}</label>
+          <select value={regimeId} onChange={(e) => setRegimeId(e.target.value)} className={SELECT_CLS}>
             <option value="">— Regime wählen —</option>
             {regimes.map((r) => (
               <option key={r.slug} value={r.slug}>{r.nameDE}</option>
@@ -137,26 +137,22 @@ function QuickCalculator({ regimes }: { regimes: SpecialRegime[] }) {
           </select>
         </div>
       </div>
-      <button
-        onClick={calculate_}
-        disabled={!gross || !regimeId}
-        className="btn-primary"
-      >
+      <Button onClick={calculate_} disabled={!gross || !regimeId}>
         {t('calculate')}
-      </button>
+      </Button>
 
       {result && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-outline-variant/40">
+        <div className="grid grid-cols-2 gap-3 border-t border-line pt-4 sm:grid-cols-4">
           {[
             { label: t('netStandard'), value: formatCurrency(result.netStandard), sub: '/Jahr', color: '' },
             { label: t('netWithRegime'), value: formatCurrency(result.netWithRegime), sub: '/Jahr', color: '' },
-            { label: t('savingsPerYear'), value: formatCurrency(result.savingsYear), sub: '/Jahr', color: result.savingsYear > 0 ? 'text-primary' : 'text-error' },
-            { label: t('savingsOverDuration'), value: formatCurrency(result.savingsTotal), sub: `über ${result.duration} Jahre`, color: result.savingsTotal > 0 ? 'text-primary' : 'text-error' },
+            { label: t('savingsPerYear'), value: formatCurrency(result.savingsYear), sub: '/Jahr', color: result.savingsYear > 0 ? 'text-pos' : 'text-neg' },
+            { label: t('savingsOverDuration'), value: formatCurrency(result.savingsTotal), sub: `über ${result.duration} Jahre`, color: result.savingsTotal > 0 ? 'text-pos' : 'text-neg' },
           ].map((item) => (
-            <div key={item.label} className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-4 py-3 space-y-1">
-              <p className="text-label-sm text-on-surface-variant uppercase tracking-wider">{item.label}</p>
-              <p className={cn('text-lg font-bold font-mono tabular-nums', item.color || 'text-on-surface')}>{item.value}</p>
-              <p className="text-label-sm text-on-surface-variant">{item.sub}</p>
+            <div key={item.label} className="space-y-1 rounded-md bg-surface-sub px-4 py-3">
+              <p className="text-caption uppercase tracking-[0.04em] text-text-3">{item.label}</p>
+              <p className={cn('text-data-md tabular', item.color || 'text-text')}>{item.value}</p>
+              <p className="text-caption text-text-3">{item.sub}</p>
             </div>
           ))}
         </div>
@@ -167,10 +163,10 @@ function QuickCalculator({ regimes }: { regimes: SpecialRegime[] }) {
 
 // ─── Regime-Karte ─────────────────────────────────────────────────────────────
 
-const RISK_STYLES: Record<string, string> = {
-  low:    'bg-green-100 text-green-700',
-  medium: 'bg-amber-100 text-amber-700',
-  high:   'bg-red-100 text-red-700',
+const RISK_VARIANT: Record<string, 'pos' | 'warn' | 'neg'> = {
+  low: 'pos',
+  medium: 'warn',
+  high: 'neg',
 };
 
 function RegimeCard({ regime, locale }: { regime: SpecialRegime; locale: string }) {
@@ -184,65 +180,52 @@ function RegimeCard({ regime, locale }: { regime: SpecialRegime; locale: string 
   const disclaimer = locale === 'de' ? regime.disclaimerDE : regime.disclaimerEN;
 
   const riskLabel = t(`regime.risk_${regime.riskLevel}` as Parameters<typeof t>[0]);
-  const riskCls = RISK_STYLES[regime.riskLevel] ?? 'bg-surface-container text-on-surface-variant';
-
-  const badges = [
-    { label: formatPercent(regime.flatRate), title: t('regime.taxRate') },
-    { label: regime.durationYears >= 90 ? t('regime.unlimited') : t('regime.years').replace('{n}', String(regime.durationYears)), title: t('regime.duration') },
-    { label: isEU ? 'EU' : 'Außerhalb EU', className: isEU ? 'bg-primary/10 text-primary' : 'bg-secondary-container/50 text-secondary' },
-    { label: riskLabel, className: riskCls },
-  ];
 
   const validFrom = new Date(regime.validFrom).getFullYear();
   const validTo = regime.validTo ? new Date(regime.validTo).getFullYear() : null;
 
   return (
-    <div className={cn('glass-card shadow-sm overflow-hidden transition-all', expanded && 'ring-1 ring-primary/30')}>
+    <div className={cn('overflow-hidden rounded-lg border border-line bg-surface', expanded && 'border-line-strong')}>
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full px-5 py-4 flex items-start gap-4 text-left hover:bg-surface-container-low/40 transition-colors"
+        className="focus-ring flex w-full items-start gap-4 px-5 py-4 text-left transition-colors hover:bg-surface-sub"
       >
-        <div className="flex-1 min-w-0 space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-on-surface">{name}</span>
-            <span className="text-label-sm text-on-surface-variant">· {regime.country.nameDE}</span>
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-h3 text-text">{name}</span>
+            <span className="text-caption text-text-2">· {regime.country.nameDE}</span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {badges.map((b, i) => (
-              <span
-                key={i}
-                className={cn(
-                  'text-label-sm px-2.5 py-0.5 rounded-full font-semibold',
-                  b.className ?? 'bg-surface-container text-on-surface-variant',
-                )}
-              >
-                {b.title ? `${b.title}: ` : ''}{b.label}
-              </span>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge>{t('regime.taxRate')}: {formatPercent(regime.flatRate)}</Badge>
+            <Badge>
+              {t('regime.duration')}: {regime.durationYears >= 90 ? t('regime.unlimited') : t('regime.years').replace('{n}', String(regime.durationYears))}
+            </Badge>
+            <Badge>{isEU ? 'EU' : 'Außerhalb EU'}</Badge>
+            <Badge variant={RISK_VARIANT[regime.riskLevel] ?? 'secondary'}>{riskLabel}</Badge>
           </div>
         </div>
-        <span className="text-on-surface-variant text-sm mt-1 shrink-0">{expanded ? '▲' : '▼'}</span>
+        <span className="mt-1 shrink-0 text-sm text-text-3">{expanded ? '▲' : '▼'}</span>
       </button>
 
       {expanded && (
-        <div className="border-t border-outline-variant/30 px-5 py-5 space-y-4">
+        <div className="space-y-4 border-t border-line px-5 py-5">
           {/* Legal advice warning */}
           {regime.requiresLegalAdvice && (
-            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
-              <span className="shrink-0 mt-0.5">⚠</span>
-              <span className="font-medium">{t('regime.legalAdvice')}</span>
+            <div className="flex items-start gap-2 border-l-2 border-warn bg-surface-sub px-4 py-3 text-sm text-text-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" aria-hidden />
+              <span>{t('regime.legalAdvice')}</span>
             </div>
           )}
 
-          <p className="text-body-md text-on-surface leading-relaxed">{conditions}</p>
+          <p className="text-body leading-relaxed text-text">{conditions}</p>
 
           {regime.qualifications.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-label-sm font-semibold text-on-surface uppercase tracking-wider">{t('regime.qualifications')}</p>
+              <p className="text-caption uppercase tracking-[0.04em] text-text-3">{t('regime.qualifications')}</p>
               <ul className="space-y-1">
                 {(regime.qualifications as string[]).map((q, i) => (
-                  <li key={i} className="flex items-start gap-2 text-body-md text-on-surface-variant">
-                    <span className="text-primary mt-0.5">✓</span>
+                  <li key={i} className="flex items-start gap-2 text-body text-text-2">
+                    <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-pos" aria-hidden />
                     <span>{q}</span>
                   </li>
                 ))}
@@ -250,37 +233,37 @@ function RegimeCard({ regime, locale }: { regime: SpecialRegime; locale: string 
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 text-label-sm">
+          <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <span className="text-on-surface-variant">{t('regime.validFrom')}: </span>
-              <span className="font-semibold text-on-surface">{validFrom}</span>
+              <span className="text-text-2">{t('regime.validFrom')}: </span>
+              <span className="tabular text-text">{validFrom}</span>
             </div>
             {validTo && (
               <div>
-                <span className="text-on-surface-variant">{t('regime.validTo')}: </span>
-                <span className="font-semibold text-on-surface">{validTo}</span>
+                <span className="text-text-2">{t('regime.validTo')}: </span>
+                <span className="tabular text-text">{validTo}</span>
               </div>
             )}
             <div className="col-span-2">
-              <span className="text-on-surface-variant">{t('regime.source')}: </span>
-              <a href={regime.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{regime.sourceDE}</a>
+              <span className="text-text-2">{t('regime.source')}: </span>
+              <a href={regime.sourceUrl} target="_blank" rel="noopener noreferrer" className="focus-ring rounded-sm text-focus hover:underline">{regime.sourceDE}</a>
             </div>
           </div>
 
           {/* Disclaimer */}
           {disclaimer && (
-            <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-4 py-3 space-y-1">
-              <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider">{t('regime.disclaimer')}</p>
-              <p className="text-xs text-on-surface-variant leading-relaxed">{disclaimer}</p>
+            <div className="space-y-1 rounded-md bg-surface-sub px-4 py-3">
+              <p className="text-caption uppercase tracking-[0.04em] text-text-3">{t('regime.disclaimer')}</p>
+              <p className="text-caption leading-relaxed text-text-2">{disclaimer}</p>
             </div>
           )}
 
-          <button
+          <Button
             onClick={() => router.push(`/${locale}?toCity=${encodeURIComponent(regime.country.nameDE)}`)}
-            className="btn-primary w-full sm:w-auto"
+            className="w-full sm:w-auto"
           >
             {t('regime.calcWithCountry').replace('{country}', regime.country.nameDE)}
-          </button>
+          </Button>
         </div>
       )}
     </div>
@@ -322,11 +305,11 @@ export default function SteuerGuidePage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="mx-auto max-w-4xl space-y-12">
       {/* Header */}
       <div className="space-y-1">
-        <h1 className="text-headline-xl-mobile md:text-headline-lg font-bold text-on-background">{t('title')}</h1>
-        <p className="text-body-lg text-on-surface-variant">{t('subtitle')}</p>
+        <h1 className="text-h1 text-text">{t('title')}</h1>
+        <p className="text-body text-text-2">{t('subtitle')}</p>
       </div>
 
       {/* Schnellrechner */}
@@ -338,11 +321,12 @@ export default function SteuerGuidePage() {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
+            aria-pressed={filter === f.key}
             className={cn(
-              'px-4 py-2 rounded-full text-label-sm font-semibold uppercase tracking-wider transition-colors',
+              'focus-ring rounded-md border px-3 py-1.5 text-sm transition-colors duration-150 ease-out',
               filter === f.key
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface',
+                ? 'border-accent bg-accent text-accent-fg'
+                : 'border-line text-text-2 hover:border-line-strong hover:text-text',
             )}
           >
             {f.label}
@@ -352,8 +336,8 @@ export default function SteuerGuidePage() {
 
       {/* Regime Cards */}
       {loading && (
-        <div className="space-y-3 animate-pulse">
-          {[1, 2, 3].map((i) => <div key={i} className="glass-card h-20 bg-surface-container" />)}
+        <div className="animate-pulse space-y-3">
+          {[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-lg border border-line bg-surface-sub" />)}
         </div>
       )}
 
@@ -363,8 +347,8 @@ export default function SteuerGuidePage() {
             <RegimeCard key={regime.id} regime={regime} locale={locale} />
           ))}
           {filtered.length === 0 && (
-            <div className="border border-dashed border-outline-variant rounded-2xl p-12 text-center">
-              <p className="text-on-surface-variant text-body-md">Keine Regime für diesen Filter.</p>
+            <div className="rounded-lg border border-dashed border-line p-12 text-center">
+              <p className="text-body text-text-2">Keine Regime für diesen Filter.</p>
             </div>
           )}
         </div>

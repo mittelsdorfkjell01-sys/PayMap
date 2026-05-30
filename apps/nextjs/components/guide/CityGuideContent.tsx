@@ -1,19 +1,17 @@
 'use client';
 import { useState } from 'react';
+import { FileText, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { StatusDot, riskTone } from '@/components/ui/StatusDot';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import type { CityGuideData, GuideStep } from '@/lib/city-guide';
 
-const RISK_STYLES = {
-  high:   { badge: 'bg-error text-on-error',   border: 'border-l-4 border-error/70 bg-error/5',    label: { de: '⚠ Hohes Risiko',    en: '⚠ High Risk' } },
-  medium: { badge: 'bg-warning text-on-surface', border: 'border-l-4 border-warning/70 bg-warning/5', label: { de: '◈ Mittleres Risiko', en: '◈ Medium Risk' } },
-  low:    { badge: null,                          border: '',                                           label: { de: '',                   en: '' } },
-};
-
-const INFOBOX_STYLES: Record<string, string> = {
-  danger:  'bg-error-container/40 border-error/40 text-error',
-  warning: 'bg-warning-container/40 border-warning/40 text-on-surface',
-  info:    'bg-primary/8 border-primary/20 text-on-surface',
-};
+// Risiko nur als Punkt + Label + 2px-Linksborder (Spec §3.3), keine Flächen.
+const RISK_META = {
+  high:   { border: 'border-l-2 border-neg',  label: { de: 'Hohes Risiko',    en: 'High Risk' } },
+  medium: { border: 'border-l-2 border-warn', label: { de: 'Mittleres Risiko', en: 'Medium Risk' } },
+  low:    { border: '',                        label: { de: '',                 en: '' } },
+} as const;
 
 function StepCard({ step, locale }: { step: GuideStep; locale: string }) {
   const [open, setOpen] = useState(false);
@@ -22,44 +20,44 @@ function StepCard({ step, locale }: { step: GuideStep; locale: string }) {
   const subtitle = isDE ? step.subtitleDE : (step.subtitleEN || step.subtitleDE);
   const timing   = isDE ? step.timingDE   : (step.timingEN   || step.timingDE);
   const infoBox  = isDE ? step.infoBoxDE  : (step.infoBoxEN  || step.infoBoxDE);
-  const risk     = RISK_STYLES[step.riskLevel as keyof typeof RISK_STYLES] ?? RISK_STYLES.low;
+  const riskKey  = (step.riskLevel as keyof typeof RISK_META) in RISK_META ? (step.riskLevel as keyof typeof RISK_META) : 'low';
+  const risk     = RISK_META[riskKey];
 
   const hasDetails = infoBox || step.documents.length > 0 || step.sourceUrl || step.lastVerified;
 
   return (
-    <div className={cn('rounded-xl border border-outline-variant/40 overflow-hidden bg-surface transition-all', risk.border)}>
+    <div className={cn('overflow-hidden rounded-md border border-line bg-surface', risk.border)}>
       <button
         onClick={() => hasDetails && setOpen((o) => !o)}
-        className={cn('w-full text-left px-4 py-3.5 flex items-start gap-3', hasDetails && 'hover:bg-surface-container/50 transition-colors')}
+        className={cn('flex w-full items-start gap-3 px-4 py-3.5 text-left', hasDetails && 'transition-colors hover:bg-surface-sub')}
       >
-        <div className="flex-1 min-w-0 space-y-1">
-          <div className="flex items-start justify-between gap-2 flex-wrap">
-            <p className="text-body-md font-semibold text-on-surface leading-snug">{title}</p>
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
-              {risk.badge && (
-                <span className={cn('text-label-sm font-bold px-2 py-0.5 rounded-full', risk.badge)}>
-                  {isDE ? risk.label.de : risk.label.en}
-                </span>
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <p className="text-body leading-snug text-text">{title}</p>
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
+              {riskKey !== 'low' && (
+                <StatusDot tone={riskTone(riskKey)} label={isDE ? risk.label.de : risk.label.en} />
               )}
               {step.requiresLegalAdvice && (
-                <span className="text-label-sm bg-error-container/60 text-error px-2 py-0.5 rounded-full font-semibold">
-                  {isDE ? 'Rechtsberatung' : 'Legal Advice'}
-                </span>
+                <span className="text-caption text-neg">{isDE ? 'Rechtsberatung' : 'Legal Advice'}</span>
               )}
             </div>
           </div>
-          {subtitle && <p className="text-label-sm text-on-surface-variant">{subtitle}</p>}
-          <p className="text-label-sm text-on-surface-variant">{timing}</p>
+          {subtitle && <p className="text-caption text-text-2">{subtitle}</p>}
+          <p className="text-caption text-text-3">{timing}</p>
         </div>
         {hasDetails && (
-          <span className="text-on-surface-variant text-sm mt-0.5 shrink-0">{open ? '▲' : '▼'}</span>
+          <span className="mt-0.5 shrink-0 text-sm text-text-3">{open ? '▲' : '▼'}</span>
         )}
       </button>
 
       {open && hasDetails && (
-        <div className="px-4 pb-4 space-y-3 border-t border-outline-variant/20 pt-3">
+        <div className="space-y-3 border-t border-line px-4 pb-4 pt-3">
           {infoBox && step.infoBoxType && (
-            <div className={cn('border rounded-xl px-4 py-3 text-body-sm leading-relaxed', INFOBOX_STYLES[step.infoBoxType] ?? INFOBOX_STYLES.info)}>
+            <div className={cn(
+              'rounded-md border border-line bg-surface-sub px-4 py-3 text-sm leading-relaxed',
+              step.infoBoxType === 'danger' ? 'text-neg' : 'text-text-2',
+            )}>
               {infoBox}
             </div>
           )}
@@ -68,26 +66,26 @@ function StepCard({ step, locale }: { step: GuideStep; locale: string }) {
               {step.documents.map((doc, i) => {
                 const label = isDE ? doc.titleDE : (doc.titleEN || doc.titleDE);
                 return label ? (
-                  <span key={i} className="text-label-sm border border-outline-variant/60 rounded-full px-2.5 py-0.5 text-on-surface-variant flex items-center gap-1">
-                    <span>📄</span>{label}
+                  <span key={i} className="flex items-center gap-1.5 rounded-sm border border-line px-2.5 py-0.5 text-caption text-text-2">
+                    <FileText className="h-3 w-3" aria-hidden />{label}
                   </span>
                 ) : null;
               })}
             </div>
           )}
-          <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             {step.sourceUrl && step.sourceLabel && (
               <a
                 href={step.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-label-sm text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
+                className="focus-ring flex items-center gap-1.5 rounded-sm text-caption text-focus underline-offset-2 hover:underline"
               >
-                🔗 {step.sourceLabel}
+                <ExternalLink className="h-3 w-3" aria-hidden /> {step.sourceLabel}
               </a>
             )}
             {step.lastVerified && (
-              <span className="text-label-sm text-on-surface-variant ml-auto">
+              <span className="ml-auto text-caption text-text-3">
                 {isDE ? 'Geprüft' : 'Verified'}: {new Date(step.lastVerified).toLocaleDateString(isDE ? 'de-DE' : 'en-GB', { month: 'short', year: 'numeric' })}
               </span>
             )}
@@ -130,22 +128,13 @@ export default function CityGuideContent({ data, locale }: { data: CityGuideData
   return (
     <div className="space-y-6">
       {/* Persona filter */}
-      <div className="flex flex-wrap gap-2">
-        {personas.map((p) => (
-          <button
-            key={p.key}
-            onClick={() => setPersona(p.key)}
-            className={cn(
-              'px-3.5 py-1.5 rounded-full text-label-sm font-semibold uppercase tracking-wider transition-colors',
-              persona === p.key
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high',
-            )}
-          >
-            {isDE ? p.labelDE : p.labelEN}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        aria-label={isDE ? 'Persona-Filter' : 'Persona filter'}
+        className="flex-wrap"
+        value={persona}
+        onChange={setPersona}
+        options={personas.map((p) => ({ value: p.key, label: isDE ? p.labelDE : p.labelEN }))}
+      />
 
       {/* Sections */}
       {data.sections.map((section) => {
@@ -155,27 +144,25 @@ export default function CityGuideContent({ data, locale }: { data: CityGuideData
         const highCount = filteredSteps.filter((s) => s.riskLevel === 'high').length;
 
         return (
-          <div key={section.key} className="rounded-2xl border border-outline-variant/40 overflow-hidden">
+          <div key={section.key} className="overflow-hidden rounded-lg border border-line">
             <button
               onClick={() => toggleSection(section.key)}
-              className="w-full flex items-center gap-3 px-5 py-4 bg-surface-container/50 hover:bg-surface-container transition-colors text-left"
+              className="focus-ring flex w-full items-center gap-3 bg-surface-sub px-5 py-4 text-left transition-colors hover:bg-surface-sub"
             >
-              <span className="flex-1 text-label-lg font-bold text-on-surface uppercase tracking-wider">
+              <span className="flex-1 text-h3 text-text">
                 {isDE ? section.labelDE : section.labelEN}
               </span>
-              <span className="text-label-sm text-on-surface-variant font-mono">
+              <span className="text-caption tabular text-text-3">
                 {filteredSteps.length} {isDE ? 'Schritte' : 'steps'}
               </span>
               {highCount > 0 && (
-                <span className="text-label-sm bg-error/15 text-error px-2 py-0.5 rounded-full font-semibold">
-                  {highCount} ⚠
-                </span>
+                <StatusDot tone="neg" label={String(highCount)} />
               )}
-              <span className="text-on-surface-variant text-sm">{isOpen ? '▲' : '▼'}</span>
+              <span className="text-sm text-text-3">{isOpen ? '▲' : '▼'}</span>
             </button>
 
             {isOpen && (
-              <div className="px-4 py-4 space-y-2.5 bg-surface">
+              <div className="space-y-2.5 bg-surface px-4 py-4">
                 {filteredSteps.map((step) => (
                   <StepCard key={step.id} step={step} locale={locale} />
                 ))}
@@ -186,10 +173,10 @@ export default function CityGuideContent({ data, locale }: { data: CityGuideData
       })}
 
       {/* Disclaimer */}
-      <p className="text-label-sm text-on-surface-variant border border-outline-variant/30 rounded-xl px-4 py-3 leading-relaxed">
+      <p className="rounded-md border border-line px-4 py-3 text-caption leading-relaxed text-text-3">
         {isDE
-          ? 'paymap ersetzt keine individuelle steuerliche oder rechtliche Beratung. Inhalte mit ⚠ markiert sind besonders prüfungsbedürftig. Alle Angaben ohne Gewähr — Stand der letzten Prüfung jeweils angegeben.'
-          : 'paymap does not replace individual tax or legal advice. Content marked ⚠ requires particular verification. All information without warranty — date of last review indicated per step.'}
+          ? 'paymap ersetzt keine individuelle steuerliche oder rechtliche Beratung. Schritte mit erhöhtem Risiko sind entsprechend markiert. Alle Angaben ohne Gewähr — Stand der letzten Prüfung jeweils angegeben.'
+          : 'paymap does not replace individual tax or legal advice. Steps with elevated risk are marked accordingly. All information without warranty — date of last review indicated per step.'}
       </p>
     </div>
   );
