@@ -39,12 +39,12 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between items-center">
-        <span className="text-xs text-on-surface-variant">{label}</span>
-        <span className="text-xs font-bold text-on-surface tabular-nums">{value}</span>
+        <span className="text-xs text-gray-500 font-light">{label}</span>
+        <span className="text-xs font-medium text-gray-900 tabular-nums">{value}</span>
       </div>
-      <div className="w-full bg-outline-variant/30 rounded-full h-1.5">
+      <div className="w-full bg-gray-100 rounded-full h-1">
         <div
-          className="h-1.5 rounded-full bg-primary transition-all"
+          className="h-1 rounded-full bg-primary transition-all"
           style={{ width: `${value}%` }}
         />
       </div>
@@ -55,18 +55,18 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 function ConfidenceBadge({ confidence }: { confidence: number }) {
   const t = useTranslations('cityDetails');
   if (confidence >= 80) {
-    return <span className="text-[10px] bg-green-100 text-green-700 rounded px-1.5 py-0.5 font-medium">{t('confidence.verified')}</span>;
+    return <span className="text-[10px] bg-primary/10 text-primary rounded px-1.5 py-0.5 font-medium">{t('confidence.verified')}</span>;
   }
   if (confidence >= 50) {
-    return <span className="text-[10px] bg-amber-100 text-amber-700 rounded px-1.5 py-0.5 font-medium">{t('confidence.estimated')}</span>;
+    return <span className="text-[10px] bg-amber-50 text-amber-600 rounded px-1.5 py-0.5 font-medium">{t('confidence.estimated')}</span>;
   }
-  return <span className="text-[10px] bg-gray-100 text-gray-500 rounded px-1.5 py-0.5 font-medium">{t('confidence.approximate')}</span>;
+  return <span className="text-[10px] bg-gray-50 text-gray-500 rounded px-1.5 py-0.5 font-medium">{t('confidence.approximate')}</span>;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h3 className="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/30 pb-2">
+      <h3 className="text-xs font-medium text-gray-500 tracking-wide border-b border-gray-100 pb-2">
         {title}
       </h3>
       {children}
@@ -96,40 +96,40 @@ function GuidePreviewSection({ data, locale }: { data: CityDetailResponse; local
             <div
               key={i}
               className={cn(
-                'rounded-xl border border-outline-variant/40 px-3.5 py-3 space-y-1',
-                isHigh && 'border-l-4 border-l-error/70 bg-error/5',
-                isMedium && 'border-l-4 border-l-warning/70 bg-warning/5',
+                'rounded-lg border border-gray-200 px-3.5 py-3 space-y-1',
+                isHigh && 'border-l-4 border-l-red-400 bg-red-50',
+                isMedium && 'border-l-4 border-l-amber-400 bg-amber-50',
               )}
             >
               <div className="flex items-start justify-between gap-2 flex-wrap">
-                <p className="text-sm font-semibold text-on-surface leading-snug flex-1">{title}</p>
+                <p className="text-sm font-medium text-gray-900 leading-snug flex-1">{title}</p>
                 <div className="flex gap-1.5 shrink-0 flex-wrap">
                   {isHigh && (
-                    <span className="text-[10px] font-bold bg-error text-on-error px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-medium bg-red-500 text-white px-2 py-0.5 rounded-full">
                       {t('guidePreview.highRisk')}
                     </span>
                   )}
                   {isMedium && (
-                    <span className="text-[10px] font-bold bg-warning text-on-surface px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-medium bg-amber-500 text-white px-2 py-0.5 rounded-full">
                       {t('guidePreview.mediumRisk')}
                     </span>
                   )}
                   {step.requiresLegalAdvice && (
-                    <span className="text-[10px] font-semibold bg-error-container/60 text-error px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-medium bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
                       {t('guidePreview.legalAdvice')}
                     </span>
                   )}
                 </div>
               </div>
-              {subtitle && <p className="text-xs text-on-surface-variant">{subtitle}</p>}
-              <p className="text-xs text-on-surface-variant">{timing}</p>
+              {subtitle && <p className="text-xs text-gray-500 font-light">{subtitle}</p>}
+              <p className="text-xs text-gray-500 font-light">{timing}</p>
             </div>
           );
         })}
       </div>
       <a
         href={link}
-        className="inline-flex items-center text-sm text-primary font-semibold hover:text-primary/80 transition-colors mt-1"
+        className="inline-flex items-center text-xs text-primary font-medium hover:text-primary/80 transition-colors mt-1"
       >
         {t('guidePreview.viewFull')}
       </a>
@@ -142,7 +142,6 @@ function ModalContent({ data, locale }: { data: CityDetailResponse; locale: stri
   const tResults = useTranslations('results');
 
   const { finances, costOfLiving, safety, climate, outdoor, social } = data;
-  const cityName = locale === 'de' ? data.city.nameDE : data.city.nameEN;
 
   // ── Finance ──────────────────────────────────────────────────────────
   const financeSection = (
@@ -150,8 +149,8 @@ function ModalContent({ data, locale }: { data: CityDetailResponse; locale: stri
       {finances.specialRegimes.length > 0 && (
         <div className="space-y-2">
           {finances.specialRegimes.map((r, i) => (
-            <div key={i} className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 space-y-1">
-              <p className="text-sm font-semibold text-on-surface">
+            <div key={i} className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-3 space-y-1">
+              <p className="text-sm font-medium text-gray-900">
                 {locale === 'de' ? r.nameDE : r.nameEN}
                 {r.flatRate != null && (
                   <span className="ml-2 text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 font-medium">
@@ -160,23 +159,23 @@ function ModalContent({ data, locale }: { data: CityDetailResponse; locale: stri
                 )}
               </p>
               {r.conditionsDE && (
-                <p className="text-xs text-on-surface-variant leading-relaxed">{r.conditionsDE}</p>
+                <p className="text-xs text-gray-500 leading-relaxed font-light">{r.conditionsDE}</p>
               )}
             </div>
           ))}
         </div>
       )}
       {finances.salaryBenchmarkEUR != null && (
-        <p className="text-sm text-on-surface-variant">
+        <p className="text-sm text-gray-600 font-light">
           {t('finances.salaryMedian')}:{' '}
-          <span className="font-bold text-on-surface">{formatCurrency(finances.salaryBenchmarkEUR, 'EUR', 0)} {t('finances.perYear')}</span>
+          <span className="font-medium text-gray-900">{formatCurrency(finances.salaryBenchmarkEUR, 'EUR', 0)} {t('finances.perYear')}</span>
         </p>
       )}
       {finances.referenceNetMonthly > 0 && (
-        <p className="text-sm text-on-surface-variant">
-          {t('finances.referenceNet')}: <span className="font-bold text-on-surface">{formatCurrency(finances.referenceNetMonthly)} {t('finances.perMonth')}</span>
+        <p className="text-sm text-gray-600 font-light">
+          {t('finances.referenceNet')}: <span className="font-medium text-gray-900">{formatCurrency(finances.referenceNetMonthly)} {t('finances.perMonth')}</span>
           {' '}
-          <span className="text-xs text-on-surface-variant">
+          <span className="text-xs text-gray-500">
             ({tResults('effectiveTaxRate')}: {(finances.referenceEffectiveRate * 100).toFixed(1)} %)
           </span>
         </p>
@@ -188,7 +187,7 @@ function ModalContent({ data, locale }: { data: CityDetailResponse; locale: stri
   const colSection = costOfLiving.items.length > 0 || costOfLiving.totalMonthlyEUR != null ? (
     <Section title={t('sections.cost')}>
       {costOfLiving.totalMonthlyEUR != null && (
-        <p className="text-sm font-semibold text-on-surface">
+        <p className="text-sm font-medium text-gray-900">
           {t('col.total')}: <span className="text-primary">{formatCurrency(costOfLiving.totalMonthlyEUR)} {t('finances.perMonth')}</span>
         </p>
       )}
@@ -196,12 +195,12 @@ function ModalContent({ data, locale }: { data: CityDetailResponse; locale: stri
         <div className="space-y-2">
           {costOfLiving.items.map((item) => (
             <div key={item.category} className="flex items-center justify-between gap-2">
-              <span className="text-sm text-on-surface-variant">
+              <span className="text-sm text-gray-600 font-light">
                 {t((COL_CATEGORY_KEYS[item.category] ?? `cityDetails.col.${item.category}`) as Parameters<typeof t>[0])}
               </span>
               <div className="flex items-center gap-2 shrink-0">
                 <ConfidenceBadge confidence={item.confidence} />
-                <span className="text-sm font-medium text-on-surface tabular-nums">
+                <span className="text-sm font-medium text-gray-900 tabular-nums">
                   {formatCurrency(item.valueEUR)} {t('finances.perMonth')}
                 </span>
               </div>
@@ -219,13 +218,13 @@ function ModalContent({ data, locale }: { data: CityDetailResponse; locale: stri
         <ScoreBar key={k} label={t((LIFESTYLE_LABEL_KEYS[k] ?? k) as Parameters<typeof t>[0])} value={v} />
       ))}
       {safety.hospitalCount != null && (
-        <p className="text-sm text-on-surface-variant">
-          🏥 {safety.hospitalCount} {t('safety.hospitals')}
+        <p className="text-sm text-gray-600 font-light">
+          {safety.hospitalCount} {t('safety.hospitals')}
         </p>
       )}
       {safety.consulates.map((c, i) => (
-        <p key={i} className="text-sm text-on-surface-variant">
-          🇩🇪 {c.website ? (
+        <p key={i} className="text-sm text-gray-600 font-light">
+          DE {c.website ? (
             <a href={c.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
               {c.name}
             </a>
@@ -239,36 +238,36 @@ function ModalContent({ data, locale }: { data: CityDetailResponse; locale: stri
   const climateSection = climate ? (
     <Section title={t('sections.climate')}>
       {new Date(climate.updatedAt).getTime() < STALE_BEFORE && (
-        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 font-light">
           {t('weather.veryOld')}
         </p>
       )}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-surface-container rounded-xl px-3 py-2.5 space-y-0.5">
-          <p className="text-xs text-on-surface-variant">☀️ {t('climate.sunshineDays')}</p>
-          <p className="text-sm font-bold text-on-surface">{climate.sunshineDays} {t('finances.perYear')}</p>
+        <div className="bg-gray-50 rounded-lg px-3 py-2.5 space-y-0.5">
+          <p className="text-[10px] text-gray-500 font-light">{t('climate.sunshineDays')}</p>
+          <p className="text-sm font-medium text-gray-900">{climate.sunshineDays} {t('finances.perYear')}</p>
         </div>
-        <div className="bg-surface-container rounded-xl px-3 py-2.5 space-y-0.5">
-          <p className="text-xs text-on-surface-variant">🌧 {t('climate.rainyDays')}</p>
-          <p className="text-sm font-bold text-on-surface">{climate.rainyDays} {t('finances.perYear')}</p>
+        <div className="bg-gray-50 rounded-lg px-3 py-2.5 space-y-0.5">
+          <p className="text-[10px] text-gray-500 font-light">{t('climate.rainyDays')}</p>
+          <p className="text-sm font-medium text-gray-900">{climate.rainyDays} {t('finances.perYear')}</p>
         </div>
-        <div className="bg-surface-container rounded-xl px-3 py-2.5 space-y-0.5">
-          <p className="text-xs text-on-surface-variant">🌡 {t('climate.summerAvg')}</p>
-          <p className="text-sm font-bold text-on-surface">{climate.avgTempSummer.toFixed(1)} °C</p>
+        <div className="bg-gray-50 rounded-lg px-3 py-2.5 space-y-0.5">
+          <p className="text-[10px] text-gray-500 font-light">{t('climate.summerAvg')}</p>
+          <p className="text-sm font-medium text-gray-900">{climate.avgTempSummer.toFixed(1)} C</p>
         </div>
-        <div className="bg-surface-container rounded-xl px-3 py-2.5 space-y-0.5">
-          <p className="text-xs text-on-surface-variant">❄ {t('climate.winterAvg')}</p>
-          <p className="text-sm font-bold text-on-surface">{climate.avgTempWinter.toFixed(1)} °C</p>
+        <div className="bg-gray-50 rounded-lg px-3 py-2.5 space-y-0.5">
+          <p className="text-[10px] text-gray-500 font-light">{t('climate.winterAvg')}</p>
+          <p className="text-sm font-medium text-gray-900">{climate.avgTempWinter.toFixed(1)} C</p>
         </div>
       </div>
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
-          <span className="text-xs text-on-surface-variant">{t('climate.sunshineIndex')}</span>
-          <span className="text-xs font-bold text-on-surface tabular-nums">{Math.min(100, Math.round((climate.sunshineDays / 365) * 100))}</span>
+          <span className="text-xs text-gray-500 font-light">{t('climate.sunshineIndex')}</span>
+          <span className="text-xs font-medium text-gray-900 tabular-nums">{Math.min(100, Math.round((climate.sunshineDays / 365) * 100))}</span>
         </div>
-        <div className="w-full bg-outline-variant/30 rounded-full h-1.5">
+        <div className="w-full bg-gray-100 rounded-full h-1">
           <div
-            className="h-1.5 rounded-full bg-amber-400 transition-all"
+            className="h-1 rounded-full bg-amber-400 transition-all"
             style={{ width: `${Math.min(100, Math.round((climate.sunshineDays / 365) * 100))}%` }}
           />
         </div>
@@ -283,8 +282,8 @@ function ModalContent({ data, locale }: { data: CityDetailResponse; locale: stri
         <ScoreBar key={k} label={t((LIFESTYLE_LABEL_KEYS[k] ?? k) as Parameters<typeof t>[0])} value={v} />
       ))}
       {outdoor.coworkingCount != null && (
-        <p className="text-sm text-on-surface-variant">
-          💻 {outdoor.coworkingCount} {t('outdoor.coworking')}
+        <p className="text-sm text-gray-600 font-light">
+          {outdoor.coworkingCount} {t('outdoor.coworking')}
         </p>
       )}
     </Section>
@@ -297,15 +296,15 @@ function ModalContent({ data, locale }: { data: CityDetailResponse; locale: stri
         <ScoreBar key={k} label={t((LIFESTYLE_LABEL_KEYS[k] ?? k) as Parameters<typeof t>[0])} value={v} />
       ))}
       {(social.restaurantCount != null || social.barCount != null) && (
-        <p className="text-sm text-on-surface-variant">
-          🍽 {[
+        <p className="text-sm text-gray-600 font-light">
+          {[
             social.restaurantCount != null && `${social.restaurantCount} ${t('social.restaurants')}`,
             social.barCount != null && `${social.barCount} ${t('social.bars')}`,
           ].filter(Boolean).join(', ')}
         </p>
       )}
       {social.germanSchools.map((s, i) => (
-        <p key={i} className="text-sm text-on-surface-variant">🎓 {s.name}</p>
+        <p key={i} className="text-sm text-gray-600 font-light">{s.name}</p>
       ))}
     </Section>
   ) : null;
@@ -391,7 +390,7 @@ export function CityDetailsModal({ slug, onClose }: CityDetailsModalProps) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -401,18 +400,18 @@ export function CityDetailsModal({ slug, onClose }: CityDetailsModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="city-modal-title"
-        className="relative z-10 w-full md:max-w-3xl md:mx-4 flex flex-col max-h-[90vh] md:max-h-[85vh] bg-background rounded-t-3xl md:rounded-2xl shadow-2xl overflow-hidden"
+        className="relative z-10 w-full md:max-w-2xl md:mx-4 flex flex-col max-h-[90vh] md:max-h-[85vh] bg-white rounded-t-2xl md:rounded-lg shadow-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky header */}
-        <div className="sticky top-0 z-10 bg-background border-b border-outline-variant/40 px-5 py-4 flex items-center gap-3">
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-5 py-4 flex items-center gap-3">
           {data && (
-            <span className="text-2xl leading-none" aria-hidden="true">{data.city.flag}</span>
+            <span className="text-xl leading-none" aria-hidden="true">{data.city.flag}</span>
           )}
           <div className="flex-1 min-w-0">
             <h2
               id="city-modal-title"
-              className="text-title-lg font-bold text-on-background truncate"
+              className="text-lg font-light text-gray-900 truncate"
             >
               {cityName}
             </h2>
@@ -422,9 +421,9 @@ export function CityDetailsModal({ slug, onClose }: CityDetailsModalProps) {
             type="button"
             onClick={onClose}
             aria-label={t('close')}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors shrink-0"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors shrink-0"
           >
-            ✕
+            x
           </button>
         </div>
 
@@ -434,9 +433,9 @@ export function CityDetailsModal({ slug, onClose }: CityDetailsModalProps) {
             <div className="p-5 space-y-4 animate-pulse">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="space-y-2">
-                  <div className="h-3 w-24 bg-surface-container rounded" />
-                  <div className="h-4 w-full bg-surface-container rounded" />
-                  <div className="h-4 w-3/4 bg-surface-container rounded" />
+                  <div className="h-3 w-24 bg-gray-100 rounded" />
+                  <div className="h-4 w-full bg-gray-100 rounded" />
+                  <div className="h-4 w-3/4 bg-gray-100 rounded" />
                 </div>
               ))}
             </div>
@@ -445,7 +444,7 @@ export function CityDetailsModal({ slug, onClose }: CityDetailsModalProps) {
             <ModalContent data={data} locale={locale} />
           )}
           {!loading && !data && (
-            <div className="p-10 text-center text-on-surface-variant text-sm">
+            <div className="p-10 text-center text-gray-500 text-sm font-light">
               {t('nodata')}
             </div>
           )}

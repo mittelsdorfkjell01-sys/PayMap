@@ -100,7 +100,7 @@ export function OnboardingWizard() {
   if (authLoading || !user) {
     return (
       <div className="max-w-lg mx-auto py-16 text-center">
-        <p className="text-on-surface-variant text-body-md">{t('loginRequired')}</p>
+        <p className="text-gray-500 text-sm font-light">{t('loginRequired')}</p>
       </div>
     );
   }
@@ -109,14 +109,14 @@ export function OnboardingWizard() {
     <div className="max-w-lg mx-auto space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-headline-xl-mobile font-bold text-on-background">{t('profileTitle')}</h1>
-        <p className="text-body-lg text-on-surface-variant">{t('profileSubtitle')}</p>
+        <h1 className="text-2xl font-light text-gray-900">{t('profileTitle')}</h1>
+        <p className="text-sm text-gray-500 font-light">{t('profileSubtitle')}</p>
       </div>
 
-      <div className="glass-card p-6 space-y-6 shadow-sm">
+      <div className="border border-gray-200 rounded-lg p-6 space-y-6">
         {/* Employment */}
         <div className="space-y-3">
-          <p className="label-field">{t('step2.title')}</p>
+          <p className="text-xs text-gray-500 tracking-wide font-light">{t('step2.title')}</p>
           <div className="grid grid-cols-1 gap-2">
             {EMPLOYMENT_OPTIONS.map((opt) => (
               <button
@@ -124,10 +124,10 @@ export function OnboardingWizard() {
                 type="button"
                 onClick={() => setState((prev) => ({ ...prev, employment: opt.value }))}
                 className={cn(
-                  'w-full text-left px-4 py-3.5 border rounded-xl text-body-md font-medium transition-all',
+                  'w-full text-left px-4 py-3 border rounded-lg text-sm font-light transition-all',
                   state.employment === opt.value
-                    ? 'border-primary bg-primary/8 text-on-surface'
-                    : 'border-outline-variant hover:border-outline text-on-surface-variant hover:text-on-surface',
+                    ? 'border-primary bg-primary/5 text-gray-900'
+                    : 'border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-900',
                 )}
               >
                 {t(opt.labelKey as Parameters<typeof t>[0])}
@@ -138,7 +138,7 @@ export function OnboardingWizard() {
 
         {/* Family status */}
         <div className="space-y-3">
-          <p className="label-field">{t('step3.title')}</p>
+          <p className="text-xs text-gray-500 tracking-wide font-light">{t('step3.title')}</p>
           <div className="grid grid-cols-1 gap-2">
             {FAMILY_OPTIONS.map((opt) => (
               <button
@@ -146,10 +146,10 @@ export function OnboardingWizard() {
                 type="button"
                 onClick={() => setState((prev) => ({ ...prev, familyStatus: opt.value }))}
                 className={cn(
-                  'w-full text-left px-4 py-3.5 border rounded-xl text-body-md font-medium transition-all',
+                  'w-full text-left px-4 py-3 border rounded-lg text-sm font-light transition-all',
                   state.familyStatus === opt.value
-                    ? 'border-primary bg-primary/8 text-on-surface'
-                    : 'border-outline-variant hover:border-outline text-on-surface-variant hover:text-on-surface',
+                    ? 'border-primary bg-primary/5 text-gray-900'
+                    : 'border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-900',
                 )}
               >
                 {t(opt.labelKey as Parameters<typeof t>[0])}
@@ -160,26 +160,26 @@ export function OnboardingWizard() {
 
         {/* Children */}
         <div className="space-y-3">
-          <p className="label-field">{t('step4.title')}</p>
+          <p className="text-xs text-gray-500 tracking-wide font-light">{t('step4.title')}</p>
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setState((prev) => ({ ...prev, children: Math.max(0, prev.children - 1) }))}
               disabled={state.children === 0}
-              className="w-9 h-9 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:border-outline hover:text-on-surface disabled:opacity-40 transition-all"
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-300 hover:text-gray-700 disabled:opacity-40 transition-all text-sm"
             >
-              −
+              -
             </button>
-            <span className="text-body-md font-semibold text-on-surface w-6 text-center">{state.children}</span>
+            <span className="text-sm font-medium text-gray-900 w-6 text-center">{state.children}</span>
             <button
               type="button"
               onClick={() => setState((prev) => ({ ...prev, children: Math.min(10, prev.children + 1) }))}
               disabled={state.children >= 10}
-              className="w-9 h-9 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:border-outline hover:text-on-surface disabled:opacity-40 transition-all"
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-300 hover:text-gray-700 disabled:opacity-40 transition-all text-sm"
             >
               +
             </button>
-            <span className="text-body-sm text-on-surface-variant ml-2">
+            <span className="text-xs text-gray-500 ml-2 font-light">
               {state.children === 0 ? t('step4.none') : t('step4.count').replace('{n}', String(state.children))}
             </span>
           </div>
@@ -187,7 +187,7 @@ export function OnboardingWizard() {
 
         {/* KV */}
         <div className="space-y-3">
-          <p className="label-field">{t('step5.title')}</p>
+          <p className="text-xs text-gray-500 tracking-wide font-light">{t('step5.title')}</p>
           <div className="grid grid-cols-1 gap-3">
             {KV_OPTIONS.map((opt) => (
               <button
@@ -195,16 +195,16 @@ export function OnboardingWizard() {
                 type="button"
                 onClick={() => setState((prev) => ({ ...prev, kvType: opt.value }))}
                 className={cn(
-                  'w-full text-left px-4 py-4 border rounded-xl transition-all',
+                  'w-full text-left px-4 py-4 border rounded-lg transition-all',
                   state.kvType === opt.value
-                    ? 'border-primary bg-primary/8'
-                    : 'border-outline-variant hover:border-outline',
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-gray-300',
                 )}
               >
-                <p className={cn('text-body-md font-semibold', state.kvType === opt.value ? 'text-on-surface' : 'text-on-surface-variant')}>
+                <p className={cn('text-sm font-medium', state.kvType === opt.value ? 'text-gray-900' : 'text-gray-600')}>
                   {t(opt.titleKey as Parameters<typeof t>[0])}
                 </p>
-                <p className="text-label-sm text-on-surface-variant mt-1">
+                <p className="text-xs text-gray-500 mt-1 font-light">
                   {t(opt.hintKey as Parameters<typeof t>[0])}
                 </p>
               </button>
@@ -219,7 +219,7 @@ export function OnboardingWizard() {
         disabled={saving}
         className="w-full btn-primary"
       >
-        {saved ? t('profileSaved') : saving ? '…' : t('profileSave')}
+        {saved ? t('profileSaved') : saving ? '...' : t('profileSave')}
       </button>
     </div>
   );
