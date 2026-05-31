@@ -34,10 +34,10 @@ export default function TabBar() {
             key={tab.key}
             href={href}
             className={cn(
-              'px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap transition-colors',
+              'px-3 py-1.5 text-sm font-light rounded-md whitespace-nowrap transition-all duration-200',
               active
-                ? 'text-green-600 bg-green-50 border-b-2 border-green-600'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'text-primary bg-primary-light/50'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             )}
           >
             {t(tab.key)}

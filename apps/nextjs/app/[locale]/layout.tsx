@@ -43,18 +43,18 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className="bg-background">
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
         />
       </head>
-      <body>
+      <body className="min-h-screen bg-background text-foreground antialiased">
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
             <Nav />
-            <main className="max-w-6xl mx-auto px-4 py-6">{children}</main>
+            <main className="max-w-3xl mx-auto px-6 py-12">{children}</main>
             <Footer />
             <AuthModal />
           </AuthProvider>

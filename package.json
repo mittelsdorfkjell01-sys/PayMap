@@ -1,7 +1,11 @@
 {
   "name": "paymap",
   "private": true,
-  "workspaces": ["apps/nextjs", "packages/*", "scripts/data-import"],
+  "workspaces": [
+    "apps/nextjs",
+    "packages/*",
+    "scripts/data-import"
+  ],
   "scripts": {
     "dev": "npm run dev --workspace=apps/nextjs",
     "build": "npm run build --workspace=apps/nextjs",
@@ -15,5 +19,10 @@
   },
   "devDependencies": {
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "next-intl": "^4.13.0",
+    "react": "^18.3.1",
+    "tailwindcss": "^4.3.0"
   }
 }

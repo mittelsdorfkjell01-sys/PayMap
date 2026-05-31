@@ -6,12 +6,12 @@ export function Footer() {
   const locale = useLocale();
 
   return (
-    <footer className="border-t border-outline-variant/40 mt-16 py-6">
-      <div className="max-w-6xl mx-auto px-4 flex flex-wrap items-center justify-between gap-4">
-        <p className="text-label-sm text-on-surface-variant">
+    <footer className="border-t border-border/30 mt-20 py-8">
+      <div className="max-w-3xl mx-auto px-6 flex flex-wrap items-center justify-between gap-4">
+        <p className="text-xs font-light text-muted-foreground tracking-wide">
           © {new Date().getFullYear()} paymap
         </p>
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-6">
           {[
             { href: `/${locale}/impressum`, label: 'Impressum' },
             { href: `/${locale}/datenschutz`, label: 'Datenschutz' },
@@ -20,7 +20,7 @@ export function Footer() {
             <Link
               key={href}
               href={href}
-              className="text-label-sm text-on-surface-variant hover:text-on-surface transition-colors"
+              className="text-xs font-light text-muted-foreground hover:text-foreground transition-colors"
             >
               {label}
             </Link>

@@ -26,14 +26,14 @@ export function PreciseCTA({ isApproximate, refineFields, onScrollDown, onSaveTo
   if (!hasAnyField) {
     // Approximate result, no refinements yet → invite to refine
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between gap-4">
-        <p className="text-sm text-amber-800">
+      <div className="bg-muted/50 border border-border/40 rounded-lg p-4 flex items-center justify-between gap-4">
+        <p className="text-sm font-light text-muted-foreground">
           {t('cta.hint')}
         </p>
         <button
           type="button"
           onClick={onScrollDown}
-          className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+          className="shrink-0 bg-foreground text-background text-sm font-light px-4 py-2 rounded-lg transition-all hover:opacity-90 whitespace-nowrap"
         >
           {t('cta.scrollDown')}
         </button>
@@ -44,8 +44,8 @@ export function PreciseCTA({ isApproximate, refineFields, onScrollDown, onSaveTo
   if (!user) {
     // Fields set, not logged in → invite to save via login
     return (
-      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between gap-4">
-        <p className="text-sm text-on-surface-variant">
+      <div className="bg-primary-light/30 border border-primary/20 rounded-lg p-4 flex items-center justify-between gap-4">
+        <p className="text-sm font-light text-muted-foreground">
           {t('cta.saveHint')}
         </p>
         <button
@@ -61,8 +61,8 @@ export function PreciseCTA({ isApproximate, refineFields, onScrollDown, onSaveTo
 
   // Fields set and logged in → save to profile
   return (
-    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between gap-4">
-      <p className="text-sm text-on-surface-variant">
+    <div className="bg-primary-light/30 border border-primary/20 rounded-lg p-4 flex items-center justify-between gap-4">
+      <p className="text-sm font-light text-muted-foreground">
         {t('cta.saveHint')}
       </p>
       <button

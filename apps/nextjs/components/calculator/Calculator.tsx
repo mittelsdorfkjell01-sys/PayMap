@@ -122,17 +122,17 @@ function CityAutocomplete({
         className={cn('input-field', disabled && 'opacity-50 cursor-not-allowed')}
       />
       {open && options.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full glass-card-solid shadow-lg max-h-48 overflow-y-auto py-1">
+        <ul className="absolute z-50 mt-2 w-full bg-white border border-border rounded-lg shadow-sm max-h-48 overflow-y-auto">
           {options.map((opt) => (
             <li key={opt.id}>
               <button
                 type="button"
-                className="w-full text-left px-4 py-2.5 text-body-md hover:bg-surface-container flex items-center gap-2 transition-colors"
+                className="w-full text-left px-4 py-3 text-sm font-light hover:bg-muted flex items-center gap-3 transition-colors first:rounded-t-lg last:rounded-b-lg"
                 onMouseDown={() => { onChange(opt.nameDE); setOpen(false); }}
               >
-                <span>{opt.flag}</span>
-                <span className="font-medium text-on-surface">{opt.nameDE}</span>
-                <span className="text-on-surface-variant text-label-sm ml-auto">{opt.nameEN}</span>
+                <span className="text-base">{opt.flag}</span>
+                <span className="text-foreground">{opt.nameDE}</span>
+                <span className="text-muted-foreground text-xs ml-auto">{opt.nameEN}</span>
               </button>
             </li>
           ))}
@@ -341,7 +341,7 @@ export default function Calculator() {
     setRefineOpen(true);
     setTimeout(() => {
       accordionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 50); // small delay so the accordion has time to open
+    }, 50);
   }
 
   async function handleSaveToProfile() {
@@ -362,18 +362,22 @@ export default function Calculator() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="max-w-xl mx-auto space-y-10">
       {/* Header */}
-      <div className="text-center space-y-3">
-        <h1 className="text-headline-xl-mobile md:text-headline-xl font-bold text-on-background">{t('title')}</h1>
-        <p className="text-body-lg text-on-surface-variant">{t('subtitle')}</p>
+      <div className="text-center space-y-4">
+        <h1 className="text-3xl md:text-4xl font-normal tracking-tight text-foreground">
+          {t('title')}
+        </h1>
+        <p className="text-base font-light text-muted-foreground max-w-md mx-auto">
+          {t('subtitle')}
+        </p>
       </div>
 
       {/* Form Card */}
-      <div className="glass-card p-6 space-y-5 shadow-sm">
-        <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="bg-white border border-border/60 rounded-xl p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* From City */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <label htmlFor="fromCity" className="label-field">{t('fromCity')}</label>
             <CityAutocomplete
               id="fromCity"
@@ -384,18 +388,33 @@ export default function Calculator() {
             />
           </div>
 
+          {/* Divider */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-border/40" />
+            <svg 
+              className="w-4 h-4 text-muted-foreground" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor" 
+              strokeWidth={1}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+            <div className="flex-1 h-px bg-border/40" />
+          </div>
+
           {/* To City */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label htmlFor="toCity" className="label-field">{t('toCity')}</label>
               <button
                 type="button"
                 onClick={() => setUndecided((v) => !v)}
                 className={cn(
-                  'text-label-sm font-semibold px-3 py-1 rounded-full transition-colors uppercase tracking-wider',
+                  'text-xs font-light px-3 py-1 rounded-full transition-all duration-200',
                   undecided
-                    ? 'bg-secondary-container/60 text-secondary'
-                    : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high',
+                    ? 'bg-primary-light text-primary'
+                    : 'bg-muted text-muted-foreground hover:text-foreground',
                 )}
               >
                 {t('undecided')}
@@ -403,32 +422,32 @@ export default function Calculator() {
             </div>
 
             {undecided ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {loadingSuggestions && (
-                  <p className="text-label-sm text-on-surface-variant py-2">{t('calculating')}</p>
+                  <p className="text-xs font-light text-muted-foreground py-3">{t('calculating')}</p>
                 )}
                 {suggestions.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-3">
                     {suggestions.map((city) => (
                       <button
                         key={city.id}
                         type="button"
                         onClick={() => selectSuggestion(city)}
-                        className="flex flex-col items-center gap-1 p-3 border border-outline-variant rounded-xl hover:border-primary hover:bg-primary/5 transition-all text-center"
+                        className="flex flex-col items-center gap-2 p-4 border border-border/60 rounded-lg hover:border-primary hover:bg-primary-light/30 transition-all text-center group"
                       >
-                        <span className="text-xl">{city.flag}</span>
-                        <span className="text-label-sm font-semibold text-on-surface leading-tight">{city.nameDE}</span>
+                        <span className="text-lg">{city.flag}</span>
+                        <span className="text-xs font-normal text-foreground leading-tight group-hover:text-primary">{city.nameDE}</span>
                       </button>
                     ))}
                   </div>
                 )}
                 {!loadingSuggestions && suggestions.length === 0 && form.fromCity.length >= 2 && (
-                  <p className="text-label-sm text-on-surface-variant">{t('undecidedHint')}</p>
+                  <p className="text-xs font-light text-muted-foreground">{t('undecidedHint')}</p>
                 )}
                 <button
                   type="button"
                   onClick={() => setUndecided(false)}
-                  className="text-label-sm text-primary hover:underline uppercase tracking-wider"
+                  className="text-xs font-light text-primary hover:underline"
                 >
                   {t('undecidedBack')}
                 </button>
@@ -444,8 +463,11 @@ export default function Calculator() {
             )}
           </div>
 
+          {/* Divider */}
+          <div className="h-px bg-border/40" />
+
           {/* Gross Salary */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <label htmlFor="grossSalary" className="label-field">{t('grossSalary')}</label>
             <div className="relative">
               <input
@@ -459,20 +481,20 @@ export default function Calculator() {
                 placeholder={t('grossSalaryPlaceholder')}
                 className="input-field pr-20"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-label-sm text-on-surface-variant pointer-events-none uppercase tracking-wider">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-light text-muted-foreground pointer-events-none tracking-wide">
                 {t('grossSalaryUnit')}
               </span>
             </div>
           </div>
 
           {error && (
-            <p className="text-body-md text-error bg-error-container/30 border border-error/30 rounded-xl px-4 py-3">
+            <p className="text-sm font-light text-error bg-error-light border border-error/20 rounded-lg px-4 py-3">
               {error}
             </p>
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-1">
+          <div className="flex gap-3 pt-2">
             <button
               type="submit"
               disabled={loading || !form.fromCity || (!undecided && !form.toCity) || !form.grossSalary}
@@ -480,7 +502,7 @@ export default function Calculator() {
             >
               {loading ? t('calculating') : t('calculate')}
             </button>
-            <button type="button" onClick={handleReset} className="btn-secondary px-4">
+            <button type="button" onClick={handleReset} className="btn-secondary px-5">
               {t('reset')}
             </button>
           </div>
@@ -489,7 +511,7 @@ export default function Calculator() {
 
       {/* Results */}
       {result && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <ApproximateResult
             result={result}
             regimeEnabled={regimeEnabled}
@@ -530,8 +552,8 @@ export default function Calculator() {
 
       {/* Empty state */}
       {!result && (
-        <div className="border border-dashed border-outline-variant rounded-2xl p-10 text-center">
-          <p className="text-on-surface-variant text-body-md">
+        <div className="border border-dashed border-border rounded-xl p-12 text-center">
+          <p className="text-muted-foreground text-sm font-light">
             {t('emptyState')}
           </p>
         </div>
