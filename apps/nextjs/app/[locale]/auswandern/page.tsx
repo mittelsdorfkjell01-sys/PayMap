@@ -23,7 +23,7 @@ export default async function AuswandernIndexPage({ params }: Props) {
     orderBy: { sortOrder: 'asc' },
   });
 
-  const withGuides = cities.filter((c) => c._count.movingGuides > 0);
+  const withGuides = cities.filter((c: (typeof cities)[number]) => c._count.movingGuides > 0);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 px-4 py-8">
