@@ -87,8 +87,11 @@ h1, h2, h3, h4, h5, h6 {
   .btn-primary {
     @apply px-6 py-3 bg-primary text-white text-sm font-normal
            rounded-lg transition-all duration-200
-           hover:bg-primary/90 active:scale-[0.98]
+           active:scale-[0.98]
            disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+  .btn-primary:hover {
+    background-color: rgba(22, 163, 74, 0.9);
   }
   
   /* Secondary Button - Ghost */
@@ -162,7 +165,7 @@ h1, h2, h3, h4, h5, h6 {
   }
   
   .bg-secondary-container\/60 {
-    @apply bg-primary-light/60;
+    background-color: rgba(220, 252, 231, 0.6);
   }
   
   .bg-error-container\/30 {
@@ -174,7 +177,7 @@ h1, h2, h3, h4, h5, h6 {
   }
   
   .border-outline-variant\/40 {
-    @apply border-border/40;
+    border-color: rgba(228, 228, 231, 0.4);
   }
   
   .border-error\/30 {
@@ -193,13 +196,19 @@ h1, h2, h3, h4, h5, h6 {
     @apply block text-xs font-normal text-muted-foreground uppercase tracking-widest mb-1;
   }
   .btn-admin-primary {
-    @apply px-4 py-2 bg-primary text-white text-sm font-normal rounded-lg hover:bg-primary/90 disabled:opacity-40 transition-colors;
+    @apply px-4 py-2 bg-primary text-white text-sm font-normal rounded-lg disabled:opacity-40 transition-colors;
+  }
+  .btn-admin-primary:hover {
+    background-color: rgba(22, 163, 74, 0.9);
   }
   .btn-admin-ghost {
     @apply px-4 py-2 bg-muted text-muted-foreground text-sm font-normal rounded-lg hover:bg-border transition-colors;
   }
   .btn-admin-danger {
-    @apply text-xs text-error hover:text-error/80 font-normal;
+    @apply text-xs text-error font-normal;
+  }
+  .btn-admin-danger:hover {
+    color: rgba(220, 38, 38, 0.8);
   }
 }
 
