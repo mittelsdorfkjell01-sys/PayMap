@@ -432,33 +432,35 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
     fixedAmounts: [],
   },
 
-  // ── United States — federal scale; states + NYC added in A.3 ─────────────
+  // ── United States — federal scale 2026 (Rev. Proc. 2025-32). State layer
+  // (NY brackets, NYC city tax) is seeded separately once confirmed; Florida
+  // (us-fl) has no state brackets → federal only (A.3).
   us: {
     countryCode: 'us',
-    year: YEAR,
+    year: 2026,
     brackets: [
-      { from: 0, to: 11925, rate: 0.1, filingStatus: 'single' },
-      { from: 11925, to: 48475, rate: 0.12, filingStatus: 'single' },
-      { from: 48475, to: 103350, rate: 0.22, filingStatus: 'single' },
-      { from: 103350, to: 197300, rate: 0.24, filingStatus: 'single' },
-      { from: 197300, to: 250525, rate: 0.32, filingStatus: 'single' },
-      { from: 250525, to: 626350, rate: 0.35, filingStatus: 'single' },
-      { from: 626350, to: null, rate: 0.37, filingStatus: 'single' },
-      { from: 0, to: 23850, rate: 0.1, filingStatus: 'married' },
-      { from: 23850, to: 96950, rate: 0.12, filingStatus: 'married' },
-      { from: 96950, to: 206700, rate: 0.22, filingStatus: 'married' },
-      { from: 206700, to: 394600, rate: 0.24, filingStatus: 'married' },
-      { from: 394600, to: 501050, rate: 0.32, filingStatus: 'married' },
-      { from: 501050, to: 751600, rate: 0.35, filingStatus: 'married' },
-      { from: 751600, to: null, rate: 0.37, filingStatus: 'married' },
+      { from: 0, to: 12400, rate: 0.1, filingStatus: 'single' },
+      { from: 12400, to: 50400, rate: 0.12, filingStatus: 'single' },
+      { from: 50400, to: 105700, rate: 0.22, filingStatus: 'single' },
+      { from: 105700, to: 201775, rate: 0.24, filingStatus: 'single' },
+      { from: 201775, to: 256225, rate: 0.32, filingStatus: 'single' },
+      { from: 256225, to: 640600, rate: 0.35, filingStatus: 'single' },
+      { from: 640600, to: null, rate: 0.37, filingStatus: 'single' },
+      { from: 0, to: 24800, rate: 0.1, filingStatus: 'married' },
+      { from: 24800, to: 100800, rate: 0.12, filingStatus: 'married' },
+      { from: 100800, to: 211400, rate: 0.22, filingStatus: 'married' },
+      { from: 211400, to: 403550, rate: 0.24, filingStatus: 'married' },
+      { from: 403550, to: 512450, rate: 0.32, filingStatus: 'married' },
+      { from: 512450, to: 768700, rate: 0.35, filingStatus: 'married' },
+      { from: 768700, to: null, rate: 0.37, filingStatus: 'married' },
     ],
     social: [
-      { type: 'social_security', rate: 0.062, ceiling: 168600 },
+      { type: 'social_security', rate: 0.062, ceiling: 184500 }, // SS wage base 2026
       { type: 'medicare', rate: 0.0145, ceiling: null },
     ],
     deductions: [
-      { type: 'standard', amount: 14600, condition: 'single' },
-      { type: 'standard', amount: 29200, condition: 'married' },
+      { type: 'standard', amount: 16100, condition: 'single' }, // 2026
+      { type: 'standard', amount: 32200, condition: 'married' }, // 2026
     ],
     surcharges: [],
     fixedAmounts: [],

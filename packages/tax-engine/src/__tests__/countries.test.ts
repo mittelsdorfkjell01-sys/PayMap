@@ -555,15 +555,16 @@ describe('TH', () => {
 });
 
 // ─── USA ───────────────────────────────────────────────────────────────────────
-// Source: irs.gov — Federal Tax 2025 (state tax NOT included)
+// Source: irs.gov — Federal Tax 2026 (Rev. Proc. 2025-32); SS wage base 2026
+// $184,500 (SSA). State tax: Florida = federal only here; NY brackets + NYC city
+// tax seeded separately once confirmed.
 
-describe('US', () => {
-  it('100k USD, single: netMonthly ~6,554 USD/mo (±2%)', () => {
-    // Standard deduction 14,600; taxable: 85,400
-    // Tax: 1192.50+4386+8123.50=13,702; FICA: 6200+1450=7,650; net: 78,648/yr
+describe('US — Federal 2026', () => {
+  it('100k USD, single: netMonthly ~6,598 USD/mo (±2%)', () => {
+    // Standard deduction 16,100; taxable 83,900
+    // Tax: 1240 + 4560 + 22%*33,500 = 13,170; FICA 6,200 + 1,450 = 7,650; net 79,180/yr
     const result = calculate('us', opts('us', 100000, 'USD'));
-    // Source: IRS tax tables 2025, federal only
-    expect(withinTolerance(result.netMonthly, 6554)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 6598)).toBe(true);
   });
 
   it('100k USD, married (MFJ): netMonthly > single (größeres standard deduction)', () => {
@@ -572,19 +573,15 @@ describe('US', () => {
     expect(married.netMonthly).toBeGreaterThan(single.netMonthly);
   });
 
-  it('200k USD, single: netMonthly ~10,928 USD/mo (±2%)', () => {
-    // Standard deduction 14,600; taxable: 185,400
-    // Tax: 1192.50+4386+12078+19,944=37,601; FICA: SS cap: 168600*0.062=10,453; Medicare: 200000*0.0145=2900 → 13,353
-    // Net: ~149,046/yr ÷ 12 = ~12,421/mo
+  it('200k USD, single: netMonthly ~12,411 USD/mo (±2%)', () => {
+    // taxable 183,900; tax 36,734; FICA SS cap 184,500*0.062=11,439 + Medicare 2,900
     const result = calculate('us', opts('us', 200000, 'USD'));
-    expect(result.netMonthly).toBeGreaterThan(11000);
-    expect(result.netMonthly).toBeLessThan(13500);
+    expect(withinTolerance(result.netMonthly, 12411)).toBe(true);
   });
 
-  it('Social Security cap bei 168.600 USD', () => {
-    const below = calculate('us', opts('us', 168600, 'USD'));
+  it('Social Security cap bei 184.500 USD (2026)', () => {
+    const below = calculate('us', opts('us', 184500, 'USD'));
     const above = calculate('us', opts('us', 250000, 'USD'));
-    // SS Pension sollte nicht mehr steigen nach cap
     expect(above.socialContributions.pension).toBe(below.socialContributions.pension);
   });
 });
