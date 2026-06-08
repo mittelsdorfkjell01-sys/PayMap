@@ -453,16 +453,65 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       { from: 403550, to: 512450, rate: 0.32, filingStatus: 'married' },
       { from: 512450, to: 768700, rate: 0.35, filingStatus: 'married' },
       { from: 768700, to: null, rate: 0.37, filingStatus: 'married' },
+      // ── New York State 2026 (phase-in-reduced rates; tax.ny.gov) ──
+      { from: 0, to: 8500, rate: 0.039, filingStatus: 'single', regionId: 'us-ny' },
+      { from: 8500, to: 11700, rate: 0.044, filingStatus: 'single', regionId: 'us-ny' },
+      { from: 11700, to: 13900, rate: 0.0515, filingStatus: 'single', regionId: 'us-ny' },
+      { from: 13900, to: 80650, rate: 0.054, filingStatus: 'single', regionId: 'us-ny' },
+      { from: 80650, to: 215400, rate: 0.059, filingStatus: 'single', regionId: 'us-ny' },
+      { from: 215400, to: 1077550, rate: 0.0685, filingStatus: 'single', regionId: 'us-ny' },
+      { from: 1077550, to: 5000000, rate: 0.0965, filingStatus: 'single', regionId: 'us-ny' },
+      { from: 5000000, to: 25000000, rate: 0.103, filingStatus: 'single', regionId: 'us-ny' },
+      { from: 25000000, to: null, rate: 0.109, filingStatus: 'single', regionId: 'us-ny' },
+      { from: 0, to: 17150, rate: 0.039, filingStatus: 'married', regionId: 'us-ny' },
+      { from: 17150, to: 23600, rate: 0.044, filingStatus: 'married', regionId: 'us-ny' },
+      { from: 23600, to: 27900, rate: 0.0515, filingStatus: 'married', regionId: 'us-ny' },
+      { from: 27900, to: 161550, rate: 0.054, filingStatus: 'married', regionId: 'us-ny' },
+      { from: 161550, to: 323200, rate: 0.059, filingStatus: 'married', regionId: 'us-ny' },
+      { from: 323200, to: 2155350, rate: 0.0685, filingStatus: 'married', regionId: 'us-ny' },
+      { from: 2155350, to: 5000000, rate: 0.0965, filingStatus: 'married', regionId: 'us-ny' },
+      { from: 5000000, to: 25000000, rate: 0.103, filingStatus: 'married', regionId: 'us-ny' },
+      { from: 25000000, to: null, rate: 0.109, filingStatus: 'married', regionId: 'us-ny' },
     ],
     social: [
       { type: 'social_security', rate: 0.062, ceiling: 184500 }, // SS wage base 2026
       { type: 'medicare', rate: 0.0145, ceiling: null },
     ],
     deductions: [
-      { type: 'standard', amount: 16100, condition: 'single' }, // 2026
-      { type: 'standard', amount: 32200, condition: 'married' }, // 2026
+      { type: 'standard', amount: 16100, condition: 'single' }, // 2026 federal
+      { type: 'standard', amount: 32200, condition: 'married' }, // 2026 federal
+      // NY State standard deduction (condition "<region>:<filingStatus>")
+      { type: 'standard_state', amount: 8000, condition: 'us-ny:single' },
+      { type: 'standard_state', amount: 16050, condition: 'us-ny:married' },
     ],
-    surcharges: [],
+    surcharges: [
+      // NYC city tax 2026 — only NYC residents (cityScope new-york); thresholds
+      // differ by filing status (variantKey). Applied to NY taxable income.
+      {
+        type: 'nyc_city',
+        baseType: 'taxable_income',
+        cityScope: 'new-york',
+        variantKey: 'single',
+        brackets: [
+          { from: 0, to: 12000, rate: 0.03078 },
+          { from: 12000, to: 25000, rate: 0.03762 },
+          { from: 25000, to: 50000, rate: 0.03819 },
+          { from: 50000, to: null, rate: 0.03876 },
+        ],
+      },
+      {
+        type: 'nyc_city',
+        baseType: 'taxable_income',
+        cityScope: 'new-york',
+        variantKey: 'married',
+        brackets: [
+          { from: 0, to: 21600, rate: 0.03078 },
+          { from: 21600, to: 45000, rate: 0.03762 },
+          { from: 45000, to: 90000, rate: 0.03819 },
+          { from: 90000, to: null, rate: 0.03876 },
+        ],
+      },
+    ],
     fixedAmounts: [],
   },
 

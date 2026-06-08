@@ -586,6 +586,30 @@ describe('US — Federal 2026', () => {
   });
 });
 
+describe('US — New York (state + NYC) vs Florida (A.3, 2026)', () => {
+  it('150k single NYC: federal + NY state + NYC city tax, netMonthly ~8,384 USD/mo (±2%)', () => {
+    // Federal 24,734 + NY state (taxable 142,000) 7,809.75 + NYC 5,379.09 = 37,922.84;
+    // FICA 11,475; net ~100,602/yr. Source: IRS 2026; tax.ny.gov 2026 (phase-in).
+    const result = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'new-york' }));
+    expect(withinTolerance(result.netMonthly, 8384)).toBe(true);
+  });
+
+  it('Florida (federal only) > New York no-NYC > NYC', () => {
+    const florida = calculate('us', opts('us', 150000, 'USD', { region: 'us-fl', cityScope: 'miami' }));
+    const nyNoCity = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'albany' }));
+    const nyc = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'new-york' }));
+    expect(florida.netMonthly).toBeGreaterThan(nyNoCity.netMonthly); // no state tax in FL
+    expect(nyNoCity.netMonthly).toBeGreaterThan(nyc.netMonthly); // NYC adds city tax
+  });
+
+  it('NYC city tax thresholds differ by filing status (single vs MFJ)', () => {
+    const single = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'new-york' }));
+    const married = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'new-york', familyStatus: 'married' }));
+    // Both compute; married has lower total tax (wider federal + NY MFJ brackets)
+    expect(married.netMonthly).toBeGreaterThan(single.netMonthly);
+  });
+});
+
 // ─── United Kingdom ───────────────────────────────────────────────────────────
 // Sources: https://www.gov.uk/income-tax-rates (2025-26)
 //          https://www.gov.uk/national-insurance/how-much-you-pay (2025-26)

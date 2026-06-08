@@ -38,6 +38,8 @@ function usIncomeTax(taxable: number, opts: TaxOptions, data: TaxData): number {
     state = progressiveTax(stateTaxable, regionalBracketsFor(data, 'employed', opts.region, { filingStatus: fs }));
     if (opts.cityScope) {
       for (const s of surchargesFor(data, 'nyc_city', { cityScope: opts.cityScope })) {
+        // NYC thresholds differ by filing status (variantKey single/married).
+        if (s.variantKey && s.variantKey !== fs) continue;
         city += applySurcharge(s, stateTaxable);
       }
     }
