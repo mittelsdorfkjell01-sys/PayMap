@@ -79,6 +79,11 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       // formula constant kept in de.ts.
       { type: 'soli', baseType: 'income_tax', rate: 0.055, allowance: 19950, variantKey: 'single' },
       { type: 'soli', baseType: 'income_tax', rate: 0.055, allowance: 39900, variantKey: 'married' },
+      // Kirchensteuer: 8% of income tax in Bavaria & Baden-Württemberg, 9%
+      // elsewhere. Only when churchMember. Sonderausgaben-Abzugsfähigkeit
+      // deliberately omitted (see Anhang A).
+      { type: 'church', baseType: 'income_tax', rate: 0.08, variantKey: '8' }, // BY, BW
+      { type: 'church', baseType: 'income_tax', rate: 0.09, variantKey: '9' }, // übrige Bundesländer
     ],
     fixedAmounts: [],
   },
@@ -102,8 +107,25 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       { type: 'unemployment', rate: 0.03, ceiling: null },
       { type: 'care', rate: 0.01, ceiling: null }, // UV
     ],
-    deductions: [],
-    surcharges: [],
+    deductions: [
+      // Jahressechstel (A.8): special-payment (13th/14th salary) parameters.
+      { type: 'sonderzahlung_freigrenze', amount: 2570 }, // below this → no tax
+      { type: 'sonderzahlung_sv_reduction', percentage: 0.01 }, // SV ~1% lower on Sonderzahlungen
+    ],
+    surcharges: [
+      // Sonderzahlungen scale: first €620 free, 6% on the next €24,380, then 27%.
+      // The 35.75% / 50% top bands for very high special payments are
+      // approximated as 27% (see Anhang A — bewusste Restungenauigkeiten).
+      {
+        type: 'sonderzahlung',
+        baseType: 'taxable_income',
+        brackets: [
+          { from: 0, to: 620, rate: 0 },
+          { from: 620, to: 25000, rate: 0.06 },
+          { from: 25000, to: null, rate: 0.27 },
+        ],
+      },
+    ],
     fixedAmounts: [],
   },
 

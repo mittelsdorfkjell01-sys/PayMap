@@ -1,12 +1,9 @@
-export type AgeRange = '0-3' | '4-6' | '7-12' | '13-18' | '18+';
-
 export interface TaxOptions {
   gross: number;
   currency: string;
   employment: 'employed' | 'freelancer' | 'founder' | 'passive';
   familyStatus: 'single' | 'married' | 'divorced';
   children: number;
-  childrenAges?: AgeRange[];
   kvType?: 'statutory' | 'private';
   year: number;
   specialRegimeId?: string;
@@ -15,6 +12,11 @@ export interface TaxOptions {
   rulingYearsActive?: number;
   // For GB: 'scotland' applies Scottish income tax rates instead of England/Wales/NI rates
   region?: string;
+  // DE church tax: only levied when churchMember is true. `bundesland` selects
+  // the rate variant (8% in BY/BW, 9% elsewhere). No UI yet → defaults mean no
+  // church tax.
+  churchMember?: boolean;
+  bundesland?: string;
 }
 
 export interface TaxBreakdownLine {
@@ -40,6 +42,7 @@ export interface TaxResult {
   incomeTax: number;
   socialContributions: SocialContributions;
   soli?: number;
+  churchTax?: number;
   totalDeductions: number;
   netAnnual: number;
   netMonthly: number;

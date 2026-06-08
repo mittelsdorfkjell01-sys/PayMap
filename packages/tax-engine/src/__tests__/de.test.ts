@@ -178,3 +178,58 @@ describe('DE — Beitragsbemessungsgrenzen (BBG 2025)', () => {
     expect(above.socialContributions.care).toBe(below.socialContributions.care);
   });
 });
+
+// ─── A.5 — Ehegatten-Splitting mit Partner-Einkommen ──────────────────────────
+describe('DE — Splitting mit partnerGross (A.5)', () => {
+  it('Alleinverdiener (partnerGross undefined) == bisheriges Verhalten', () => {
+    const soleEarner = calculate('de', opts({ gross: 80000, familyStatus: 'married' }));
+    // unchanged from the existing married single-earner case (~4,121 €/mo)
+    expect(withinTolerance(soleEarner.netMonthly, 4121)).toBe(true);
+  });
+
+  it('Doppelverdiener (80k + 80k): Splitting-Vorteil entfällt → Nutzer-Netto wie Single', () => {
+    const single = calculate('de', opts({ gross: 80000, familyStatus: 'single' }));
+    const soleEarner = calculate('de', opts({ gross: 80000, familyStatus: 'married' }));
+    const dual = calculate('de', opts({ gross: 80000, familyStatus: 'married', partnerGross: 80000 }));
+
+    // Two equal earners → splitting gives no benefit → user taxed ~like a single.
+    expect(dual.netMonthly).toBeLessThan(soleEarner.netMonthly); // verliert Splitting-Vorteil
+    // Income tax attributed to the user ≈ single income tax (Soli differs: married
+    // Freigrenze higher, so dual pays no Soli → net marginally above single).
+    expect(dual.netMonthly).toBeGreaterThanOrEqual(single.netMonthly);
+    expect(Math.abs(dual.netMonthly - single.netMonthly)).toBeLessThan(60);
+  });
+
+  it('Doppelverdiener (80k + 40k): zwischen Allein- und Gleichverdiener', () => {
+    const soleEarner = calculate('de', opts({ gross: 80000, familyStatus: 'married' }));
+    const equal = calculate('de', opts({ gross: 80000, familyStatus: 'married', partnerGross: 80000 }));
+    const asym = calculate('de', opts({ gross: 80000, familyStatus: 'married', partnerGross: 40000 }));
+    expect(asym.netMonthly).toBeLessThan(soleEarner.netMonthly);
+    expect(asym.netMonthly).toBeGreaterThan(equal.netMonthly);
+  });
+});
+
+// ─── A.6 — Kirchensteuer 8 % (BY/BW) / 9 % (übrige) ───────────────────────────
+describe('DE — Kirchensteuer (A.6)', () => {
+  it('kein Kirchensteuer ohne churchMember', () => {
+    const r0 = calculate('de', opts({ gross: 80000 }));
+    expect(r0.churchTax ?? 0).toBe(0);
+  });
+
+  it('9 % der Einkommensteuer in NRW (übrige Bundesländer)', () => {
+    const base = calculate('de', opts({ gross: 80000 }));
+    const church = calculate('de', opts({ gross: 80000, churchMember: true, bundesland: 'NW' }));
+    expect(church.churchTax).toBeCloseTo(base.incomeTax * 0.09, 0);
+    expect(church.netMonthly).toBeLessThan(base.netMonthly);
+  });
+
+  it('8 % in Bayern und Baden-Württemberg, niedriger als 9 %', () => {
+    const base = calculate('de', opts({ gross: 80000 }));
+    const by = calculate('de', opts({ gross: 80000, churchMember: true, bundesland: 'BY' }));
+    const bw = calculate('de', opts({ gross: 80000, churchMember: true, bundesland: 'BW' }));
+    const nw = calculate('de', opts({ gross: 80000, churchMember: true, bundesland: 'NW' }));
+    expect(by.churchTax).toBeCloseTo(base.incomeTax * 0.08, 0);
+    expect(bw.churchTax).toBeCloseTo(base.incomeTax * 0.08, 0);
+    expect(by.netMonthly).toBeGreaterThan(nw.netMonthly); // 8 % < 9 % → höheres Netto
+  });
+});

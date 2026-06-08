@@ -1,6 +1,5 @@
 // Re-export types
 export type {
-  AgeRange,
   TaxOptions,
   TaxBreakdownLine,
   SocialContributions,

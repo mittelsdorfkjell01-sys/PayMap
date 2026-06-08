@@ -1,6 +1,6 @@
 import { TaxOptions, TaxResult, ApproximateResult, TaxBreakdownLine, SocialContributions, TaxData } from './types';
 import { getCountryModule } from './registry';
-import { calculateSoli } from './countries/de';
+import { calculateSoli, calculateChurchTax } from './countries/de';
 import { getDefaultTaxData } from './data/countries';
 
 const r = (x: number) => Math.round(x * 100) / 100;
@@ -8,6 +8,7 @@ const r = (x: number) => Math.round(x * 100) / 100;
 function buildBreakdown(
   incomeTax: number,
   soli: number,
+  churchTax: number,
   social: SocialContributions,
   deductions: number,
 ): TaxBreakdownLine[] {
@@ -36,6 +37,15 @@ function buildBreakdown(
       label: 'Solidaritätszuschlag',
       labelEN: 'Solidarity Surcharge',
       amount: soli,
+      isDeduction: true,
+    });
+  }
+
+  if (churchTax > 0) {
+    lines.push({
+      label: 'Kirchensteuer',
+      labelEN: 'Church Tax',
+      amount: churchTax,
       isDeduction: true,
     });
   }
@@ -97,10 +107,11 @@ export function calculate(countryCode: string, opts: TaxOptions, taxData?: TaxDa
 
   const social = module.getSocialContributions(opts.gross, opts, data);
 
-  // Soli nur für DE
+  // Soli + Kirchensteuer nur für DE
   const soli = countryCode === 'de' ? calculateSoli(incomeTax, opts, data) : 0;
+  const churchTax = countryCode === 'de' ? calculateChurchTax(incomeTax, opts, data) : 0;
 
-  const totalDeductions = r(incomeTax + soli + social.total);
+  const totalDeductions = r(incomeTax + soli + churchTax + social.total);
   const netAnnual = r(Math.max(0, opts.gross - totalDeductions));
   const netMonthly = r(netAnnual / 12);
   const effectiveRate = opts.gross > 0 ? r(totalDeductions / opts.gross) : 0;
@@ -109,7 +120,7 @@ export function calculate(countryCode: string, opts: TaxOptions, taxData?: TaxDa
   const taxOnePlus = r(module.calculateIncomeTax(taxableIncome + 1, opts, data));
   const marginalRate = r(taxOnePlus - incomeTax);
 
-  const breakdown = buildBreakdown(incomeTax, soli, social, deductions);
+  const breakdown = buildBreakdown(incomeTax, soli, churchTax, social, deductions);
 
   return {
     gross: opts.gross,
@@ -119,6 +130,7 @@ export function calculate(countryCode: string, opts: TaxOptions, taxData?: TaxDa
     incomeTax,
     socialContributions: social,
     soli: soli > 0 ? soli : undefined,
+    churchTax: churchTax > 0 ? churchTax : undefined,
     totalDeductions,
     netAnnual,
     netMonthly,

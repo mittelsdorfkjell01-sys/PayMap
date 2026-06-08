@@ -191,28 +191,30 @@ describe('NL — Standard (ohne Ruling)', () => {
 // Source: bmf.gv.at Lohnsteuerrechner 2025
 // AT: Sondergebühren (13./14. Gehalt) NICHT modelliert → Netto höher in Realität
 
-describe('AT', () => {
-  it('40k EUR: netMonthly ~1,931 €/mo (±2%)', () => {
-    // Tax: 0-12816: 0; 12816-20818: 1600; 20818-34513: 4109; 34513-40000: 5488*0.41=2250 → ~7,959
-    // Social: 40000*0.1812 = 7,248; total: ~15,207; net: ~24,793/yr
+// A.8 — Austria now splits the annual gross into 12 laufende Bezüge (progressive)
+// + 2 Sonderzahlungen (13th/14th salary) taxed under the Jahressechstel scheme
+// (€620 free, 6% on the next €24,380, then 27%; SV ~1% lower). This raises the
+// net vs. the previous naive full-progressive model — that was the bug.
+// Golden values are derived from the engine's AT bracket set + the verified
+// Jahressechstel parameters. NB: the AT base brackets themselves (12.816 …)
+// look like 2024 values; aligning them to official 2025 figures is a separate
+// open item and would shift these goldens slightly.
+describe('AT (A.8 — 13./14. Gehalt / Jahressechstel)', () => {
+  it('40k EUR: netMonthly ~2,239 €/mo (±2%), higher than the old no-Sonderzahlung model', () => {
     const result = calculate('at', opts('at', 40000, 'EUR'));
-    // Source: bmf.gv.at ~1,900-2,000 €/month (ohne Sonderzahlung)
-    expect(result.netMonthly).toBeGreaterThan(1800);
-    expect(result.netMonthly).toBeLessThan(2100);
+    expect(withinTolerance(result.netMonthly, 2239)).toBe(true);
+    expect(result.netMonthly).toBeGreaterThan(1931); // > old naive-progressive net
   });
 
-  it('80k EUR: netMonthly ~3,351 €/mo (±2%)', () => {
-    // Tax: ~25,296; social: 14,496; total: ~39,792; net: ~40,208/yr
+  it('80k EUR: netMonthly ~3,790 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 80000, 'EUR'));
-    // Source: bmf.gv.at ~3,200-3,450 €/month
-    expect(withinTolerance(result.netMonthly, 3351)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 3790)).toBe(true);
+    expect(result.netMonthly).toBeGreaterThan(3351); // > old naive-progressive net
   });
 
-  it('120k EUR: netMonthly ~4,396 €/mo (±2%)', () => {
-    // 99266-120000: 20734*0.50 = 10,367; sub-total brackets: ~35,791; social: ~21,744; net: ~62,465/yr
+  it('120k EUR: netMonthly ~5,118 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 120000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(4100);
-    expect(result.netMonthly).toBeLessThan(4700);
+    expect(withinTolerance(result.netMonthly, 5118)).toBe(true);
   });
 });
 
