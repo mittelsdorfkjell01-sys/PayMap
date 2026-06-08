@@ -43,12 +43,11 @@ describe('DE — 40k brutto, single, kinderlos, GKV', () => {
 });
 
 describe('DE — 60k brutto, single, kinderlos, GKV', () => {
-  // nettolohn.de ~2025: ~2,710 €/month
-  it('netMonthly ~2,710 €/mo (±2%)', () => {
+  it('netMonthly ~2,766 €/mo (±2%)', () => {
     const result = calculate('de', opts({ gross: 60000 }));
-    // Expected: incomeTax ~14,337, soli 0, social ~13,140 → net ~32,523/yr
-    expect(withinTolerance(result.netMonthly, 2710)).toBe(true);
-    expect(result.soli ?? 0).toBe(0); // still below 19.950 freigrenze
+    // 2026: incomeTax ~13,762 (§32a 2026), soli 0, social ~13,050 → net ~33,189/yr
+    expect(withinTolerance(result.netMonthly, 2766)).toBe(true);
+    expect(result.soli ?? 0).toBe(0); // still below 20.350 freigrenze 2026
   });
 });
 
@@ -126,26 +125,25 @@ describe('DE — 300k brutto, single (Reichensteuer 45 % ab 277.825 €)', () =>
 // § 3 Abs. 3 SolzG: Freigrenze 2025 = 19.950 € (ledig), 39.900 € (Splitting)
 // Alter Wert im Code war 18.130 → führte zu zu frühem Soli-Einsatz
 
-describe('DE Soli — Freigrenze 19.950 € (VZ 2025)', () => {
-  it('kein Soli bei ESt = 19.950 € (an der Grenze)', () => {
-    // Soli = 0, wenn incomeTax ≤ 19.950
-    const soli = calculateSoli(19950, { gross: 0, currency: 'EUR', employment: 'employed', familyStatus: 'single', children: 0, year: 2025 });
+describe('DE Soli — Freigrenze 20.350 € (VZ 2026)', () => {
+  it('kein Soli bei ESt = 20.350 € (an der Grenze)', () => {
+    // Soli = 0, wenn incomeTax ≤ 20.350 (Freigrenze 2026, ledig)
+    const soli = calculateSoli(20350, { gross: 0, currency: 'EUR', employment: 'employed', familyStatus: 'single', children: 0, year: 2026 });
     expect(soli).toBe(0);
   });
 
-  it('Soli > 0 bei ESt = 19.951 € (knapp über Grenze)', () => {
-    const soli = calculateSoli(19951, { gross: 0, currency: 'EUR', employment: 'employed', familyStatus: 'single', children: 0, year: 2025 });
+  it('Soli > 0 bei ESt = 20.351 € (knapp über Grenze)', () => {
+    const soli = calculateSoli(20351, { gross: 0, currency: 'EUR', employment: 'employed', familyStatus: 'single', children: 0, year: 2026 });
     expect(soli).toBeGreaterThan(0);
   });
 
   it('voller Soli (5.5%) bei ESt = 40.000 € (über Milderungszone)', () => {
-    // Milderungszone endet bei ~37.095 € ESt
-    const soli = calculateSoli(40000, { gross: 0, currency: 'EUR', employment: 'employed', familyStatus: 'single', children: 0, year: 2025 });
+    const soli = calculateSoli(40000, { gross: 0, currency: 'EUR', employment: 'employed', familyStatus: 'single', children: 0, year: 2026 });
     expect(soli).toBeCloseTo(40000 * 0.055, 0); // 2.200 €
   });
 
-  it('kein Soli verheiratet bei ESt = 39.900 € (Splitting-Freigrenze)', () => {
-    const soli = calculateSoli(39900, { gross: 0, currency: 'EUR', employment: 'employed', familyStatus: 'married', children: 0, year: 2025 });
+  it('kein Soli verheiratet bei ESt = 40.700 € (Splitting-Freigrenze 2026)', () => {
+    const soli = calculateSoli(40700, { gross: 0, currency: 'EUR', employment: 'employed', familyStatus: 'married', children: 0, year: 2026 });
     expect(soli).toBe(0);
   });
 
@@ -161,18 +159,16 @@ describe('DE Soli — Freigrenze 19.950 € (VZ 2025)', () => {
 });
 
 // ─── BBG-Kappung bei Sozialabgaben ────────────────────────────────────────────
-describe('DE — Beitragsbemessungsgrenzen (BBG 2025)', () => {
-  it('RV/AV-Beitrag kapped bei BBG 96.600 €', () => {
-    const below = calculate('de', opts({ gross: 96600 }));
+describe('DE — Beitragsbemessungsgrenzen (BBG 2026)', () => {
+  it('RV/AV-Beitrag kapped bei BBG 101.400 €', () => {
+    const below = calculate('de', opts({ gross: 101400 }));
     const above = calculate('de', opts({ gross: 150000 }));
-    // Pension + Unemployment sollen ab 96.600 nicht mehr steigen
-    const pensionBelow = below.socialContributions.pension;
-    const pensionAbove = above.socialContributions.pension;
-    expect(pensionAbove).toBe(pensionBelow);
+    // Pension + Unemployment sollen ab 101.400 nicht mehr steigen
+    expect(above.socialContributions.pension).toBe(below.socialContributions.pension);
   });
 
-  it('KV/PV-Beitrag kapped bei BBG 66.150 €', () => {
-    const below = calculate('de', opts({ gross: 66150 }));
+  it('KV/PV-Beitrag kapped bei BBG 69.750 €', () => {
+    const below = calculate('de', opts({ gross: 69750 }));
     const above = calculate('de', opts({ gross: 100000 }));
     expect(above.socialContributions.health).toBe(below.socialContributions.health);
     expect(above.socialContributions.care).toBe(below.socialContributions.care);

@@ -59,26 +59,27 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
   // ── Germany — §32a formula in code; values externalised ──────────────────
   de: {
     countryCode: 'de',
-    year: YEAR,
-    brackets: [], // income tax computed by §32a polynomial (logic, in de.ts)
+    year: 2026,
+    brackets: [], // income tax computed by §32a polynomial 2026 (logic, in de.ts)
     social: [
-      { type: 'pension', rate: 0.093, ceiling: 96600 },
-      { type: 'unemployment', rate: 0.013, ceiling: 96600 },
-      { type: 'health', rate: 0.09, ceiling: 66150 }, // 7.3% + 1.7% Zusatzbeitrag
-      { type: 'care', rate: 0.018, ceiling: 66150 }, // mit Kindern
-      { type: 'care_childless', rate: 0.023, ceiling: 66150 },
+      // BBG 2026: RV/AV 101.400 €, KV/PV 69.750 € (Bundesregierung/DRV)
+      { type: 'pension', rate: 0.093, ceiling: 101400 },
+      { type: 'unemployment', rate: 0.013, ceiling: 101400 },
+      { type: 'health', rate: 0.0875, ceiling: 69750 }, // 7.3% + 1.45% (½ of 2.9% Zusatzbeitrag 2026)
+      { type: 'care', rate: 0.018, ceiling: 69750 }, // mit Kindern (½ of 3.6%)
+      { type: 'care_childless', rate: 0.024, ceiling: 69750 }, // 1.8% + 0.6% Zuschlag
     ],
     deductions: [
       { type: 'werbungskosten', amount: 1230 },
-      { type: 'grundfreibetrag', amount: 12084 },
-      { type: 'kinderfreibetrag', amount: 6612, condition: 'per_child' },
-      { type: 'kindergeld_monthly', amount: 250, condition: 'per_child' },
+      { type: 'grundfreibetrag', amount: 12348 },
+      { type: 'kinderfreibetrag', amount: 6828, condition: 'per_child' },
+      { type: 'kindergeld_monthly', amount: 259, condition: 'per_child' },
     ],
     surcharges: [
-      // Soli: 5.5% of income tax above the Freigrenze; 11.9% Milderungszone is a
-      // formula constant kept in de.ts.
-      { type: 'soli', baseType: 'income_tax', rate: 0.055, allowance: 19950, variantKey: 'single' },
-      { type: 'soli', baseType: 'income_tax', rate: 0.055, allowance: 39900, variantKey: 'married' },
+      // Soli 2026: 5.5% of income tax above the Freigrenze; 11.9% Milderungszone
+      // is a formula constant kept in de.ts.
+      { type: 'soli', baseType: 'income_tax', rate: 0.055, allowance: 20350, variantKey: 'single' },
+      { type: 'soli', baseType: 'income_tax', rate: 0.055, allowance: 40700, variantKey: 'married' },
       // Kirchensteuer: 8% of income tax in Bavaria & Baden-Württemberg, 9%
       // elsewhere. Only when churchMember. Sonderausgaben-Abzugsfähigkeit
       // deliberately omitted (see Anhang A).

@@ -5,36 +5,36 @@ import { socialAmount, deductionAmount } from '../data/helpers';
 const r = (x: number) => Math.round(x * 100) / 100;
 
 /**
- * §32a EStG Progressionsformel 2025
- * Grundfreibetrag: 12.084 €
+ * §32a EStG Progressionsformel 2026 (BMF Lohnsteuer-Handbuch 2026)
+ * Grundfreibetrag: 12.348 €
  */
 function calcGrundsteuer(taxable: number): number {
   const x = taxable;
-  if (x <= 12084) return 0;
-  if (x <= 17005) {
-    const y = (x - 12084) / 10000;
-    return r((979.18 * y + 1400) * y);
+  if (x <= 12348) return 0;
+  if (x <= 17799) {
+    const y = (x - 12348) / 10000;
+    return r((914.51 * y + 1400) * y);
   }
-  if (x <= 66760) {
-    const y = (x - 17005) / 10000;
-    return r((192.59 * y + 2397) * y + 966.53);
+  if (x <= 69878) {
+    const z = (x - 17799) / 10000;
+    return r((173.1 * z + 2397) * z + 1034.87);
   }
   if (x <= 277825) {
-    return r(0.42 * x - 10602.13);
+    return r(0.42 * x - 11135.63);
   }
-  return r(0.45 * x - 18936.88);
+  return r(0.45 * x - 19470.38);
 }
 
 function getMarginalRate(taxable: number): number {
-  if (taxable <= 12084) return 0;
-  if (taxable <= 17005) {
-    const y = (taxable - 12084) / 10000;
-    // derivative: (2 * 979.18 * y + 1400) / 10000
-    return (2 * 979.18 * y + 1400) / 10000;
+  if (taxable <= 12348) return 0;
+  if (taxable <= 17799) {
+    const y = (taxable - 12348) / 10000;
+    // derivative: (2 * 914.51 * y + 1400) / 10000
+    return (2 * 914.51 * y + 1400) / 10000;
   }
-  if (taxable <= 66760) {
-    const y = (taxable - 17005) / 10000;
-    return (2 * 192.59 * y + 2397) / 10000;
+  if (taxable <= 69878) {
+    const z = (taxable - 17799) / 10000;
+    return (2 * 173.1 * z + 2397) / 10000;
   }
   if (taxable <= 277825) return 0.42;
   return 0.45;
