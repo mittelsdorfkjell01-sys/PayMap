@@ -88,17 +88,18 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
     fixedAmounts: [],
   },
 
-  // ── Austria — progressive scale; Jahressechstel logic added in A.8 ───────
+  // ── Austria 2026 — progressive scale (kalte-Progression adjusted +1.733%,
+  // WKO/BMF); Jahressechstel logic in at.ts (A.8) ─────────────────────────
   at: {
     countryCode: 'at',
-    year: YEAR,
+    year: 2026,
     brackets: [
-      { from: 0, to: 12816, rate: 0.0 },
-      { from: 12816, to: 20818, rate: 0.2 },
-      { from: 20818, to: 34513, rate: 0.3 },
-      { from: 34513, to: 66612, rate: 0.4 },
-      { from: 66612, to: 99266, rate: 0.48 },
-      { from: 99266, to: 1000000, rate: 0.5 },
+      { from: 0, to: 13539, rate: 0.0 },
+      { from: 13539, to: 21992, rate: 0.2 },
+      { from: 21992, to: 36458, rate: 0.3 },
+      { from: 36458, to: 70365, rate: 0.4 },
+      { from: 70365, to: 104859, rate: 0.48 },
+      { from: 104859, to: 1000000, rate: 0.5 },
       { from: 1000000, to: null, rate: 0.55 },
     ],
     social: [

@@ -199,22 +199,20 @@ describe('NL — Standard (ohne Ruling)', () => {
 // Jahressechstel parameters. NB: the AT base brackets themselves (12.816 …)
 // look like 2024 values; aligning them to official 2025 figures is a separate
 // open item and would shift these goldens slightly.
-describe('AT (A.8 — 13./14. Gehalt / Jahressechstel)', () => {
-  it('40k EUR: netMonthly ~2,239 €/mo (±2%), higher than the old no-Sonderzahlung model', () => {
+describe('AT 2026 (A.8 — 13./14. Gehalt / Jahressechstel)', () => {
+  it('40k EUR: netMonthly ~2,260 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 40000, 'EUR'));
-    expect(withinTolerance(result.netMonthly, 2239)).toBe(true);
-    expect(result.netMonthly).toBeGreaterThan(1931); // > old naive-progressive net
+    expect(withinTolerance(result.netMonthly, 2260)).toBe(true);
   });
 
-  it('80k EUR: netMonthly ~3,790 €/mo (±2%)', () => {
+  it('80k EUR: netMonthly ~3,841 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 80000, 'EUR'));
-    expect(withinTolerance(result.netMonthly, 3790)).toBe(true);
-    expect(result.netMonthly).toBeGreaterThan(3351); // > old naive-progressive net
+    expect(withinTolerance(result.netMonthly, 3841)).toBe(true);
   });
 
-  it('120k EUR: netMonthly ~5,118 €/mo (±2%)', () => {
+  it('120k EUR: netMonthly ~5,187 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 120000, 'EUR'));
-    expect(withinTolerance(result.netMonthly, 5118)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 5187)).toBe(true);
   });
 });
 
