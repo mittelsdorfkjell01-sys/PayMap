@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { calculate, calculateApproximate } from '@paymap/tax-engine';
 import { findCity } from '@/lib/city-lookup';
+import { loadTaxData } from '@/lib/tax-data';
 import { prisma } from '@/lib/prisma';
 import { flags } from '@/lib/feature-flags';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -88,11 +89,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Tax tables (brackets, social, deductions, surcharges, fixed amounts) for
+  // both countries, plus the sub-national region from each city.
+  const fromRegion = fromCity.regionSlug ?? undefined;
+  const toRegion = toCity.regionSlug ?? undefined;
+  const [fromTaxData, toTaxData] = await Promise.all([
+    loadTaxData(fromCountry, year),
+    loadTaxData(toCountry, year),
+  ]);
+
   let fromResult, toResult;
 
   if (approximate) {
-    fromResult = calculateApproximate(fromCountry, fromGross, fromCity.currency, year, data.locale);
-    toResult = calculateApproximate(toCountry, toGross, toCity.currency, year, data.locale);
+    fromResult = calculateApproximate(fromCountry, fromGross, fromCity.currency, year, data.locale, fromTaxData, fromRegion);
+    toResult = calculateApproximate(toCountry, toGross, toCity.currency, year, data.locale, toTaxData, toRegion);
   } else {
     const opts = {
       employment: data.employment ?? 'employed',
@@ -104,8 +114,8 @@ export async function POST(req: NextRequest) {
       partnerGross: data.partnerGross,
     } as const;
 
-    fromResult = calculate(fromCountry, { ...opts, gross: fromGross, currency: fromCity.currency });
-    toResult = calculate(toCountry, { ...opts, gross: toGross, currency: toCity.currency });
+    fromResult = calculate(fromCountry, { ...opts, gross: fromGross, currency: fromCity.currency, region: fromRegion }, fromTaxData);
+    toResult = calculate(toCountry, { ...opts, gross: toGross, currency: toCity.currency, region: toRegion }, toTaxData);
   }
 
   // Net figures live in each city's local currency; normalise to EUR before
@@ -146,7 +156,8 @@ export async function POST(req: NextRequest) {
         kvType: data.kvType ?? 'statutory',
         year,
         specialRegimeId: toRegimeRow.slug,
-      });
+        region: toRegion,
+      }, toTaxData);
       taxWithRegime = {
         netMonthly: regimeCalc.netMonthly,
         netAnnual: regimeCalc.netAnnual,

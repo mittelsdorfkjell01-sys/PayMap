@@ -1,4 +1,6 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { socialAmount, deductionAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
@@ -41,7 +43,8 @@ function getMarginalRate(taxable: number): number {
 export const de: CountryModule = {
   countryCode: 'de',
 
-  calculateIncomeTax(taxable: number, opts: TaxOptions): number {
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('de', opts.year);
     let tax: number;
 
     if (opts.familyStatus === 'married') {
@@ -54,8 +57,8 @@ export const de: CountryModule = {
 
     // Kinderfreibetrag Günstigerprüfung
     if (opts.children > 0) {
-      const kinderfreibetrag = 6612 * opts.children;
-      const kindergeld = 250 * 12 * opts.children;
+      const kinderfreibetrag = deductionAmount(data, 'kinderfreibetrag') * opts.children;
+      const kindergeld = deductionAmount(data, 'kindergeld_monthly') * 12 * opts.children;
       const taxWithKFB = opts.familyStatus === 'married'
         ? 2 * calcGrundsteuer((taxable - kinderfreibetrag) / 2)
         : calcGrundsteuer(taxable - kinderfreibetrag);
@@ -70,36 +73,27 @@ export const de: CountryModule = {
     return r(Math.max(0, tax));
   },
 
-  getSocialContributions(gross: number, opts: TaxOptions): SocialContributions {
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('de', opts.year);
     const isPrivate = opts.kvType === 'private';
 
-    // BBG 2025
-    const bbgRvAv = 96600;
-    const bbgKvPv = 66150;
+    const pension = r(socialAmount(data, 'pension', gross));
+    const unemployment = r(socialAmount(data, 'unemployment', gross));
 
-    const pensionBase = Math.min(gross, bbgRvAv);
-    const kvBase = Math.min(gross, bbgKvPv);
-
-    const pension = r(pensionBase * 0.093);
-    const unemployment = r(pensionBase * 0.013);
-
-    let health = 0;
-    if (!isPrivate) {
-      health = r(kvBase * 0.09); // 7.3% + 1.7% Zusatzbeitrag
-    }
+    const health = isPrivate ? 0 : r(socialAmount(data, 'health', gross));
 
     const isChildless = opts.children === 0;
-    const pvRate = isChildless ? 0.023 : 0.018;
-    const care = r(kvBase * pvRate);
+    const care = r(socialAmount(data, isChildless ? 'care_childless' : 'care', gross));
 
     const total = r(pension + unemployment + health + care);
 
     return { health, pension, unemployment, care, total };
   },
 
-  getDeductions(gross: number, _opts: TaxOptions): number {
+  getDeductions(gross: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('de', opts.year);
     // Werbungskosten-Pauschale
-    const werbungskosten = Math.min(gross, 1230);
+    const werbungskosten = Math.min(gross, deductionAmount(data, 'werbungskosten'));
     return r(werbungskosten);
   },
 
@@ -123,13 +117,23 @@ export const de: CountryModule = {
  * Berechnet den Solidaritätszuschlag.
  * Exported for use in calculate.ts
  */
-// § 3 Abs. 3 Satz 1 SolzG — Freigrenze VZ 2025 (BMF-Schreiben 2024-11)
-export function calculateSoli(incomeTax: number, opts: TaxOptions): number {
-  const freigrenze = opts.familyStatus === 'married' ? 39900 : 19950;
+// § 3 Abs. 3 Satz 1 SolzG — Freigrenze VZ 2025 (BMF-Schreiben 2024-11).
+// Freigrenze (allowance) and rate come from the Soli surcharge rows in taxData;
+// the 11.9% Milderungszone factor is a formula constant kept here.
+export function calculateSoli(incomeTax: number, opts: TaxOptions, taxData?: TaxData): number {
+  const data = taxData ?? getDefaultTaxData('de', opts.year);
+  const variant = opts.familyStatus === 'married' ? 'married' : 'single';
+  const soliRow =
+    data.surcharges.find((s) => s.type === 'soli' && s.variantKey === variant) ??
+    data.surcharges.find((s) => s.type === 'soli');
+  if (!soliRow) return 0;
+
+  const freigrenze = soliRow.allowance ?? 0;
+  const rate = soliRow.rate ?? 0.055;
 
   if (incomeTax <= freigrenze) return 0;
 
-  const vollSoli = r(incomeTax * 0.055);
+  const vollSoli = r(incomeTax * rate);
   // Milderungszone: 11.9% des Überschreitungsbetrags
   const milderung = r((incomeTax - freigrenze) * 0.119);
 

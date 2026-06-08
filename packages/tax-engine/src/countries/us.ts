@@ -1,70 +1,36 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
-interface Bracket {
-  from: number;
-  to: number;
-  rate: number;
-}
-
-// Federal Brackets 2025 (single)
-const BRACKETS_2025_SINGLE: Bracket[] = [
-  { from: 0, to: 11925, rate: 0.10 },
-  { from: 11925, to: 48475, rate: 0.12 },
-  { from: 48475, to: 103350, rate: 0.22 },
-  { from: 103350, to: 197300, rate: 0.24 },
-  { from: 197300, to: 250525, rate: 0.32 },
-  { from: 250525, to: 626350, rate: 0.35 },
-  { from: 626350, to: Infinity, rate: 0.37 },
-];
-
-// MFJ brackets 2025 (Married Filing Jointly) — approximation as double single brackets
-const BRACKETS_2025_MFJ: Bracket[] = [
-  { from: 0, to: 23850, rate: 0.10 },
-  { from: 23850, to: 96950, rate: 0.12 },
-  { from: 96950, to: 206700, rate: 0.22 },
-  { from: 206700, to: 394600, rate: 0.24 },
-  { from: 394600, to: 501050, rate: 0.32 },
-  { from: 501050, to: 751600, rate: 0.35 },
-  { from: 751600, to: Infinity, rate: 0.37 },
-];
-
-function calcProgressiveTax(taxable: number, brackets: Bracket[]): number {
-  let tax = 0;
-  for (const b of brackets) {
-    if (taxable <= b.from) break;
-    const slice = Math.min(taxable, b.to) - b.from;
-    tax += slice * b.rate;
-  }
-  return r(tax);
+function filingStatus(opts: TaxOptions): 'single' | 'married' {
+  return opts.familyStatus === 'married' ? 'married' : 'single';
 }
 
 export const us: CountryModule = {
   countryCode: 'us',
 
-  calculateIncomeTax(taxable: number, opts: TaxOptions): number {
-    const brackets = opts.familyStatus === 'married' ? BRACKETS_2025_MFJ : BRACKETS_2025_SINGLE;
-    return calcProgressiveTax(taxable, brackets);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('us', opts.year);
+    // Federal scale by filing status. State layer + NYC city tax: see fix A.3.
+    return r(progressiveTax(taxable, bracketsFor(data, 'employed', { filingStatus: filingStatus(opts) })));
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // FICA (AN):
-    // Social Security: 6.2%, max wage base 168.600 USD
-    // Medicare: 1.45%, no cap
-    const ssBbg = 168600;
-    const ssBase = Math.min(gross, ssBbg);
-    const pension = r(ssBase * 0.062);       // Social Security
-    const health = r(gross * 0.0145);        // Medicare
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('us', opts.year);
+    // FICA: Social Security (capped) + Medicare (uncapped).
+    const pension = r(socialAmount(data, 'social_security', gross));
+    const health = r(socialAmount(data, 'medicare', gross));
     const total = r(pension + health);
     return { health, pension, unemployment: 0, care: 0, total };
   },
 
-  getDeductions(_gross: number, opts: TaxOptions): number {
-    // Standard deduction 2025
-    // Single / Divorced: 14.600 USD, Married Filing Jointly: 29.200 USD
-    if (opts.familyStatus === 'married') return 29200;
-    return 14600;
+  getDeductions(_gross: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('us', opts.year);
+    const cond = filingStatus(opts);
+    const row = data.deductions.find((d) => d.type === 'standard' && d.condition === cond);
+    return r(row?.amount ?? 0);
   },
 
   getAvailableRegimes(): SpecialRegimeInfo[] {

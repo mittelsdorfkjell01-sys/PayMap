@@ -8,6 +8,8 @@ export interface CityData {
   flag: string;
   currency: string;
   countrySlug: string;
+  /** Sub-national tax region slug (ES comunidad, US state, …); null = national. */
+  regionSlug: string | null;
   lat: number | null;
   lng: number | null;
   lifestyle: Record<string, number>;
@@ -28,6 +30,7 @@ export async function findCity(query: string): Promise<CityData | null> {
     },
     include: {
       country: { select: { slug: true } },
+      region: { select: { slug: true } },
       lifestyle: { select: { category: true, score: true } },
     },
   });
@@ -47,6 +50,7 @@ export async function findCity(query: string): Promise<CityData | null> {
     flag: city.flag,
     currency: city.currency ?? 'EUR',
     countrySlug: city.country?.slug ?? 'de',
+    regionSlug: city.region?.slug ?? null,
     lat: city.lat,
     lng: city.lng,
     lifestyle,
@@ -87,6 +91,7 @@ export async function searchCities(query: string, limit = 8): Promise<CityData[]
       flag: city.flag,
       currency: city.currency ?? 'EUR',
       countrySlug: city.country?.slug ?? 'de',
+      regionSlug: null,
       lat: city.lat,
       lng: city.lng,
       lifestyle,

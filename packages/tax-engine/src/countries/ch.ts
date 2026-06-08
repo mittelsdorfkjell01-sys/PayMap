@@ -1,17 +1,23 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { socialAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
 /**
- * Schweiz 2025 — Approximation Kanton Zürich
- * Effektiver Gesamtsteuersatz (Bund + Kanton + Gemeinde) vereinfacht.
+ * Switzerland 2025 — Canton Zurich approximation.
+ *
+ * The income tax is an EFFECTIVE-RATE APPROXIMATION (Bund + Kanton + Gemeinde
+ * combined), NOT the exact Staatssteuer × Steuerfuss × Gemeindesteuerfuss
+ * calculation. This is a deliberate, documented simplification (see Anhang A);
+ * the rate tiers are part of that approximation logic and stay in code.
  */
 function getEffectiveRate(gross: number): number {
-  if (gross <= 30000) return 0.10;
+  if (gross <= 30000) return 0.1;
   if (gross <= 60000) return 0.15;
-  if (gross <= 100000) return 0.20;
+  if (gross <= 100000) return 0.2;
   if (gross <= 200000) return 0.25;
-  return 0.30;
+  return 0.3;
 }
 
 export const ch: CountryModule = {
@@ -22,12 +28,12 @@ export const ch: CountryModule = {
     return r(taxable * rate);
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // AHV/IV/EO (AN): 5.30%
-    const pension = r(gross * 0.053);
-    // ALV: 1.10% bis 88.200 CHF
-    const unemployment = r(Math.min(gross, 88200) * 0.011);
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('ch', opts.year);
+    const pension = r(socialAmount(data, 'pension', gross)); // AHV/IV/EO
+    const unemployment = r(socialAmount(data, 'unemployment', gross)); // ALV
     const total = r(pension + unemployment);
+    // Mandatory KVG health premium (fixed amount) is added in fix A.2.
     return { health: 0, pension, unemployment, care: 0, total };
   },
 

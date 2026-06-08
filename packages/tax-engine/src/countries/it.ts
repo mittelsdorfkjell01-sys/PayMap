@@ -1,42 +1,20 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
-
-interface Bracket {
-  from: number;
-  to: number;
-  rate: number;
-}
-
-// IRPEF 2025
-const BRACKETS_2025: Bracket[] = [
-  { from: 0, to: 28000, rate: 0.23 },
-  { from: 28000, to: 50000, rate: 0.35 },
-  { from: 50000, to: Infinity, rate: 0.43 },
-];
-
-function calcProgressiveTax(taxable: number): number {
-  let tax = 0;
-  for (const b of BRACKETS_2025) {
-    if (taxable <= b.from) break;
-    const slice = Math.min(taxable, b.to) - b.from;
-    tax += slice * b.rate;
-  }
-  return r(tax);
-}
 
 export const it: CountryModule = {
   countryCode: 'it',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    return calcProgressiveTax(taxable);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('it', opts.year);
+    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // INPS AN: 9.19%, BBG: 119.650 €
-    const bbg = 119650;
-    const base = Math.min(gross, bbg);
-    const pension = r(base * 0.0919);
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('it', opts.year);
+    const pension = r(socialAmount(data, 'pension', gross));
     return { health: 0, pension, unemployment: 0, care: 0, total: pension };
   },
 
@@ -50,19 +28,20 @@ export const it: CountryModule = {
         id: 'impatriate-it',
         nameDE: 'Impatriate Regime (Italien)',
         nameEN: 'Impatriate Tax Regime (Italy)',
-        flatRate: 0.50,
+        flatRate: 0.5,
         durationYears: 5,
       },
     ];
   },
 
-  applySpecialRegime(gross: number, regimeId: string, _opts: TaxOptions): number {
+  applySpecialRegime(gross: number, regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('it', opts.year);
+    const brackets = bracketsFor(data, 'employed');
     if (regimeId === 'impatriate-it') {
       // 50% des Einkommens steuerfrei → IRPEF nur auf 50%
-      const taxableReduced = gross * 0.50;
-      return calcProgressiveTax(taxableReduced);
+      return r(progressiveTax(gross * 0.5, brackets));
     }
-    return calcProgressiveTax(gross);
+    return r(progressiveTax(gross, brackets));
   },
 
   getDisclaimer(locale: string): string {

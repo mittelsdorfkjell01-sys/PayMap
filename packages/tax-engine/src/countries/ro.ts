@@ -1,22 +1,22 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
 export const ro: CountryModule = {
   countryCode: 'ro',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    // 10% Flat Tax
-    return r(taxable * 0.10);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('ro', opts.year);
+    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // CAS 25% + CASS 10% = 35%
-    // CASS: max 60 × BIP Mindestlohn Deckel (vereinfacht: kein Deckel modelliert)
-    const pension = r(gross * 0.25);  // CAS
-    const health = r(gross * 0.10);   // CASS
-    const total = r(pension + health);
-    return { health, pension, unemployment: 0, care: 0, total };
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('ro', opts.year);
+    const pension = r(socialAmount(data, 'pension', gross)); // CAS
+    const health = r(socialAmount(data, 'health', gross)); // CASS
+    return { health, pension, unemployment: 0, care: 0, total: r(pension + health) };
   },
 
   getDeductions(_gross: number, _opts: TaxOptions): number {

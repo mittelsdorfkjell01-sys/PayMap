@@ -1,47 +1,23 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
-
-interface Bracket {
-  from: number;
-  to: number;
-  rate: number;
-}
-
-const PAYE_BRACKETS: Bracket[] = [
-  { from: 0, to: 42000, rate: 0.20 },
-  { from: 42000, to: Infinity, rate: 0.40 },
-];
-
-const USC_BRACKETS: Bracket[] = [
-  { from: 0, to: 12012, rate: 0.005 },
-  { from: 12012, to: 22920, rate: 0.02 },
-  { from: 22920, to: 70044, rate: 0.045 },
-  { from: 70044, to: Infinity, rate: 0.08 },
-];
-
-function calcProgressive(taxable: number, brackets: Bracket[]): number {
-  let tax = 0;
-  for (const b of brackets) {
-    if (taxable <= b.from) break;
-    const slice = Math.min(taxable, b.to) - b.from;
-    tax += slice * b.rate;
-  }
-  return r(tax);
-}
 
 export const ie: CountryModule = {
   countryCode: 'ie',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    const paye = calcProgressive(taxable, PAYE_BRACKETS);
-    const usc = calcProgressive(taxable, USC_BRACKETS);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('ie', opts.year);
+    const paye = progressiveTax(taxable, bracketsFor(data, 'employed'));
+    const usc = progressiveTax(taxable, bracketsFor(data, 'usc'));
     return r(paye + usc);
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // PRSI AN: 4% Flat, kein Deckel
-    const pension = r(gross * 0.04); // PRSI modeled as pension contribution
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('ie', opts.year);
+    // PRSI modeled as a flat contribution under pension.
+    const pension = r(socialAmount(data, 'prsi', gross));
     return { health: 0, pension, unemployment: 0, care: 0, total: pension };
   },
 

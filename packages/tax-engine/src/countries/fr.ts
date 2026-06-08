@@ -1,52 +1,33 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount, deductionAmount, deductionPercentage } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
-
-interface Bracket {
-  from: number;
-  to: number;
-  rate: number;
-}
-
-const BRACKETS_2025: Bracket[] = [
-  { from: 0, to: 10777, rate: 0 },
-  { from: 10777, to: 27478, rate: 0.11 },
-  { from: 27478, to: 78570, rate: 0.30 },
-  { from: 78570, to: 168994, rate: 0.41 },
-  { from: 168994, to: Infinity, rate: 0.45 },
-];
-
-function calcProgressiveTax(taxable: number): number {
-  let tax = 0;
-  for (const b of BRACKETS_2025) {
-    if (taxable <= b.from) break;
-    const slice = Math.min(taxable, b.to) - b.from;
-    tax += slice * b.rate;
-  }
-  return r(tax);
-}
 
 export const fr: CountryModule = {
   countryCode: 'fr',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    return calcProgressiveTax(taxable);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('fr', opts.year);
+    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // Vereinfachte 22%: CSG 9.2%, CRDS 0.5%, KV 0.75%, Pension 11.31%, Chômage 0% = ~22%
-    const total = r(gross * 0.22);
-    const pension = r(gross * 0.1131);
-    const health = r(gross * 0.0975);  // CSG + CRDS + KV
-    const unemployment = 0;
-    const care = 0;
-    return { health, pension, unemployment, care, total };
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('fr', opts.year);
+    // Simplified aggregate ~22%; pension/health shown for the breakdown.
+    const total = r(socialAmount(data, 'total', gross));
+    const pension = r(socialAmount(data, 'pension', gross));
+    const health = r(socialAmount(data, 'health', gross)); // CSG + CRDS + KV
+    return { health, pension, unemployment: 0, care: 0, total };
   },
 
-  getDeductions(gross: number, _opts: TaxOptions): number {
-    // Abatement: 10% Pauschalabzug, min. 495 €, max. 13.522 €
-    const abatement = gross * 0.10;
-    return r(Math.min(13522, Math.max(495, abatement)));
+  getDeductions(gross: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('fr', opts.year);
+    // Abatement: 10% Pauschalabzug, min/max from data.
+    const abatement = gross * deductionPercentage(data, 'abatement');
+    const min = deductionAmount(data, 'abatement_min');
+    const max = deductionAmount(data, 'abatement_max');
+    return r(Math.min(max, Math.max(min, abatement)));
   },
 
   getAvailableRegimes(): SpecialRegimeInfo[] {

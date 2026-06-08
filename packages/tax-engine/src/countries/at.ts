@@ -1,46 +1,24 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
-
-interface Bracket {
-  from: number;
-  to: number;
-  rate: number;
-}
-
-const BRACKETS_2025: Bracket[] = [
-  { from: 0, to: 12816, rate: 0 },
-  { from: 12816, to: 20818, rate: 0.20 },
-  { from: 20818, to: 34513, rate: 0.30 },
-  { from: 34513, to: 66612, rate: 0.41 },
-  { from: 66612, to: 99266, rate: 0.48 },
-  { from: 99266, to: 1000000, rate: 0.50 },
-  { from: 1000000, to: Infinity, rate: 0.55 },
-];
-
-function calcProgressiveTax(taxable: number): number {
-  let tax = 0;
-  for (const b of BRACKETS_2025) {
-    if (taxable <= b.from) break;
-    const slice = Math.min(taxable, b.to) - b.from;
-    tax += slice * b.rate;
-  }
-  return r(tax);
-}
 
 export const at: CountryModule = {
   countryCode: 'at',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    return calcProgressiveTax(taxable);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('at', opts.year);
+    // NB: 13th/14th salary (Jahressechstel) handling: see fix A.8.
+    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // AN-Sozialabgaben: Pension 10.25%, KV 3.87%, AV 3.0%, UV 1.0% = 18.12%
-    const pension = r(gross * 0.1025);
-    const health = r(gross * 0.0387);
-    const unemployment = r(gross * 0.030);
-    const care = r(gross * 0.010);
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('at', opts.year);
+    const pension = r(socialAmount(data, 'pension', gross));
+    const health = r(socialAmount(data, 'health', gross));
+    const unemployment = r(socialAmount(data, 'unemployment', gross));
+    const care = r(socialAmount(data, 'care', gross));
     const total = r(pension + health + unemployment + care);
     return { health, pension, unemployment, care, total };
   },

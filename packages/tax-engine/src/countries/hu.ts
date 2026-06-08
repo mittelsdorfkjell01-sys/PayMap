@@ -1,23 +1,24 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
 export const hu: CountryModule = {
   countryCode: 'hu',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    // 15% Flat Tax
-    return r(taxable * 0.15);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('hu', opts.year);
+    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // AN: 18.5% (Pension 10%, KV 7%, ALV 1.5%)
-    const pension = r(gross * 0.10);
-    const health = r(gross * 0.07);
-    const unemployment = r(gross * 0.015);
-    const care = 0;
-    const total = r(pension + health + unemployment + care);
-    return { health, pension, unemployment, care, total };
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('hu', opts.year);
+    const pension = r(socialAmount(data, 'pension', gross));
+    const health = r(socialAmount(data, 'health', gross));
+    const unemployment = r(socialAmount(data, 'unemployment', gross));
+    const total = r(pension + health + unemployment);
+    return { health, pension, unemployment, care: 0, total };
   },
 
   getDeductions(_gross: number, _opts: TaxOptions): number {
