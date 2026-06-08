@@ -219,29 +219,38 @@ describe('AT (A.8 — 13./14. Gehalt / Jahressechstel)', () => {
 });
 
 // ─── Italien ───────────────────────────────────────────────────────────────────
-// Source: agenziaentrate.gov.it — IRPEF 2025
-// Note: Addizionale regionale/comunale (~1-3%) nicht enthalten → Realnet etwas niedriger
+// Source: agenziaentrate.gov.it — IRPEF 2026 (L. 199/2025): 23% / 33% / 43%
+// (2nd bracket cut 35→33). National cases carry IRPEF only; the addizionale
+// regionale/comunale apply when a region/city is set (see the Milan case).
 
-describe('IT — Standard', () => {
-  it('40k EUR: netMonthly ~2,330 €/mo (±2%)', () => {
-    // Tax: 28000*0.23+12000*0.35=6440+4200=10,640; social: 40000*0.0919=3,676; net: ~25,684/yr
+describe('IT — Standard (IRPEF 2026)', () => {
+  it('40k EUR: netMonthly ~2,160 €/mo (±2%)', () => {
+    // IRPEF: 28000*0.23 + 12000*0.33 = 6440+3960 = 10,400; social 3,676; net ~25,924/yr
     const result = calculate('it', opts('it', 40000, 'EUR'));
-    // Source: fiscoetasse.com ~2,250-2,400 €/month
-    expect(result.netMonthly).toBeGreaterThan(2100);
-    expect(result.netMonthly).toBeLessThan(2550);
+    expect(withinTolerance(result.netMonthly, 2160)).toBe(true);
   });
 
-  it('80k EUR: netMonthly ~3,801 €/mo (±2%)', () => {
-    // Tax: ~27,040; social: 7,352; total: ~34,392; net: ~45,608/yr
+  it('80k EUR: netMonthly ~3,837 €/mo (±2%)', () => {
+    // IRPEF: 6440 + 22000*0.33 + 30000*0.43 = 26,600; social 7,352; net ~46,048/yr
     const result = calculate('it', opts('it', 80000, 'EUR'));
-    // Source: fiscoetasse.com ~3,700-3,900 €/month
-    expect(withinTolerance(result.netMonthly, 3801)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 3837)).toBe(true);
   });
 
   it('Effektivrate steigt mit Einkommen (Progressionstest)', () => {
     const r40 = calculate('it', opts('it', 40000, 'EUR'));
     const r80 = calculate('it', opts('it', 80000, 'EUR'));
     expect(r80.effectiveRate).toBeGreaterThan(r40.effectiveRate);
+  });
+});
+
+describe('IT — Mailand/Lombardia (A.4 addizionale, 2026)', () => {
+  it('80k EUR Milan: IRPEF + addizionale regionale + comunale, netMonthly ~3,677 €/mo (±2%)', () => {
+    // IRPEF 26,600 + Lombardia reg. (1,287.3) + Milano com. 0.8% (640) = 28,527.3;
+    // social 7,352; net ~44,121/yr. Source: MEF addizionali regionali 2026; Comune di Milano.
+    const result = calculate('it', opts('it', 80000, 'EUR', { region: 'lombardia', cityScope: 'mailand' }));
+    expect(withinTolerance(result.netMonthly, 3677)).toBe(true);
+    const national = calculate('it', opts('it', 80000, 'EUR'));
+    expect(result.netMonthly).toBeLessThan(national.netMonthly); // addizionale reduce net
   });
 });
 

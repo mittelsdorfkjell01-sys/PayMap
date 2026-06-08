@@ -53,4 +53,4 @@ export { calculate, calculateApproximate } from './calculate';
 
 // Re-export canonical tax data (single source of truth, used as the engine
 // fallback and to seed the database).
-export { DEFAULT_TAX_DATA, TAX_DATA_SOURCES, getDefaultTaxData } from './data/countries';
+export { DEFAULT_TAX_DATA, TAX_DATA_SOURCES, getDefaultTaxData, REGIONS, CITY_REGIONS } from './data/countries';

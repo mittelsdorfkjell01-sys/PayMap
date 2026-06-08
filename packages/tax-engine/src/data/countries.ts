@@ -224,18 +224,46 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
     fixedAmounts: [],
   },
 
-  // ── Italy — IRPEF (addizionale added in A.4) ─────────────────────────────
+  // ── Italy — IRPEF 2026 + addizionale regionale/comunale (A.4) ────────────
+  // 2026 reform (L. 199/2025): 2nd bracket 35% → 33%.
   it: {
     countryCode: 'it',
-    year: YEAR,
+    year: 2026,
     brackets: [
       { from: 0, to: 28000, rate: 0.23 },
-      { from: 28000, to: 50000, rate: 0.35 },
+      { from: 28000, to: 50000, rate: 0.33 },
       { from: 50000, to: null, rate: 0.43 },
     ],
     social: [{ type: 'pension', rate: 0.0919, ceiling: 119650 }],
     deductions: [],
-    surcharges: [],
+    surcharges: [
+      // Addizionale regionale (progressive) — MEF, anno d'imposta 2026.
+      // Lazio: piano di rientro (max) — €60 detrazione 28.001–30.000 omitted (Anhang A).
+      {
+        type: 'addizionale_regionale',
+        baseType: 'taxable_income',
+        regionId: 'lazio',
+        brackets: [
+          { from: 0, to: 28000, rate: 0.0173 },
+          { from: 28000, to: null, rate: 0.0333 },
+        ],
+      },
+      {
+        type: 'addizionale_regionale',
+        baseType: 'taxable_income',
+        regionId: 'lombardia',
+        brackets: [
+          { from: 0, to: 15000, rate: 0.0123 },
+          { from: 15000, to: 28000, rate: 0.0158 },
+          { from: 28000, to: 50000, rate: 0.0172 },
+          { from: 50000, to: null, rate: 0.0173 },
+        ],
+      },
+      // Addizionale comunale (flat) — Roma 0,9% / Milano 0,8%. Low-income
+      // soglie di esenzione approximated away (Anhang A).
+      { type: 'addizionale_comunale', baseType: 'taxable_income', cityScope: 'rom', rate: 0.009 },
+      { type: 'addizionale_comunale', baseType: 'taxable_income', cityScope: 'mailand', rate: 0.008 },
+    ],
     fixedAmounts: [],
   },
 
@@ -632,6 +660,34 @@ export const TAX_DATA_SOURCES: Record<string, string> = {
   mx: SRC.mx,
   ar: SRC.ar,
   za: SRC.za,
+};
+
+/**
+ * Sub-national tax regions referenced by regional brackets / surcharges /
+ * fixed amounts. The seed creates a Region row per entry and maps the slug used
+ * in TaxData (regionId) to the DB Region id.
+ */
+export const REGIONS: Array<{ countryCode: string; slug: string; nameDE: string; nameEN: string }> = [
+  { countryCode: 'es', slug: 'comunidad-madrid', nameDE: 'Madrid', nameEN: 'Madrid' },
+  { countryCode: 'es', slug: 'cataluna', nameDE: 'Katalonien', nameEN: 'Catalonia' },
+  { countryCode: 'es', slug: 'comunitat-valenciana', nameDE: 'Valencia', nameEN: 'Valencia' },
+  { countryCode: 'it', slug: 'lazio', nameDE: 'Latium', nameEN: 'Lazio' },
+  { countryCode: 'it', slug: 'lombardia', nameDE: 'Lombardei', nameEN: 'Lombardy' },
+  { countryCode: 'us', slug: 'us-ny', nameDE: 'New York (Bundesstaat)', nameEN: 'New York State' },
+  { countryCode: 'us', slug: 'us-fl', nameDE: 'Florida', nameEN: 'Florida' },
+  { countryCode: 'ch', slug: 'kanton-zuerich', nameDE: 'Kanton Zürich', nameEN: 'Canton Zurich' },
+];
+
+/** City slug → region slug. The seed sets City.regionId accordingly. */
+export const CITY_REGIONS: Record<string, string> = {
+  madrid: 'comunidad-madrid',
+  barcelona: 'cataluna',
+  valencia: 'comunitat-valenciana',
+  rom: 'lazio',
+  mailand: 'lombardia',
+  'new-york': 'us-ny',
+  miami: 'us-fl',
+  zuerich: 'kanton-zuerich',
 };
 
 /**

@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
-import { DEFAULT_TAX_DATA, TAX_DATA_SOURCES } from "@paymap/tax-engine";
+import { DEFAULT_TAX_DATA, TAX_DATA_SOURCES, REGIONS, CITY_REGIONS } from "@paymap/tax-engine";
 
 const prisma = new PrismaClient();
 
@@ -377,7 +377,8 @@ async function main() {
   // runtime) and the seed never diverge ("no second truth in TS"). Every row
   // carries the issuing authority's sourceUrl. Idempotent: skips a category for
   // a country/year if rows already exist.
-  await seedTaxData(countryMap);
+  const regionMap = await seedRegionsAndLinks(countryMap, cityMap);
+  await seedTaxData(countryMap, regionMap);
 
   // ─── ExchangeRates ────────────────────────────────────────────────────────
   const rates = [
@@ -2125,13 +2126,43 @@ async function main() {
 }
 
 /**
+ * Creates a Region row per REGIONS entry (idempotent on countryId+slug) and
+ * links cities to their region (City.regionId) per CITY_REGIONS. Returns a map
+ * of region slug → Region id, used to resolve regional tax rows.
+ */
+async function seedRegionsAndLinks(
+  countryMap: Map<string, string>,
+  cityMap: Map<string, string>,
+): Promise<Map<string, string>> {
+  const regionMap = new Map<string, string>();
+  for (const reg of REGIONS) {
+    const cId = countryMap.get(reg.countryCode);
+    if (!cId) continue;
+    const existing = await prisma.region.findFirst({ where: { countryId: cId, slug: reg.slug } });
+    const row = existing
+      ? await prisma.region.update({ where: { id: existing.id }, data: { nameDE: reg.nameDE, nameEN: reg.nameEN } })
+      : await prisma.region.create({ data: { countryId: cId, slug: reg.slug, nameDE: reg.nameDE, nameEN: reg.nameEN } });
+    regionMap.set(reg.slug, row.id);
+  }
+
+  for (const [citySlug, regionSlug] of Object.entries(CITY_REGIONS)) {
+    const cityId = cityMap.get(citySlug);
+    const regionId = regionMap.get(regionSlug);
+    if (!cityId || !regionId) continue; // city not seeded → skip
+    await prisma.city.update({ where: { id: cityId }, data: { regionId } });
+  }
+
+  return regionMap;
+}
+
+/**
  * Seeds the year-versioned tax tables for every country from the canonical
  * engine dataset (DEFAULT_TAX_DATA). The DB becomes a faithful mirror of the
  * engine values, so there is a single source of truth. Idempotent per
- * country/year/category. Regional rows (regionId) are added by the A.1–A.9
- * fixes; here all rows are national (regionId null).
+ * country/year/category. Regional rows carry the resolved Region id.
  */
-async function seedTaxData(countryMap: Map<string, string>) {
+async function seedTaxData(countryMap: Map<string, string>, regionMap: Map<string, string>) {
+  const toRegionId = (slug?: string | null) => (slug ? regionMap.get(slug) ?? null : null);
   for (const [slug, td] of Object.entries(DEFAULT_TAX_DATA)) {
     const cId = countryMap.get(slug);
     if (!cId) continue;
@@ -2143,7 +2174,7 @@ async function seedTaxData(countryMap: Map<string, string>) {
       await prisma.taxBracket.createMany({
         data: td.brackets.map((b) => ({
           countryId: cId,
-          regionId: null,
+          regionId: toRegionId(b.regionId),
           filingStatus: b.filingStatus ?? null,
           fromAmount: b.from,
           toAmount: b.to ?? null,
@@ -2190,7 +2221,7 @@ async function seedTaxData(countryMap: Map<string, string>) {
       await prisma.surcharge.createMany({
         data: td.surcharges.map((s) => ({
           countryId: cId,
-          regionId: null,
+          regionId: toRegionId(s.regionId),
           cityScope: s.cityScope ?? null,
           type: s.type,
           baseType: s.baseType,
@@ -2209,7 +2240,7 @@ async function seedTaxData(countryMap: Map<string, string>) {
       await prisma.fixedAmount.createMany({
         data: td.fixedAmounts.map((f) => ({
           countryId: cId,
-          regionId: null,
+          regionId: toRegionId(f.regionId),
           type: f.type,
           amount: f.amount,
           period: f.period,
