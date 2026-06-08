@@ -186,6 +186,7 @@ export function calculateApproximate(
   locale: string = 'de',
   taxData?: TaxData,
   region?: string,
+  cityScope?: string,
 ): ApproximateResult {
   const opts: TaxOptions = {
     gross,
@@ -196,6 +197,7 @@ export function calculateApproximate(
     kvType: 'statutory',
     year,
     region,
+    cityScope,
   };
 
   const base = calculate(countryCode, opts, taxData);

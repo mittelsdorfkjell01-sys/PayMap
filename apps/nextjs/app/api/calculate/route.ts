@@ -90,9 +90,13 @@ export async function POST(req: NextRequest) {
   }
 
   // Tax tables (brackets, social, deductions, surcharges, fixed amounts) for
-  // both countries, plus the sub-national region from each city.
+  // both countries, plus the sub-national region from each city. The city slug
+  // doubles as the cityScope for municipal surcharges (NYC city tax, IT
+  // addizionale comunale).
   const fromRegion = fromCity.regionSlug ?? undefined;
   const toRegion = toCity.regionSlug ?? undefined;
+  const fromCityScope = fromCity.slug;
+  const toCityScope = toCity.slug;
   const [fromTaxData, toTaxData] = await Promise.all([
     loadTaxData(fromCountry, year),
     loadTaxData(toCountry, year),
@@ -101,8 +105,8 @@ export async function POST(req: NextRequest) {
   let fromResult, toResult;
 
   if (approximate) {
-    fromResult = calculateApproximate(fromCountry, fromGross, fromCity.currency, year, data.locale, fromTaxData, fromRegion);
-    toResult = calculateApproximate(toCountry, toGross, toCity.currency, year, data.locale, toTaxData, toRegion);
+    fromResult = calculateApproximate(fromCountry, fromGross, fromCity.currency, year, data.locale, fromTaxData, fromRegion, fromCityScope);
+    toResult = calculateApproximate(toCountry, toGross, toCity.currency, year, data.locale, toTaxData, toRegion, toCityScope);
   } else {
     const opts = {
       employment: data.employment ?? 'employed',
@@ -114,8 +118,8 @@ export async function POST(req: NextRequest) {
       partnerGross: data.partnerGross,
     } as const;
 
-    fromResult = calculate(fromCountry, { ...opts, gross: fromGross, currency: fromCity.currency, region: fromRegion }, fromTaxData);
-    toResult = calculate(toCountry, { ...opts, gross: toGross, currency: toCity.currency, region: toRegion }, toTaxData);
+    fromResult = calculate(fromCountry, { ...opts, gross: fromGross, currency: fromCity.currency, region: fromRegion, cityScope: fromCityScope }, fromTaxData);
+    toResult = calculate(toCountry, { ...opts, gross: toGross, currency: toCity.currency, region: toRegion, cityScope: toCityScope }, toTaxData);
   }
 
   // Net figures live in each city's local currency; normalise to EUR before
@@ -157,6 +161,7 @@ export async function POST(req: NextRequest) {
         year,
         specialRegimeId: toRegimeRow.slug,
         region: toRegion,
+        cityScope: toCityScope,
       }, toTaxData);
       taxWithRegime = {
         netMonthly: regimeCalc.netMonthly,

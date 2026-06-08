@@ -12,6 +12,9 @@ export interface TaxOptions {
   rulingYearsActive?: number;
   // For GB: 'scotland' applies Scottish income tax rates instead of England/Wales/NI rates
   region?: string;
+  // City-level scope for municipal surcharges (e.g. 'new-york' → NYC city tax,
+  // 'rom'/'mailand' → addizionale comunale). Matches Surcharge.cityScope.
+  cityScope?: string;
   // DE church tax: only levied when churchMember is true. `bundesland` selects
   // the rate variant (8% in BY/BW, 9% elsewhere). No UI yet → defaults mean no
   // church tax.

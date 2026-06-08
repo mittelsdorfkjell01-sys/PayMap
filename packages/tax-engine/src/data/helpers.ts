@@ -56,6 +56,51 @@ export function bracketsFor(
     .sort((a, b) => a.from - b.from);
 }
 
+/**
+ * Region-specific brackets ONLY (no national fallback). Used for sub-national
+ * scales that are *added on top of* the national one (ES comunidad, US state),
+ * so the national rows must not leak in. Returns [] when nothing matches.
+ */
+export function regionalBracketsFor(
+  data: TaxData,
+  employmentType: string = 'employed',
+  regionId?: string | null,
+  opts?: { filingStatus?: string | null },
+): ResolvedBracket[] {
+  if (!regionId) return [];
+  let rows = data.brackets.filter(
+    (b) => (b.employmentType ?? 'employed') === employmentType && (b.regionId ?? null) === regionId,
+  );
+  const wantStatus = opts?.filingStatus ?? null;
+  if (wantStatus) {
+    const statusRows = rows.filter((b) => (b.filingStatus ?? null) === wantStatus);
+    rows = statusRows.length > 0 ? statusRows : rows.filter((b) => (b.filingStatus ?? null) === null);
+  }
+  return rows
+    .map((b: BracketRow) => ({ from: b.from, to: b.to ?? Infinity, rate: b.rate }))
+    .sort((a, b) => a.from - b.from);
+}
+
+/**
+ * Tax produced by a single surcharge row applied to a base amount: a flat
+ * `rate × base`, or a progressive `brackets` ladder. An `allowance` acts as a
+ * Freigrenze (base at/below it → 0).
+ */
+export function applySurcharge(s: SurchargeRow, base: number): number {
+  if (s.allowance != null && base <= s.allowance) return 0;
+  if (s.brackets && s.brackets.length > 0) {
+    let tax = 0;
+    for (const b of s.brackets) {
+      const to = b.to ?? Infinity;
+      if (base <= b.from) break;
+      tax += (Math.min(base, to) - b.from) * b.rate;
+    }
+    return tax;
+  }
+  if (s.rate != null) return base * s.rate;
+  return 0;
+}
+
 /** Standard marginal progressive tax over resolved brackets. */
 export function progressiveTax(taxable: number, brackets: ResolvedBracket[]): number {
   let tax = 0;

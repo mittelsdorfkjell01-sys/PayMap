@@ -1,16 +1,26 @@
 import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
 import { getDefaultTaxData } from '../data/countries';
-import { bracketsFor, progressiveTax, socialAmount } from '../data/helpers';
+import { bracketsFor, regionalBracketsFor, progressiveTax, socialAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
+
+// IRPF = state scale (regionId null) + the comunidad's regional scale, both
+// progressive on the same base, then summed (A.1). When no regional rows are
+// present for the city's region, only the state scale applies.
+function esIncomeTax(taxable: number, opts: TaxOptions, data: TaxData): number {
+  const state = progressiveTax(taxable, bracketsFor(data, 'employed'));
+  const regional = opts.region
+    ? progressiveTax(taxable, regionalBracketsFor(data, 'employed', opts.region))
+    : 0;
+  return state + regional;
+}
 
 export const es: CountryModule = {
   countryCode: 'es',
 
   calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('es', opts.year);
-    // State + average-regional scale (regional split: see fix A.1).
-    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
+    return r(esIncomeTax(taxable, opts, data));
   },
 
   getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
@@ -38,9 +48,10 @@ export const es: CountryModule = {
   applySpecialRegime(gross: number, regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('es', opts.year);
     if (regimeId === 'beckham-es') {
+      // Beckham regime is a flat state scale that overrides the region.
       return r(progressiveTax(gross, bracketsFor(data, 'beckham')));
     }
-    return r(progressiveTax(gross, bracketsFor(data, 'employed')));
+    return r(esIncomeTax(gross, opts, data));
   },
 
   getDisclaimer(locale: string): string {
