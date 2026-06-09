@@ -67,6 +67,10 @@
       "kvLabel": "Krankenversicherung",
       "statutory": "Gesetzlich",
       "private": "Privat",
+      "pkvPremiumLabel": "PKV-Monatsbeitrag",
+      "pkvPremiumPlaceholder": "z. B. 600",
+      "pkvPremiumUnit": "€ / Mon.",
+      "pkvPremiumHint": "Dein privater Krankenversicherungsbeitrag pro Monat. Ohne Angabe wird mit den gesetzlichen Kosten genähert.",
       "cta": {
         "hint": "Verfeinere dein Ergebnis mit deinen persönlichen Angaben.",
         "scrollDown": "Genauer rechnen ↓",

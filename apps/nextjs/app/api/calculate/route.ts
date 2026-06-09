@@ -17,6 +17,8 @@ const RequestSchema = z.object({
   familyStatus: z.enum(['single', 'married', 'divorced']).optional(),
   children: z.number().int().min(0).max(20).optional(),
   kvType: z.enum(['statutory', 'private']).optional(),
+  // DE PKV monthly premium (used as health contribution when kvType='private').
+  privateKvPremium: z.number().nonnegative().max(100000).optional(),
   specialRegimeId: z.string().optional(),
   partnerGross: z.number().optional(),
   year: z.number().int().min(2020).max(2030).optional(),
@@ -113,6 +115,7 @@ export async function POST(req: NextRequest) {
       familyStatus: data.familyStatus ?? 'single',
       children: data.children ?? 0,
       kvType: data.kvType ?? 'statutory',
+      privateKvPremium: data.privateKvPremium,
       year,
       specialRegimeId: data.specialRegimeId,
       partnerGross: data.partnerGross,

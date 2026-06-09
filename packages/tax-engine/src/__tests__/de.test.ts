@@ -100,15 +100,20 @@ describe('DE — 80k brutto, verheiratet, 2 Kinder, GKV (Günstigerprüfung)', (
   });
 });
 
-describe('DE — 120k brutto, single, PKV (kein GKV-Anteil)', () => {
-  // nettolohn.de ~2025 PKV: ~5,550-5,580 €/month
-  it('netMonthly ~5,988 €/mo (±2%)', () => {
-    const result = calculate('de', opts({ gross: 120000, kvType: 'private' }));
-    // PKV: Vorsorgepauschale ohne KV-Teilbetrag (Modell führt keine PKV-Prämie),
-    // RV+PV abzugsfähig. zvE 107.666, ESt 34.084, Soli 1.634, SV 12.422 → net 71.859/yr
-    expect(withinTolerance(result.netMonthly, 5988.27)).toBe(true);
-    expect(result.socialContributions.health).toBe(0); // PKV → kein GKV-Beitrag
-    expect(result.soli).toBeGreaterThan(0); // ESt 34.084 > Freigrenze 20.350
+describe('DE — 120k brutto, single, PKV (privater Beitrag)', () => {
+  it('mit PKV-Beitrag €700/mo: dieser zählt als health, nicht 0', () => {
+    const result = calculate('de', opts({ gross: 120000, kvType: 'private', privateKvPremium: 700 }));
+    // health = 700×12 = 8.400; KV-Vorsorge ausgespart (dokumentierte Näherung);
+    // zvE 107.666, ESt 34.084, Soli 1.634 → net 63.459/yr
+    expect(result.socialContributions.health).toBe(8400);
+    expect(withinTolerance(result.netMonthly, 5288.27)).toBe(true);
+  });
+
+  it('PKV ohne angegebenen Beitrag → wie gesetzlich genähert (nicht 0)', () => {
+    const withoutPremium = calculate('de', opts({ gross: 120000, kvType: 'private' }));
+    const statutory = calculate('de', opts({ gross: 120000, kvType: 'statutory' }));
+    expect(withoutPremium.socialContributions.health).toBeGreaterThan(0);
+    expect(withoutPremium.netMonthly).toBeCloseTo(statutory.netMonthly, 2);
   });
 });
 

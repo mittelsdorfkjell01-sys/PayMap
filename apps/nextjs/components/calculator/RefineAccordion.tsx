@@ -8,6 +8,8 @@ export interface RefineFields {
   familyStatus: string | null;
   children: number;
   kvType: string | null;
+  // DE PKV monthly premium (only relevant when kvType === 'private').
+  privateKvPremium: number | null;
 }
 
 interface RefineAccordionProps {
@@ -142,6 +144,34 @@ export const RefineAccordion = forwardRef<HTMLDivElement, RefineAccordionProps>(
                 onSelect={(v) => set('kvType', v)}
                 t={t}
               />
+            )}
+
+            {/* PKV monthly premium — only DE + private */}
+            {targetCountrySlug === 'de' && value.kvType === 'private' && (
+              <div className="space-y-2">
+                <p className="text-label-sm font-medium text-on-surface-variant uppercase tracking-wider">
+                  {t('pkvPremiumLabel')}
+                </p>
+                <div className="relative max-w-[12rem]">
+                  <input
+                    type="number"
+                    min={0}
+                    max={3000}
+                    step={10}
+                    value={value.privateKvPremium ?? ''}
+                    onChange={(e) => {
+                      const v = e.target.value === '' ? null : parseInt(e.target.value, 10);
+                      set('privateKvPremium', v != null && !isNaN(v) ? v : null);
+                    }}
+                    placeholder={t('pkvPremiumPlaceholder')}
+                    className="input-field pr-16"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-label-sm text-on-surface-variant pointer-events-none">
+                    {t('pkvPremiumUnit')}
+                  </span>
+                </div>
+                <p className="text-label-sm text-on-surface-variant">{t('pkvPremiumHint')}</p>
+              </div>
             )}
           </div>
         )}

@@ -69,6 +69,7 @@ const EMPTY_REFINE: RefineFields = {
   familyStatus: null,
   children: 0,
   kvType: null,
+  privateKvPremium: null,
 };
 
 function CityAutocomplete({
@@ -243,7 +244,7 @@ export default function Calculator() {
   // Re-fetch when refine fields change (debounced)
   useEffect(() => {
     if (!resultRef.current) return;
-    const { employment, familyStatus, children, kvType } = debouncedRefine;
+    const { employment, familyStatus, children, kvType, privateKvPremium } = debouncedRefine;
     const hasAnyField = employment !== null || familyStatus !== null || children > 0 || kvType !== null;
     if (!hasAnyField) return;
 
@@ -256,6 +257,7 @@ export default function Calculator() {
     if (familyStatus) payload.familyStatus = familyStatus;
     if (children > 0) payload.children = children;
     if (kvType) payload.kvType = kvType;
+    if (kvType === 'private' && privateKvPremium != null) payload.privateKvPremium = privateKvPremium;
 
     setLoading(true);
     fetch('/api/calculate', {

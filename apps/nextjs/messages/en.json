@@ -67,6 +67,10 @@
       "kvLabel": "Health insurance",
       "statutory": "Statutory",
       "private": "Private",
+      "pkvPremiumLabel": "Private health premium",
+      "pkvPremiumPlaceholder": "e.g. 600",
+      "pkvPremiumUnit": "€ / mo.",
+      "pkvPremiumHint": "Your monthly private health insurance premium. Without it, the statutory cost is used as an approximation.",
       "cta": {
         "hint": "Refine your result with your personal details.",
         "scrollDown": "Refine result ↓",

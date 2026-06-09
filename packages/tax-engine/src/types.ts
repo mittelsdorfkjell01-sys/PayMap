@@ -5,6 +5,10 @@ export interface TaxOptions {
   familyStatus: 'single' | 'married' | 'divorced';
   children: number;
   kvType?: 'statutory' | 'private';
+  // DE PKV: the user's monthly private health-insurance premium. When kvType is
+  // 'private' and this is set, it is used as the health contribution instead of
+  // the (statutory) percentage. Monthly amount in the local currency.
+  privateKvPremium?: number;
   year: number;
   specialRegimeId?: string;
   partnerGross?: number;

@@ -23,8 +23,12 @@ function vorsorgepauschale(gross: number, opts: TaxOptions, data: TaxData): numb
   const rv = socialAmount(data, 'pension', gross);
   const kvCeiling = socialCeiling(data, 'health');
   const kvBase = kvCeiling != null ? Math.min(gross, kvCeiling) : gross;
-  const kv =
-    opts.kvType === 'private' ? 0 : kvBase * deductionPercentage(data, 'vorsorge_kv_rate');
+  // Only gate the KV deduction off when an explicit PKV premium is used (then
+  // the basis deductibility is omitted as a documented approximation). PKV
+  // without a stated premium is modelled like statutory, so it keeps the KV
+  // deduction.
+  const usePrivatePremium = opts.kvType === 'private' && opts.privateKvPremium != null;
+  const kv = usePrivatePremium ? 0 : kvBase * deductionPercentage(data, 'vorsorge_kv_rate');
   const pv = socialAmount(data, opts.children === 0 ? 'care_childless' : 'care', gross);
   const av = socialAmount(data, 'unemployment', gross);
   const avPart = av + kv + pv <= 1900 ? av : 0;
@@ -125,7 +129,15 @@ export const de: CountryModule = {
     const pension = r(socialAmount(data, 'pension', gross));
     const unemployment = r(socialAmount(data, 'unemployment', gross));
 
-    const health = isPrivate ? 0 : r(socialAmount(data, 'health', gross));
+    // PKV: use the user's stated monthly premium (×12). If unknown, approximate
+    // with the statutory-equivalent cost rather than 0 (a private premium is a
+    // real outflow). The basis-premium deductibility is left out as a documented
+    // conservative approximation (Vorsorgepauschale KV is gated off for PKV).
+    const health = !isPrivate
+      ? r(socialAmount(data, 'health', gross))
+      : opts.privateKvPremium != null
+        ? r(opts.privateKvPremium * 12)
+        : r(socialAmount(data, 'health', gross));
 
     const isChildless = opts.children === 0;
     const care = r(socialAmount(data, isChildless ? 'care_childless' : 'care', gross));
