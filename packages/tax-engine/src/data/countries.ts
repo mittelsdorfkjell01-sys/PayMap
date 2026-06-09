@@ -145,21 +145,64 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
     fixedAmounts: [],
   },
 
-  // ── Spain — combined state+avg-regional scale (split in A.1) ─────────────
+  // ── Spain — IRPF split into state scale + comunidad regional scale (A.1) ──
+  // The taxable base is taxed by the state scale (regionId null) AND, on top,
+  // by the city's comunidad regional scale; es.ts sums the two (esIncomeTax).
+  // All scales below are the 2026 scales (state + Madrid unchanged since the
+  // 2023 deflactación; Cataluña per DL 5/2025 in force from 2025; Valencia per
+  // Ley 13/1997 as amended, in force since 2023 — all valid for 2026).
   es: {
     countryCode: 'es',
-    year: YEAR,
+    year: 2026,
     brackets: [
-      { from: 0, to: 12450, rate: 0.19 },
-      { from: 12450, to: 20200, rate: 0.24 },
-      { from: 20200, to: 35200, rate: 0.3 },
-      { from: 35200, to: 60000, rate: 0.37 },
-      { from: 60000, to: 300000, rate: 0.45 },
-      { from: 300000, to: null, rate: 0.47 },
-      // Beckham Law: flat state scale only
+      // ── State scale (regionId null) — Art. 63.1 LIRPF.
+      // Source: sede.agenciatributaria.gob.es (Manual Renta, escala general estatal).
+      { from: 0, to: 12450, rate: 0.095 },
+      { from: 12450, to: 20200, rate: 0.12 },
+      { from: 20200, to: 35200, rate: 0.15 },
+      { from: 35200, to: 60000, rate: 0.185 },
+      { from: 60000, to: 300000, rate: 0.225 },
+      { from: 300000, to: null, rate: 0.245 },
+
+      // ── Comunidad de Madrid — DLeg 1/2010 mod. Ley 13/2023 (deflactación).
+      // Source: comunidad.madrid/atencion-contribuyente/irpf (BOCM). Unchanged 2024–2026.
+      { from: 0, to: 13362.22, rate: 0.085, regionId: 'comunidad-madrid' },
+      { from: 13362.22, to: 19004.63, rate: 0.107, regionId: 'comunidad-madrid' },
+      { from: 19004.63, to: 35425.68, rate: 0.128, regionId: 'comunidad-madrid' },
+      { from: 35425.68, to: 57320.40, rate: 0.174, regionId: 'comunidad-madrid' },
+      { from: 57320.40, to: null, rate: 0.205, regionId: 'comunidad-madrid' },
+
+      // ── Cataluña — DLeg 1/2024 art. 611-1 mod. DL 5/2025 (8 tramos, from 2025).
+      // Source: atc.gencat.cat/es/tributs/irpf (Agència Tributària de Catalunya).
+      { from: 0, to: 12500, rate: 0.095, regionId: 'cataluna' },
+      { from: 12500, to: 22000, rate: 0.125, regionId: 'cataluna' },
+      { from: 22000, to: 33000, rate: 0.16, regionId: 'cataluna' },
+      { from: 33000, to: 53000, rate: 0.19, regionId: 'cataluna' },
+      { from: 53000, to: 90000, rate: 0.215, regionId: 'cataluna' },
+      { from: 90000, to: 120000, rate: 0.235, regionId: 'cataluna' },
+      { from: 120000, to: 175000, rate: 0.245, regionId: 'cataluna' },
+      { from: 175000, to: null, rate: 0.255, regionId: 'cataluna' },
+
+      // ── Comunitat Valenciana — Ley 13/1997 art. 2 mod. Ley 9/2022 (11 tramos).
+      // Source: atv.gva.es / Iberley (Ley 13/1997 consolidada). In force since 2023.
+      { from: 0, to: 12000, rate: 0.09, regionId: 'comunitat-valenciana' },
+      { from: 12000, to: 22000, rate: 0.12, regionId: 'comunitat-valenciana' },
+      { from: 22000, to: 32000, rate: 0.15, regionId: 'comunitat-valenciana' },
+      { from: 32000, to: 42000, rate: 0.175, regionId: 'comunitat-valenciana' },
+      { from: 42000, to: 52000, rate: 0.20, regionId: 'comunitat-valenciana' },
+      { from: 52000, to: 62000, rate: 0.225, regionId: 'comunitat-valenciana' },
+      { from: 62000, to: 72000, rate: 0.25, regionId: 'comunitat-valenciana' },
+      { from: 72000, to: 100000, rate: 0.265, regionId: 'comunitat-valenciana' },
+      { from: 100000, to: 150000, rate: 0.275, regionId: 'comunitat-valenciana' },
+      { from: 150000, to: 200000, rate: 0.285, regionId: 'comunitat-valenciana' },
+      { from: 200000, to: null, rate: 0.295, regionId: 'comunitat-valenciana' },
+
+      // ── Beckham Law (Art. 93 LIRPF): flat 24% to 600k, 47% above. Overrides region.
       { from: 0, to: 600000, rate: 0.24, employmentType: 'beckham' },
       { from: 600000, to: null, rate: 0.47, employmentType: 'beckham' },
     ],
+    // NOTE: social contribution carried over from the 2025 baseline (cotización
+    // general empleado; base máxima). Not re-verified for 2026 in the A.1 scope.
     social: [{ type: 'pension', rate: 0.0635, ceiling: 56064 }],
     deductions: [],
     surcharges: [],

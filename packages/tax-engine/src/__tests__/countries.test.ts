@@ -82,32 +82,43 @@ describe('PT — IFICI+ Regime (20% flat)', () => {
 });
 
 // ─── Spanien ───────────────────────────────────────────────────────────────────
-// Source: agenciatributaria.es / conversor-salario.es
-// ES brackets: Staat + durchschnittliche Regionalsteuer approx.
+// Source: state scale Art. 63.1 LIRPF (sede.agenciatributaria.gob.es); comunidad
+// scales: comunidad.madrid (BOCM), atc.gencat.cat (Cataluña DL 5/2025), atv.gva.es
+// (Valencia Ley 13/1997). IRPF = state scale + the city's comunidad regional scale (A.1).
+// Goldens are engine-derived from the verified 2026 brackets (model has no mínimo
+// personal y familiar → slightly conservative vs official calculators). ±2%.
 
-describe('ES — Standard', () => {
-  it('40k EUR: netMonthly ~2,247 €/mo (±2%)', () => {
-    // Tax: 0-12450→2366, 12450-20200→1860, 20200-35200→4500, 35200-40000→1776 = ~10,502
-    // Social: 40000*0.0635=2,540; net: ~26,958/yr = 2,246/mo
-    const result = calculate('es', opts('es', 40000, 'EUR'));
-    // Note: Modell enthält keine persönlichen Steuerabzüge (mínimo personal etc.)
-    // Externe Rechner zeigen höhere Werte durch deductions — unser Modell konservativ
-    expect(result.netMonthly).toBeGreaterThan(2100);
-    expect(result.netMonthly).toBeLessThan(2450);
+describe('ES — Standard (region-specific comunidad scale, A.1)', () => {
+  it('40k EUR Madrid: netMonthly ~2,298 €/mo (±2%)', () => {
+    // State 5,250.75 + Madrid 4,637.21 = tax 9,887.96; social 40000*0.0635=2,540;
+    // net 27,572/yr = 2,298/mo.
+    const result = calculate('es', opts('es', 40000, 'EUR', { region: 'comunidad-madrid' }));
+    expect(withinTolerance(result.netMonthly, 2298)).toBe(true);
   });
 
-  it('80k EUR: netMonthly ~4,128 €/mo (±2%)', () => {
-    // Tax: ~26,902; social: 3,560; total: ~30,462; net: ~49,538/yr
-    const result = calculate('es', opts('es', 80000, 'EUR'));
-    // Source: conversor-salario.es ~4,050-4,200 €/month
-    expect(withinTolerance(result.netMonthly, 4128)).toBe(true);
+  it('80k EUR Madrid: netMonthly ~4,224 €/mo (±2%)', () => {
+    // State 13,450.75 + Madrid 12,300.42 = tax 25,751.17; social capped 56064*0.0635=3,560.06;
+    // net 50,688.77/yr = 4,224/mo.
+    const result = calculate('es', opts('es', 80000, 'EUR', { region: 'comunidad-madrid' }));
+    expect(withinTolerance(result.netMonthly, 4224)).toBe(true);
   });
 
-  it('120k EUR: netMonthly ~5,962 €/mo (±2%)', () => {
-    // Tax: brackets up to 120k (45% zone): ~44,902; social: 56064*0.0635=3,560; net: ~71,538/yr
-    const result = calculate('es', opts('es', 120000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(5600);
-    expect(result.netMonthly).toBeLessThan(6400);
+  it('120k EUR Madrid: netMonthly ~6,124 €/mo (±2%)', () => {
+    // State 22,450.75 + Madrid 20,500.42 = tax 42,951.17; social 3,560.06; net 73,488.77/yr.
+    const result = calculate('es', opts('es', 120000, 'EUR', { region: 'comunidad-madrid' }));
+    expect(withinTolerance(result.netMonthly, 6124)).toBe(true);
+  });
+
+  it('80k EUR: Madrid > Barcelona > Valencia net (region matters, A.9)', () => {
+    // Madrid is the cheapest comunidad, Valencia the most expensive at this income.
+    const madrid = calculate('es', opts('es', 80000, 'EUR', { region: 'comunidad-madrid' }));
+    const barcelona = calculate('es', opts('es', 80000, 'EUR', { region: 'cataluna' }));
+    const valencia = calculate('es', opts('es', 80000, 'EUR', { region: 'comunitat-valenciana' }));
+    expect(madrid.netMonthly).toBeGreaterThan(barcelona.netMonthly);
+    expect(barcelona.netMonthly).toBeGreaterThan(valencia.netMonthly);
+    // Barcelona ~4,104/mo, Valencia ~4,049/mo (engine-derived from verified scales).
+    expect(withinTolerance(barcelona.netMonthly, 4104)).toBe(true);
+    expect(withinTolerance(valencia.netMonthly, 4049)).toBe(true);
   });
 });
 
@@ -119,8 +130,8 @@ describe('ES — Beckham Law (24% flat bis 600k)', () => {
     expect(withinTolerance(result.netMonthly, 4770)).toBe(true);
   });
 
-  it('Beckham net > Standard net', () => {
-    const standard = calculate('es', opts('es', 80000, 'EUR'));
+  it('Beckham net > Standard net (vs Madrid comunidad)', () => {
+    const standard = calculate('es', opts('es', 80000, 'EUR', { region: 'comunidad-madrid' }));
     const beckham = calculate('es', opts('es', 80000, 'EUR', { specialRegimeId: 'beckham-es' }));
     expect(beckham.netMonthly).toBeGreaterThan(standard.netMonthly);
   });

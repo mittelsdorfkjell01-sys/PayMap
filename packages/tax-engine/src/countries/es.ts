@@ -56,9 +56,9 @@ export const es: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Spain 2025. Approximate calculation including state and average regional tax. Individual regional deductions not included. Not tax advice.';
+      return 'Spain 2026. Approximate calculation including the state scale plus the region-specific comunidad scale (Madrid / Catalonia / Valencia). Personal/regional allowances (mínimo personal y familiar) not included. Not tax advice.';
     }
-    return 'Spanien 2025. Näherungsrechnung inkl. Staats- und durchschnittlicher Regionalsteuer. Individuelle Regionalabzüge nicht berücksichtigt. Keine Steuerberatung.';
+    return 'Spanien 2026. Näherungsrechnung inkl. Staatsskala plus regionsspezifischer Comunidad-Skala (Madrid / Katalonien / Valencia). Persönliche/regionale Freibeträge (mínimo personal y familiar) nicht berücksichtigt. Keine Steuerberatung.';
   },
 };
 
