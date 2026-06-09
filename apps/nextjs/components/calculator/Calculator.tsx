@@ -147,7 +147,6 @@ interface UserProfile {
   employment: string | null;
   familyStatus: string | null;
   childrenCount: number | null;
-  childrenAges: string[] | null;
   kvType: string | null;
   onboardingDone: boolean;
 }
