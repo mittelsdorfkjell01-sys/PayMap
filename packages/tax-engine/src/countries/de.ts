@@ -1,8 +1,41 @@
 import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
 import { getDefaultTaxData } from '../data/countries';
-import { socialAmount, deductionAmount } from '../data/helpers';
+import { socialAmount, socialCeiling, deductionAmount, deductionPercentage } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
+
+/**
+ * Vorsorgepauschale (§39b Abs. 2 Satz 5 Nr. 3 EStG, VZ 2026): the deductible
+ * old-age + health + care provision contributions that lower the zvE. This is
+ * the mechanism every official brutto-netto calculator uses; without it the
+ * engine taxed an almost-undiminished gross.
+ *
+ *  • Altersvorsorge: 100% of the employee RV share (9.3%, since 2023).
+ *  • KV (Basisabsicherung): reduced rate share 7.0% + ½ Zusatzbeitrag (1.45%) =
+ *    8.45%, on income up to the KV ceiling. Krankengeld-Anteil (0.6%) excluded.
+ *    Only for statutory insurance — for PKV the model carries no GKV premium, so
+ *    granting a GKV-rate KV deduction would be a phantom; omitted there.
+ *  • PV: full employee care share (childless 2.4% / with children 1.8%).
+ *  • AV (new in 2026): only added when AV+KV+PV ≤ €1,900 (low incomes only).
+ * All rates/ceilings come from taxData.
+ */
+function vorsorgepauschale(gross: number, opts: TaxOptions, data: TaxData): number {
+  const rv = socialAmount(data, 'pension', gross);
+  const kvCeiling = socialCeiling(data, 'health');
+  const kvBase = kvCeiling != null ? Math.min(gross, kvCeiling) : gross;
+  const kv =
+    opts.kvType === 'private' ? 0 : kvBase * deductionPercentage(data, 'vorsorge_kv_rate');
+  const pv = socialAmount(data, opts.children === 0 ? 'care_childless' : 'care', gross);
+  const av = socialAmount(data, 'unemployment', gross);
+  const avPart = av + kv + pv <= 1900 ? av : 0;
+  return r(rv + kv + pv + avPart);
+}
+
+/** zvE deductions for a given income: Werbungskostenpauschale + Vorsorgepauschale. */
+function deductionsFor(income: number, opts: TaxOptions, data: TaxData): number {
+  const werbungskosten = Math.min(income, deductionAmount(data, 'werbungskosten'));
+  return r(werbungskosten + vorsorgepauschale(income, opts, data));
+}
 
 /**
  * §32a EStG Progressionsformel 2026 (BMF Lohnsteuer-Handbuch 2026)
@@ -48,11 +81,10 @@ export const de: CountryModule = {
 
     // Partner's taxable income for the Ehegatten-Splitting (A.5). Single-earner
     // (partnerGross 0/undefined) → partnerTaxable 0 → identical to the previous
-    // behaviour. Partner gets the same Werbungskostenpauschale.
-    const werbungskosten = deductionAmount(data, 'werbungskosten');
+    // behaviour. Partner gets the same deductions (Werbungskosten + Vorsorge).
     const partnerTaxable =
       opts.familyStatus === 'married' && opts.partnerGross && opts.partnerGross > 0
-        ? Math.max(0, opts.partnerGross - werbungskosten)
+        ? Math.max(0, opts.partnerGross - deductionsFor(opts.partnerGross, opts, data))
         : 0;
 
     // Household income tax under the chosen scheme.
@@ -105,9 +137,8 @@ export const de: CountryModule = {
 
   getDeductions(gross: number, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('de', opts.year);
-    // Werbungskosten-Pauschale
-    const werbungskosten = Math.min(gross, deductionAmount(data, 'werbungskosten'));
-    return r(werbungskosten);
+    // Werbungskostenpauschale + Vorsorgepauschale (Altersvorsorge, KV/PV, ggf. AV).
+    return deductionsFor(gross, opts, data);
   },
 
   getAvailableRegimes(): SpecialRegimeInfo[] {
@@ -120,9 +151,9 @@ export const de: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Germany 2025. Approximate calculation. Solidarity surcharge, church tax, and individual deductions not fully considered. Consult a tax advisor for binding statements.';
+      return 'Germany 2026 (§32a EStG). Includes the standard Vorsorgepauschale (deductible pension, health and care contributions). Solidarity surcharge and church tax modelled; individual deductions beyond the standard ones not considered. Consult a tax advisor for binding statements.';
     }
-    return 'Deutschland 2025. Näherungsrechnung nach §32a EStG. Kirchensteuer und individuelle Freibeträge nicht berücksichtigt. Keine steuerliche Beratung. Für verbindliche Auskünfte bitte Steuerberater konsultieren.';
+    return 'Deutschland 2026. Näherungsrechnung nach §32a EStG inkl. Vorsorgepauschale (abzugsfähige Renten-, Kranken- und Pflegebeiträge). Solidaritätszuschlag und Kirchensteuer werden berücksichtigt; weitere individuelle Freibeträge nicht. Keine steuerliche Beratung. Für verbindliche Auskünfte bitte Steuerberater konsultieren.';
   },
 };
 

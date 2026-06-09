@@ -74,6 +74,12 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       { type: 'grundfreibetrag', amount: 12348 },
       { type: 'kinderfreibetrag', amount: 6828, condition: 'per_child' },
       { type: 'kindergeld_monthly', amount: 259, condition: 'per_child' },
+      // Vorsorgepauschale KV-Teilbetrag (Basisabsicherung): ermäßigter
+      // Beitragssatz-Anteil AN 7.0% (= 14.0%/2, ohne Krankengeld) + halber
+      // Zusatzbeitrag (½ × 2.9% = 1.45%) = 8.45%. RV-/PV-Teilbeträge nutzen die
+      // social-Sätze (pension 9.3% zu 100%, care/care_childless voll). §39b
+      // Abs. 2 EStG (BMF-Schreiben 14.08.2025, Lohnsteuer ab 2026).
+      { type: 'vorsorge_kv_rate', percentage: 0.0845 },
     ],
     surcharges: [
       // Soli 2026: 5.5% of income tax above the Freigrenze; 11.9% Milderungszone
