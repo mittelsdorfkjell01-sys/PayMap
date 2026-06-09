@@ -55,6 +55,22 @@ Flag (geringfügig, innerhalb Toleranz): **IE** PRSI stieg ab Okt. 2024 auf 4,1 
 
 ## Bewusst nicht im Scope (Restungenauigkeiten)
 
+## Externe Referenz-Validierung (PR5)
+
+`src/__tests__/external-validation.test.ts` pinnt die in PR1–PR3 korrigierten
+Länder gegen **unabhängige** Referenzen (±3 %), nicht gegen Engine-Eigenwerte:
+- **DE** 60 k → lohntastik.de 3.130 €/Mo + smart-rechner.de 3.139 €/Mo (Engine 3.129).
+- **ES** 60 k/80 k Madrid → es.talent.com 42.209 € / 53.713 €/Jahr (Engine 42.367 / 54.079; <0,7 %).
+- **NL** 60 k → belastingdienst-Parameter 43.713 €/Jahr (Zielkorridor 43–44 k).
+- **PT** 60 k → Art.-25-Jahresveranlagung 36.770 €/Jahr (Monats-Retention-Rechner
+  zeigen wegen Überabzug ein niedrigeres Unterjahres-Netto — kein Engine-Fehler).
+
+Die übrigen Länder-Tests führen ihre Behörden-Quellen bereits im Header; ein
+maschinell abrufbarer Dritt-Rechner-Cross-Check dort ist Follow-up (nicht alle
+amtlichen Rechner sind serverseitig abrufbar).
+
+## Bewusst nicht im Scope (Restungenauigkeiten)
+
 DE Kinderfreibetrag-Sonderfälle, FR quotient familial, PT Solidaritätszuschlag &
 deduções à coleta, IT €65-Bonus (25–35 k) und Lazio-Detrazione, ES regionale
 Mindest-Abweichungen, AT erhöhter VAB/SV-Bonus (Geringverdiener), CH kantonale
