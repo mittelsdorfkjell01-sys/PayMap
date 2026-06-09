@@ -140,6 +140,9 @@ describe('ES — Beckham Law (24% flat bis 600k)', () => {
 // ─── Niederlande — 30%-Ruling gestaffelt ──────────────────────────────────────
 // Source: belastingdienst.nl — 30%-ruling reform 2024
 // Drei Phasen: Jahr 1 = 30%, Jahr 2-3 = 20%, Jahr 4-5 = 10%
+// NB: Das Ruling-Regime selbst bleibt unverändert (kein Heffingskorting-Abzug im
+// Regime-Pfad — bewusste Scope-Grenze). Die Goldens verschieben sich ggü. früher
+// nur, weil die Box-1-Brackets jetzt korrekt 3-stufig sind (35,82/37,48/49,50).
 
 describe('NL — 30%-Ruling gestaffelt', () => {
   it('Jahr 1 (rulingYearsActive=0): 30% steuerfrei → niedrigste Steuerlast', () => {
@@ -147,8 +150,8 @@ describe('NL — 30%-Ruling gestaffelt', () => {
       specialRegimeId: 'ruling30-nl',
       rulingYearsActive: 0,
     }));
-    // Tax auf 70% = 56,000: Bracket 1: 38441*0.3697=14,221, Rest: 17559*0.495=8,692 → 22,913
-    expect(withinTolerance(year1.netMonthly, 4757)).toBe(true); // (80,000 - 22,913) / 12
+    // Tax auf 70% = 56,000: 38441*0.3582 + 17559*0.3748 = 13,769.57 + 6,581.12 = 20,350.69
+    expect(withinTolerance(year1.netMonthly, 4970.78)).toBe(true); // (80,000 - 20,350.69) / 12
   });
 
   it('Jahr 2-3 (rulingYearsActive=2): 20% steuerfrei → mittlere Steuerlast', () => {
@@ -156,8 +159,8 @@ describe('NL — 30%-Ruling gestaffelt', () => {
       specialRegimeId: 'ruling30-nl',
       rulingYearsActive: 2,
     }));
-    // Tax auf 80% = 64,000: Bracket 1: 14,221; Rest: 25559*0.495=12,652 → 26,873
-    expect(withinTolerance(year2.netMonthly, 4427)).toBe(true); // (80,000 - 26,873) / 12
+    // Tax auf 80% = 64,000: 13,769.57 + 25559*0.3748 = 13,769.57 + 9,579.51 = 23,349.08
+    expect(withinTolerance(year2.netMonthly, 4720.91)).toBe(true); // (80,000 - 23,349.08) / 12
   });
 
   it('Jahr 4-5 (rulingYearsActive=4): 10% steuerfrei → höchste Steuerlast', () => {
@@ -165,8 +168,8 @@ describe('NL — 30%-Ruling gestaffelt', () => {
       specialRegimeId: 'ruling30-nl',
       rulingYearsActive: 4,
     }));
-    // Tax auf 90% = 72,000: Bracket 1: 14,221; Rest: 33559*0.495=16,612 → 30,833
-    expect(withinTolerance(year4.netMonthly, 4097)).toBe(true); // (80,000 - 30,833) / 12
+    // Tax auf 90% = 72,000: 13,769.57 + 33559*0.3748 = 13,769.57 + 12,577.92 = 26,347.49
+    expect(withinTolerance(year4.netMonthly, 4471.04)).toBe(true); // (80,000 - 26,347.49) / 12
   });
 
   it('Steuerlast steigt von Jahr 1 → Jahr 2 → Jahr 4', () => {
@@ -178,23 +181,42 @@ describe('NL — 30%-Ruling gestaffelt', () => {
   });
 });
 
+// ─── Niederlande — Standard (3-stufige Box-1-Skala + heffingskortingen) ────────
+// Sources (retrieved 2026-06-09):
+//   Brackets: belastingdienst.nl …/box_1 (35,82% / 37,48% / 49,50%)
+//   Algemene heffingskorting 2025: max €3.068, afbouw 6,337% > €28.406
+//   Arbeidskorting 2025: belastingdienst.nl tabel-arbeidskorting-2025 (max €5.599)
+// Net @60k ≈ 43.713 €/yr — im offiziellen Zielkorridor 43–44k und deckungsgleich
+// mit gängigen NL bruto-netto Rechnern (±2%). Externe Stützpunkte: siehe PR5.
+
 describe('NL — Standard (ohne Ruling)', () => {
-  it('80k EUR: netMonthly ~3,753 €/mo (±2%)', () => {
-    // Bracket 1: 38441*0.3697=14,221; Bracket 2: 41559*0.495=20,572 → total 34,793
-    // Net: 45,207 / 12 = 3,767
-    const result = calculate('nl', opts('nl', 80000, 'EUR'));
-    // Source: belastingdienst.nl simulator ~3,700-3,800 €/month
-    expect(result.netMonthly).toBeGreaterThan(3600);
-    expect(result.netMonthly).toBeLessThan(3950);
+  it('40k EUR: netMonthly ~2,792 €/mo (±2%)', () => {
+    // Box-1 14,353.89 − AHK 2,333.26 − arbeidskorting 5,529.53 = tax 6,491.10
+    // Net: 33,508.90 / 12 = 2,792.41
+    const result = calculate('nl', opts('nl', 40000, 'EUR'));
+    expect(withinTolerance(result.netMonthly, 2792.41)).toBe(true);
   });
 
-  it('40k EUR: netMonthly ~2,494 €/mo (±2%)', () => {
-    // Tax: 40000*0.3697 = 14,788; net: 25,212/12 = 2,101 — wait recalculate
-    // Actually: Bracket 1 only (40000 ≤ 38441? NO — 40000 > 38441)
-    // Tax: 38441*0.3697 + 1559*0.495 = 14,221 + 772 = 14,993; net: 25,007/12 = 2,084
-    const result = calculate('nl', opts('nl', 40000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(1900);
-    expect(result.netMonthly).toBeLessThan(2400);
+  it('60k EUR: netMonthly ~3,643 €/mo (±2%) — Zielkorridor 43–44k/yr', () => {
+    // Box-1 21,849.88 − AHK 1,065.87 − arbeidskorting 4,496.83 = tax 16,287.18
+    // Net: 43,712.82 / 12 = 3,642.74
+    const result = calculate('nl', opts('nl', 60000, 'EUR'));
+    expect(withinTolerance(result.netMonthly, 3642.73)).toBe(true);
+    expect(result.netAnnual).toBeGreaterThan(43000);
+    expect(result.netAnnual).toBeLessThan(44000);
+  });
+
+  it('80k EUR: netMonthly ~4,456 €/mo (±2%)', () => {
+    // Box-1 29,728.48 − AHK 0 (>76.820 afbouw) − arbeidskorting 3,194.83 = tax 26,533.65
+    // Net: 53,466.35 / 12 = 4,455.53
+    const result = calculate('nl', opts('nl', 80000, 'EUR'));
+    expect(withinTolerance(result.netMonthly, 4455.53)).toBe(true);
+  });
+
+  it('heffingskortingen bauen mit steigendem Einkommen ab (Progression)', () => {
+    const r60 = calculate('nl', opts('nl', 60000, 'EUR'));
+    const r80 = calculate('nl', opts('nl', 80000, 'EUR'));
+    expect(r80.effectiveRate).toBeGreaterThan(r60.effectiveRate);
   });
 });
 

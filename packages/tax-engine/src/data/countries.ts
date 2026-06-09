@@ -209,16 +209,41 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
     fixedAmounts: [],
   },
 
-  // ── Netherlands ──────────────────────────────────────────────────────────
+  // ── Netherlands 2025 — box-1 progressive scale + heffingskortingen ────────
+  // Box-1 social insurance (volksverzekeringen) is baked into the bracket-1
+  // rate, so it is not modelled separately. Source for ALL nl values below:
+  // belastingdienst.nl, schijven/heffingskortingen 2025 (jonger dan AOW-leeftijd),
+  // retrieved 2026-06-09.
   nl: {
     countryCode: 'nl',
     year: YEAR,
     brackets: [
-      { from: 0, to: 38441, rate: 0.3697 }, // social insurance baked into box-1 bracket 1
-      { from: 38441, to: null, rate: 0.495 },
+      // ── Box-1 scale 2025 (3 brackets since 2025). Source: belastingdienst.nl
+      // /…/box_1 ; rate 1 = 8.17% IB + 27.65% premies = 35.82%.
+      { from: 0, to: 38441, rate: 0.3582 },
+      { from: 38441, to: 76817, rate: 0.3748 },
+      { from: 76817, to: null, rate: 0.495 },
+
+      // ── Arbeidskorting 2025 (employee labour tax credit), modelled as a
+      // piecewise-linear function via marginal "rates"; the build-up cumulates
+      // to the €5,599 max at €43,071, then the phase-out is a NEGATIVE marginal
+      // rate down to €0 at €129,078. nl.ts floors the result at 0.
+      // Source: belastingdienst.nl tabel-arbeidskorting-2025.
+      { from: 0, to: 12169, rate: 0.08053, employmentType: 'arbeidskorting' },
+      { from: 12169, to: 26288, rate: 0.3003, employmentType: 'arbeidskorting' },
+      { from: 26288, to: 43071, rate: 0.02258, employmentType: 'arbeidskorting' },
+      { from: 43071, to: 129078, rate: -0.0651, employmentType: 'arbeidskorting' },
+      { from: 129078, to: null, rate: 0, employmentType: 'arbeidskorting' },
     ],
     social: [],
-    deductions: [],
+    deductions: [
+      // Algemene heffingskorting 2025 (general tax credit): flat €3,068 up to
+      // €28,406, then tapered by 6.337% of income above that, floored at 0.
+      // Source: belastingdienst.nl (algemene heffingskorting 2025, < AOW).
+      { type: 'ahk_max', amount: 3068 },
+      { type: 'ahk_phaseout_start', amount: 28406 },
+      { type: 'ahk_phaseout_rate', percentage: 0.06337 },
+    ],
     surcharges: [],
     fixedAmounts: [],
   },

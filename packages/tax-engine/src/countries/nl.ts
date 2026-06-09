@@ -1,19 +1,50 @@
 import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
 import { getDefaultTaxData } from '../data/countries';
-import { bracketsFor, progressiveTax } from '../data/helpers';
+import { bracketsFor, progressiveTax, deductionAmount, deductionPercentage } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
 /**
- * Netherlands 2025. Social insurance is baked into box-1 bracket 1 (36.97%),
- * so it is not modelled separately.
+ * Algemene heffingskorting (general tax credit): flat `ahk_max` up to the
+ * phase-out start, then reduced by `ahk_phaseout_rate` of income above it,
+ * floored at 0. Values from taxData (belastingdienst.nl 2025).
+ */
+function algemeneHeffingskorting(income: number, data: TaxData): number {
+  const max = deductionAmount(data, 'ahk_max');
+  if (max === 0) return 0;
+  const start = deductionAmount(data, 'ahk_phaseout_start');
+  const rate = deductionPercentage(data, 'ahk_phaseout_rate');
+  return Math.max(0, max - rate * Math.max(0, income - start));
+}
+
+/**
+ * Arbeidskorting (employee labour tax credit): the cumulative value of the
+ * piecewise-linear 'arbeidskorting' scale (build-up segments + a negative
+ * phase-out segment), floored at 0. Values from taxData.
+ */
+function arbeidskorting(income: number, data: TaxData): number {
+  const brackets = bracketsFor(data, 'arbeidskorting');
+  if (brackets.length === 0) return 0;
+  return Math.max(0, progressiveTax(income, brackets));
+}
+
+/**
+ * Netherlands 2025. Box-1 social insurance (volksverzekeringen) is baked into
+ * the bracket-1 rate (35.82%), so it is not modelled separately. The general
+ * tax credit (algemene heffingskorting) and the labour tax credit
+ * (arbeidskorting), each with their income-dependent phase-outs, are deducted
+ * from the box-1 levy.
  */
 export const nl: CountryModule = {
   countryCode: 'nl',
 
   calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('nl', opts.year);
-    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
+    const levy = progressiveTax(taxable, bracketsFor(data, 'employed'));
+    // Heffingskortingen reduce the combined box-1 levy (IB + premies);
+    // non-refundable, so the result is floored at 0.
+    const credits = algemeneHeffingskorting(taxable, data) + arbeidskorting(taxable, data);
+    return r(Math.max(0, levy - credits));
   },
 
   getSocialContributions(_gross: number, _opts: TaxOptions): SocialContributions {
@@ -56,9 +87,9 @@ export const nl: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Netherlands 2025. Social insurance contributions are included in bracket 1 (36.97%). Healthcare allowance (zorgtoeslag) not included. Not tax advice.';
+      return 'Netherlands 2025. Social insurance contributions are included in bracket 1 (35.82%). General and labour tax credits (heffingskortingen) are applied; the healthcare allowance (zorgtoeslag) is not included. Not tax advice.';
     }
-    return 'Niederlande 2025. Sozialversicherungsbeiträge sind in der ersten Steuerklasse (36,97%) enthalten. Gesundheitszuschuss (Zorgtoeslag) nicht berücksichtigt. Keine Steuerberatung.';
+    return 'Niederlande 2025. Sozialversicherungsbeiträge sind in der ersten Steuerklasse (35,82%) enthalten. Allgemeine und Arbeitssteuergutschrift (Heffingskortingen) werden berücksichtigt; Gesundheitszuschuss (Zorgtoeslag) nicht. Keine Steuerberatung.';
   },
 };
 
