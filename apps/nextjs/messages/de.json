@@ -71,6 +71,10 @@
       "pkvPremiumPlaceholder": "z. B. 600",
       "pkvPremiumUnit": "€ / Mon.",
       "pkvPremiumHint": "Dein privater Krankenversicherungsbeitrag pro Monat. Ohne Angabe wird mit den gesetzlichen Kosten genähert.",
+      "partnerGrossLabel": "Brutto-Jahresgehalt des Partners",
+      "partnerGrossPlaceholder": "z. B. 45000",
+      "partnerGrossUnit": "€ / Jahr",
+      "partnerGrossHint": "Für das Ehegatten-Splitting (Deutschland). Ohne Angabe wird vom Alleinverdiener ausgegangen.",
       "cta": {
         "hint": "Verfeinere dein Ergebnis mit deinen persönlichen Angaben.",
         "scrollDown": "Genauer rechnen ↓",

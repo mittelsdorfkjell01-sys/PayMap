@@ -71,6 +71,10 @@
       "pkvPremiumPlaceholder": "e.g. 600",
       "pkvPremiumUnit": "€ / mo.",
       "pkvPremiumHint": "Your monthly private health insurance premium. Without it, the statutory cost is used as an approximation.",
+      "partnerGrossLabel": "Partner's annual gross salary",
+      "partnerGrossPlaceholder": "e.g. 45000",
+      "partnerGrossUnit": "€ / year",
+      "partnerGrossHint": "For the German married-couple splitting. Without it, a single earner is assumed.",
       "cta": {
         "hint": "Refine your result with your personal details.",
         "scrollDown": "Refine result ↓",

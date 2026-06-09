@@ -10,6 +10,8 @@ export interface RefineFields {
   kvType: string | null;
   // DE PKV monthly premium (only relevant when kvType === 'private').
   privateKvPremium: number | null;
+  // Partner's annual gross (DE Ehegatten-Splitting; only relevant when married).
+  partnerGross: number | null;
 }
 
 interface RefineAccordionProps {
@@ -104,6 +106,34 @@ export const RefineAccordion = forwardRef<HTMLDivElement, RefineAccordionProps>(
               onSelect={(v) => set('familyStatus', v)}
               t={t}
             />
+
+            {/* Partner gross — inline, only when married (DE splitting) */}
+            {value.familyStatus === 'married' && (
+              <div className="space-y-2 pl-3 border-l-2 border-outline-variant/40">
+                <p className="text-label-sm font-medium text-on-surface-variant uppercase tracking-wider">
+                  {t('partnerGrossLabel')}
+                </p>
+                <div className="relative max-w-[14rem]">
+                  <input
+                    type="number"
+                    min={0}
+                    max={9999999}
+                    step={1000}
+                    value={value.partnerGross ?? ''}
+                    onChange={(e) => {
+                      const v = e.target.value === '' ? null : parseInt(e.target.value, 10);
+                      set('partnerGross', v != null && !isNaN(v) ? v : null);
+                    }}
+                    placeholder={t('partnerGrossPlaceholder')}
+                    className="input-field pr-20"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-label-sm text-on-surface-variant pointer-events-none">
+                    {t('partnerGrossUnit')}
+                  </span>
+                </div>
+                <p className="text-label-sm text-on-surface-variant">{t('partnerGrossHint')}</p>
+              </div>
+            )}
 
             {/* Children */}
             <div className="space-y-2">
