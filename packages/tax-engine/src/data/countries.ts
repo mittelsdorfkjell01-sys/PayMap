@@ -210,7 +210,21 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
     // NOTE: social contribution carried over from the 2025 baseline (cotización
     // general empleado; base máxima). Not re-verified for 2026 in the A.1 scope.
     social: [{ type: 'pension', rate: 0.0635, ceiling: 56064 }],
-    deductions: [],
+    deductions: [
+      // Mínimo personal del contribuyente (<65 años), Art. 57 LIRPF. Applied as
+      // a tax credit on BOTH the state and the comunidad scale: cuota =
+      // escala(base) − escala(mínimo). Source: sede.agenciatributaria.gob.es.
+      { type: 'minimo_personal', amount: 5550 },
+      // "Otros gastos" deducibles sin justificación, Art. 19.2.f LIRPF.
+      { type: 'otros_gastos', amount: 2000 },
+      // Reducción por obtención de rendimientos del trabajo, Art. 20 LIRPF:
+      // full €7.302 for net work income ≤ €14.852, tapered to 0 at €19.747,50
+      // (the intermediate kink at €17.673,52 is approximated linearly — only
+      // matters below ~€19,7k). Source: AEAT manual práctico Renta.
+      { type: 'reduccion_trabajo_max', amount: 7302 },
+      { type: 'reduccion_trabajo_full_below', amount: 14852 },
+      { type: 'reduccion_trabajo_zero_above', amount: 19747.5 },
+    ],
     surcharges: [],
     fixedAmounts: [],
   },
@@ -270,7 +284,13 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       { from: 81199, to: null, rate: 0.48 },
     ],
     social: [{ type: 'social_security', rate: 0.11, ceiling: null }],
-    deductions: [],
+    deductions: [
+      // Dedução específica Categoria A (trabalho dependente), Art. 25 CIRS 2025:
+      // 8,54 × IAS = 4.462,15 € — ou o total das contribuições obrigatórias para
+      // a Segurança Social, quando superior (pt.ts: max(fixed, SS)). Source:
+      // info.portaldasfinancas.gov.pt (Art. 25 CIRS); IAS 2025 = 522,50 €.
+      { type: 'deducao_especifica_min', amount: 4462.15 },
+    ],
     surcharges: [],
     fixedAmounts: [],
   },

@@ -1,6 +1,6 @@
 import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
 import { getDefaultTaxData } from '../data/countries';
-import { bracketsFor, progressiveTax, socialAmount } from '../data/helpers';
+import { bracketsFor, progressiveTax, socialAmount, deductionAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
@@ -18,8 +18,14 @@ export const pt: CountryModule = {
     return { health: 0, pension, unemployment: 0, care: 0, total: pension };
   },
 
-  getDeductions(_gross: number, _opts: TaxOptions): number {
-    return 0;
+  getDeductions(gross: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('pt', opts.year);
+    // Dedução específica Categoria A (Art. 25 CIRS): the fixed amount, or the
+    // mandatory social-security contributions when those are higher. Reduces the
+    // taxable base (the SS is also a cash outflow — both apply, no double count).
+    const fixed = deductionAmount(data, 'deducao_especifica_min');
+    const ss = socialAmount(data, 'social_security', gross);
+    return r(Math.min(gross, Math.max(fixed, ss)));
   },
 
   getAvailableRegimes(): SpecialRegimeInfo[] {
@@ -45,9 +51,9 @@ export const pt: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Portugal 2025. Approximate calculation based on national brackets. Regional surtaxes and individual deductions not included. Not tax advice.';
+      return 'Portugal 2025. Approximate calculation on the national brackets with the Categoria A specific deduction (dedução específica) applied. Solidarity surtax and individual tax credits (deduções à coleta) not included. Not tax advice.';
     }
-    return 'Portugal 2025. Näherungsrechnung auf Basis nationaler Steuersätze. Gemeindezuschläge und individuelle Abzüge nicht berücksichtigt. Keine Steuerberatung.';
+    return 'Portugal 2025. Näherungsrechnung auf Basis der nationalen Steuersätze inkl. spezifischem Abzug für Arbeitseinkommen (dedução específica). Solidaritätszuschlag und individuelle Steuergutschriften (deduções à coleta) nicht berücksichtigt. Keine Steuerberatung.';
   },
 };
 

@@ -33,28 +33,28 @@ function opts(country: string, gross: number, currency: string, overrides: Parti
 // Source: portaldasfinancas.gov.pt / simuladores.at.gov.pt
 // PT social: 11% flat (no cap), no deductions
 
-describe('PT — Standard', () => {
-  it('40k EUR: netMonthly ~2,068 €/mo (±2%)', () => {
-    // Tax brackets 2025 on 40k: 0-7703→1021, 7703-11623→706, 11623-16472→1115,
-    // 16472-21321→1261, 21321-27146→1908, 27146-39791→4679, 39791-40000→91 = ~10,781
-    // Social: 4,400; net: ~24,820/yr
+// Now applies the dedução específica Categoria A (Art. 25 CIRS): max(€4.462,15,
+// SS contributions). At ≥40k the SS (11%) dominates, so the base = gross − SS.
+// Annual-settlement basis (collecta), not monthly retention.
+describe('PT — Standard (mit dedução específica)', () => {
+  it('40k EUR: netMonthly ~2,207 €/mo (±2%)', () => {
+    // Dedução específica max(4.462,15, SS 4.400) = 4.462,15; base 35.537,85;
+    // collecta 9.115; social 4.400 → net 26.485/yr
     const result = calculate('pt', opts('pt', 40000, 'EUR'));
-    // Source: simulador AT 2025 ~2,000-2,150 €/month (hohe Sozialabgaben 11%)
-    expect(withinTolerance(result.netMonthly, 2068)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 2207.09)).toBe(true);
   });
 
-  it('80k EUR: netMonthly ~3,550 €/mo (±2%)', () => {
-    // Tax: ~28,600; social: 8,800; total: ~37,400; net: ~42,600/yr
+  it('80k EUR: netMonthly ~3,880 €/mo (±2%)', () => {
+    // Dedução específica = SS 8.800 (> fixed); base 71.200; collecta 24.640;
+    // social 8.800 → net 46.560/yr
     const result = calculate('pt', opts('pt', 80000, 'EUR'));
-    // Source: simulador AT 2025 ~3,450-3,600 €/month
-    expect(withinTolerance(result.netMonthly, 3550)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 3880.04)).toBe(true);
   });
 
-  it('120k EUR: netMonthly ~4,733 €/mo (±2%)', () => {
-    // Tax on 120k (all 48% tier from 81,199): complex brackets
+  it('120k EUR: netMonthly ~5,448 €/mo (±2%)', () => {
+    // Dedução específica = SS 13.200; base 106.800 (all in 48% tier from 81.199)
     const result = calculate('pt', opts('pt', 120000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(4400);
-    expect(result.netMonthly).toBeLessThan(5100);
+    expect(withinTolerance(result.netMonthly, 5447.7)).toBe(true);
   });
 });
 
@@ -71,7 +71,9 @@ describe('PT — IFICI+ Regime (20% flat)', () => {
     const standard = calculate('pt', opts('pt', 80000, 'EUR'));
     const ifici = calculate('pt', opts('pt', 80000, 'EUR', { specialRegimeId: 'ifici-pt' }));
     expect(ifici.netMonthly).toBeGreaterThan(standard.netMonthly);
-    expect(ifici.netMonthly - standard.netMonthly).toBeGreaterThan(800); // >800 €/mo Ersparnis
+    // Vorteil ~720 €/mo — kleiner als früher, da die dedução específica das
+    // Standard-Netto angehoben hat (war zuvor zu niedrig berechnet).
+    expect(ifici.netMonthly - standard.netMonthly).toBeGreaterThan(700);
   });
 
   it('120k EUR mit IFICI: netMonthly ~6,533 €/mo (±2%)', () => {
@@ -85,28 +87,34 @@ describe('PT — IFICI+ Regime (20% flat)', () => {
 // Source: state scale Art. 63.1 LIRPF (sede.agenciatributaria.gob.es); comunidad
 // scales: comunidad.madrid (BOCM), atc.gencat.cat (Cataluña DL 5/2025), atv.gva.es
 // (Valencia Ley 13/1997). IRPF = state scale + the city's comunidad regional scale (A.1).
-// Goldens are engine-derived from the verified 2026 brackets (model has no mínimo
-// personal y familiar → slightly conservative vs official calculators). ±2%.
+// IRPF now applies the mínimo personal (€5.550, credit: escala(base)−escala(mínimo)
+// on both state and comunidad scale), deductible social security and the €2.000
+// work expense. External anchor @60k Madrid (single, 2026): es.talent.com →
+// 42.209 €/yr; engine 42.367 €/yr (<0,4%). Retrieved 2026-06-09. ±2%.
 
-describe('ES — Standard (region-specific comunidad scale, A.1)', () => {
-  it('40k EUR Madrid: netMonthly ~2,298 €/mo (±2%)', () => {
-    // State 5,250.75 + Madrid 4,637.21 = tax 9,887.96; social 40000*0.0635=2,540;
-    // net 27,572/yr = 2,298/mo.
+describe('ES — Standard (region-specific comunidad scale + mínimo, A.1)', () => {
+  it('40k EUR Madrid: netMonthly ~2,517 €/mo (±2%)', () => {
+    // Base 40.000 − SS 2.540 − 2.000 = 35.460; cuota = [escala_est + escala_Madrid]
+    // − escala(5.550) = 7.259; social 2.540 → net 30.201/yr
     const result = calculate('es', opts('es', 40000, 'EUR', { region: 'comunidad-madrid' }));
-    expect(withinTolerance(result.netMonthly, 2298)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 2516.73)).toBe(true);
   });
 
-  it('80k EUR Madrid: netMonthly ~4,224 €/mo (±2%)', () => {
-    // State 13,450.75 + Madrid 12,300.42 = tax 25,751.17; social capped 56064*0.0635=3,560.06;
-    // net 50,688.77/yr = 4,224/mo.
+  it('60k EUR Madrid: netMonthly ~3,531 €/mo (±2%) — externer Anker 42.209 €/yr', () => {
+    const result = calculate('es', opts('es', 60000, 'EUR', { region: 'comunidad-madrid' }));
+    expect(withinTolerance(result.netMonthly, 3530.58)).toBe(true);
+    expect(result.netAnnual).toBeGreaterThan(41000);
+    expect(result.netAnnual).toBeLessThan(43500);
+  });
+
+  it('80k EUR Madrid: netMonthly ~4,507 €/mo (±2%)', () => {
     const result = calculate('es', opts('es', 80000, 'EUR', { region: 'comunidad-madrid' }));
-    expect(withinTolerance(result.netMonthly, 4224)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 4506.55)).toBe(true);
   });
 
-  it('120k EUR Madrid: netMonthly ~6,124 €/mo (±2%)', () => {
-    // State 22,450.75 + Madrid 20,500.42 = tax 42,951.17; social 3,560.06; net 73,488.77/yr.
+  it('120k EUR Madrid: netMonthly ~6,407 €/mo (±2%)', () => {
     const result = calculate('es', opts('es', 120000, 'EUR', { region: 'comunidad-madrid' }));
-    expect(withinTolerance(result.netMonthly, 6124)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 6406.55)).toBe(true);
   });
 
   it('80k EUR: Madrid > Barcelona > Valencia net (region matters, A.9)', () => {
@@ -116,9 +124,8 @@ describe('ES — Standard (region-specific comunidad scale, A.1)', () => {
     const valencia = calculate('es', opts('es', 80000, 'EUR', { region: 'comunitat-valenciana' }));
     expect(madrid.netMonthly).toBeGreaterThan(barcelona.netMonthly);
     expect(barcelona.netMonthly).toBeGreaterThan(valencia.netMonthly);
-    // Barcelona ~4,104/mo, Valencia ~4,049/mo (engine-derived from verified scales).
-    expect(withinTolerance(barcelona.netMonthly, 4104)).toBe(true);
-    expect(withinTolerance(valencia.netMonthly, 4049)).toBe(true);
+    expect(withinTolerance(barcelona.netMonthly, 4395.84)).toBe(true);
+    expect(withinTolerance(valencia.netMonthly, 4361.7)).toBe(true);
   });
 });
 
