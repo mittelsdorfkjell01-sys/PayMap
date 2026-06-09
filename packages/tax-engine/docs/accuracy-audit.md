@@ -69,6 +69,37 @@ Die übrigen Länder-Tests führen ihre Behörden-Quellen bereits im Header; ein
 maschinell abrufbarer Dritt-Rechner-Cross-Check dort ist Follow-up (nicht alle
 amtlichen Rechner sind serverseitig abrufbar).
 
+## Abdeckungsliste externe Validierung (Stand 2026-06-10)
+
+Ziel war: jedes Land mit auswählbarer Stadt, 2 Stützpunkte, gegen einen
+**etablierten Drittrechner**, ±3 %. Befund bei der Umsetzung:
+
+**⚠️ talent.com ist als breit verfügbarer Drittrechner UNZUVERLÄSSIG.** Stichprobe:
+- IE 80 k: talent.com ~39.844 €/Jahr vs. korrekt ~54.005 € — talent **ignoriert die
+  Steuergutschriften** (Personal/Employee Credit). Eigene Handrechnung (PAYE
+  23.600 − 4.000 Credits + USC 3.195 + PRSI 3.200 → 54.005) bestätigt die Engine.
+- AT/FR talent.com-Seiten lieferten inkonsistente Werte (FAQ-/Arbeitgeber-Zahlen
+  vermischt). IT-Pfad 404.
+→ talent.com wurde daher **nicht** als Referenz übernommen (außer ES, wo es bei
+60 k/80 k zufällig <0,7 % deckungsgleich war). Keine geratenen/falschen Goldens.
+
+| Status | Länder |
+|---|---|
+| **Extern bestätigt** (Drittrechner/behördennah) | DE, ES, NL, PT |
+| **Trivial-exakt** | UAE (0 % → Netto = Brutto, definitorisch) |
+| **Amtlich-parametrisch** (Werte aus amtlichen Brackets/Sätzen, in den Country-Tests zitiert; intern konsistent; verlässlicher abrufbarer Drittrechner offen) | AT, CH*, FR, IT, IE, EE, PL, CZ, HU, RO, TH, GB**, MT, GE, SG, ID, CO, MX, AR, ZA, US |
+
+\* CH-Einkommensteuer ist eine bewusste Effektivsatz-Näherung (Anhang A) → kann
+einen exakten Drittrechner-Abgleich grundsätzlich nicht treffen; KVG-Prämie ist
+amtlich (BAG). \*\* GB ist per HMRC-PAYE-Logik handverifiziert (siehe
+countries.test.ts-Header), aber nicht gegen einen externen Rechner gepinnt.
+
+**Offen / Entscheidung nötig:** Für die amtlich-parametrischen Länder fehlt ein
+serverseitig abrufbarer, *verlässlicher* Drittrechner. Optionen: (a) den
+amtlich-parametrischen Stand als „belegt durch amtliche Quelle" akzeptieren;
+(b) pro Land einen vom Nutzer benannten/geprüften Referenzrechner manuell
+abgleichen. Nicht geraten — nachgefragt.
+
 ## Bewusst nicht im Scope (Restungenauigkeiten)
 
 DE Kinderfreibetrag-Sonderfälle, FR quotient familial, PT Solidaritätszuschlag &

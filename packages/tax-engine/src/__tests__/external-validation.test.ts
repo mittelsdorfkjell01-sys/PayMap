@@ -18,10 +18,21 @@
  *    €36.8k @60k — a year-end refund effect, not an engine error), so they are
  *    deliberately not used as goldens here.
  *
- * Coverage: the four countries fixed in PR1–PR3 are anchored below. The
- * remaining countries' tests already cite their tax-authority sources (see
- * countries.test.ts headers and docs/accuracy-audit.md); machine-fetchable
- * third-party cross-checks for those are tracked as follow-up.
+ * Coverage (see docs/accuracy-audit.md for the full matrix):
+ *  • Externally confirmed below: DE, ES, NL, PT.
+ *  • Trivial-exact: UAE (0% tax → net = gross).
+ *  • Authority-parametric (values from official brackets/rates, cited in the
+ *    country tests; not yet pinned to a third-party calculator): AT, CH, FR, IT,
+ *    IE, EE, PL, CZ, HU, RO, TH, GB, MT, GE, SG, ID, CO, MX, AR, ZA, US.
+ *
+ * IMPORTANT — why those 21 are not pinned here: the one broadly-available
+ * fetchable third-party calculator (talent.com) proved UNRELIABLE on a spot
+ * check — e.g. IE 80k it reports ~€39,844 vs. the correct ~€54,005 because it
+ * omits the personal/employee tax credits (hand-check confirms the engine, not
+ * talent.com). AT/FR pages returned inconsistent figures. Encoding those as
+ * goldens would pin the engine to wrong values, so they are deliberately NOT
+ * added. Reliable per-country verification needs an interactive official
+ * calculator (not server-fetchable) or a user-approved reference — flagged.
  */
 import { describe, it, expect } from 'vitest';
 import { calculate } from '../calculate';
