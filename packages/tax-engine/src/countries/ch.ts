@@ -1,6 +1,6 @@
 import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
 import { getDefaultTaxData } from '../data/countries';
-import { socialAmount } from '../data/helpers';
+import { socialAmount, fixedAmountYearly } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
@@ -32,9 +32,12 @@ export const ch: CountryModule = {
     const data = taxData ?? getDefaultTaxData('ch', opts.year);
     const pension = r(socialAmount(data, 'pension', gross)); // AHV/IV/EO
     const unemployment = r(socialAmount(data, 'unemployment', gross)); // ALV
-    const total = r(pension + unemployment);
-    // Mandatory KVG health premium (fixed amount) is added in fix A.2.
-    return { health: 0, pension, unemployment, care: 0, total };
+    // Mandatory KVG basic-insurance premium: a fixed amount (not income-based),
+    // applied for the modelled canton (Zürich). Partly tax-deductible — treated
+    // as a documented approximation (not deducted from the tax base).
+    const health = r(fixedAmountYearly(data, 'health_premium', 'kanton-zuerich'));
+    const total = r(pension + unemployment + health);
+    return { health, pension, unemployment, care: 0, total };
   },
 
   getDeductions(_gross: number, _opts: TaxOptions): number {
@@ -51,9 +54,9 @@ export const ch: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Switzerland 2025. Calculation based on Canton Zurich (approximation). Cantonal deviations possible. Mandatory health insurance premiums not included. Not tax advice.';
+      return 'Switzerland 2025. Calculation based on Canton Zurich (approximation). Cantonal deviations possible. Includes the mandatory basic health insurance premium (mean adult premium, Zurich). Income tax is an effective-rate approximation. Not tax advice.';
     }
-    return 'Schweiz 2025. Berechnung auf Basis Kanton Zürich (Approximation). Kantonale Abweichungen möglich. Obligatorische Krankenkassenprämien nicht berücksichtigt. Keine Steuerberatung.';
+    return 'Schweiz 2025. Berechnung auf Basis Kanton Zürich (Approximation). Kantonale Abweichungen möglich. Enthält die obligatorische Krankenkassen-Grundprämie (mittlere Erwachsenenprämie, Zürich). Einkommensteuer als Effektivsatz-Näherung. Keine Steuerberatung.';
   },
 };
 

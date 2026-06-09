@@ -310,31 +310,30 @@ describe('IT — Impatriate Regime (50% steuerfrei)', () => {
 });
 
 // ─── Schweiz ───────────────────────────────────────────────────────────────────
-// Source: ktax.ch, taxcalculator.ch (Kanton Zürich Approximation)
-// CH: KK-Prämien (ca. 450-600 CHF/Mo) NICHT enthalten → Realnet niedriger
+// Source: Kanton Zürich Approximation. Income tax = effective-rate approximation
+// (Anhang A). Now includes the mandatory KVG basic-insurance premium: mittlere
+// Erwachsenenprämie Zürich 2025 = CHF 431,60/Mo (BAG/priminfo.admin.ch).
 
 describe('CH', () => {
-  it('60.000 CHF: netMonthly ~4,243 CHF/mo (±2%)', () => {
-    // Rate 0.15 (50-100k bracket): tax=9,000; social: pension=3,180, unem=min(60k,88.2k)*0.011=660 → total 3,840
-    // Total deductions: 12,840; net: 47,160/yr = 3,930/mo
+  it('60.000 CHF: netMonthly ~3,498 CHF/mo (±2%)', () => {
+    // tax 9.000; social pension 3.180 + unem 660 + KVG-Prämie 5.179,20 = 9.019,20
+    // net 41.980,80/yr = 3.498,40/mo
     const result = calculate('ch', opts('ch', 60000, 'CHF'));
-    // Source: taxcalculator.ch ZH ~3,800-4,100 CHF/month (ohne KK)
-    expect(result.netMonthly).toBeGreaterThan(3600);
-    expect(result.netMonthly).toBeLessThan(4400);
+    expect(withinTolerance(result.netMonthly, 3498.4)).toBe(true);
+    // KVG-Prämie ist im health-Beitrag enthalten (CHF 431,60 × 12)
+    expect(result.socialContributions.health).toBeCloseTo(431.6 * 12, 1);
   });
 
-  it('100.000 CHF: netMonthly ~6,144 CHF/mo (±2%)', () => {
-    // Rate 0.20: tax=20,000; social: pension=5,300, unem=88200*0.011=970 → 6,270; net: 73,730/yr
+  it('100.000 CHF: netMonthly ~5,713 CHF/mo (±2%)', () => {
+    // tax 20.000; social pension 5.300 + unem 970,20 + KVG 5.179,20 = 11.449,40
     const result = calculate('ch', opts('ch', 100000, 'CHF'));
-    // Source: taxcalculator.ch ZH ~5,900-6,400 CHF/month
-    expect(withinTolerance(result.netMonthly, 6144)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 5712.55)).toBe(true);
   });
 
-  it('150.000 CHF: netMonthly ~8,530 CHF/mo (±2%)', () => {
-    // Rate 0.25: tax=37,500; social: pension=7,950, unem=88200*0.011=970 → 8,920; net: ~103,580/yr
+  it('150.000 CHF: netMonthly ~8,200 CHF/mo (±2%)', () => {
+    // tax 37.500; social pension 7.950 + unem 970,20 + KVG 5.179,20 = 14.099,40
     const result = calculate('ch', opts('ch', 150000, 'CHF'));
-    expect(result.netMonthly).toBeGreaterThan(8000);
-    expect(result.netMonthly).toBeLessThan(9200);
+    expect(withinTolerance(result.netMonthly, 8200.05)).toBe(true);
   });
 });
 

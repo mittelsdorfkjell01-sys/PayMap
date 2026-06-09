@@ -152,7 +152,13 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
     ],
     deductions: [],
     surcharges: [],
-    fixedAmounts: [],
+    fixedAmounts: [
+      // Obligatorische KVG-Grundversicherung: mittlere Prämie Erwachsene (26+)
+      // Kanton Zürich 2025 = CHF 431,60/Monat (fixed amount, no %). The whole CH
+      // calc is Zürich-based, so the premium is applied for the modelled canton.
+      // Source: BAG / priminfo.admin.ch (mittlere Prämie 2025), retrieved 2026-06-10.
+      { type: 'health_premium', regionId: 'kanton-zuerich', amount: 431.6, period: 'monthly' },
+    ],
   },
 
   // ── Spain — IRPF split into state scale + comunidad regional scale (A.1) ──
