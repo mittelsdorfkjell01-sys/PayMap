@@ -94,11 +94,14 @@ einen exakten Drittrechner-Abgleich grundsätzlich nicht treffen; KVG-Prämie is
 amtlich (BAG). \*\* GB ist per HMRC-PAYE-Logik handverifiziert (siehe
 countries.test.ts-Header), aber nicht gegen einen externen Rechner gepinnt.
 
-**Offen / Entscheidung nötig:** Für die amtlich-parametrischen Länder fehlt ein
-serverseitig abrufbarer, *verlässlicher* Drittrechner. Optionen: (a) den
-amtlich-parametrischen Stand als „belegt durch amtliche Quelle" akzeptieren;
-(b) pro Land einen vom Nutzer benannten/geprüften Referenzrechner manuell
-abgleichen. Nicht geraten — nachgefragt.
+**Entscheidung (Nutzer, 2026-06-10): amtlich-parametrischer Stand akzeptiert.**
+Die 21 Länder gelten als „belegt durch amtliche Quelle" (Brackets/Sätze der
+jeweiligen Finanzbehörde, in den Country-Tests mit `sourceUrl` zitiert). Ein
+Drittrechner-Cross-Check ist hier bewusst NICHT erfolgt, weil kein verlässlicher
+serverseitig abrufbarer Rechner verfügbar war (talent.com unzuverlässig, s. o.).
+Falls künftig pro Land ein vertrauenswürdiger Referenzrechner benannt wird,
+können echte Goldens (±3 %, Quelle + Datum) in `external-validation.test.ts`
+ergänzt werden.
 
 ## Bewusst nicht im Scope (Restungenauigkeiten)
 
