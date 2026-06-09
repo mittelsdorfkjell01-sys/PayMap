@@ -12,7 +12,30 @@ export interface RefineFields {
   privateKvPremium: number | null;
   // Partner's annual gross (DE Ehegatten-Splitting; only relevant when married).
   partnerGross: number | null;
+  // DE church tax: levied only when churchMember; bundesland sets the rate.
+  churchMember: boolean;
+  bundesland: string | null;
 }
+
+// DE Bundesländer (value = engine code; only BY/BW levy 8%, the rest 9%).
+const BUNDESLAENDER: { value: string; label: string }[] = [
+  { value: 'BW', label: 'Baden-Württemberg' },
+  { value: 'BY', label: 'Bayern' },
+  { value: 'BE', label: 'Berlin' },
+  { value: 'BB', label: 'Brandenburg' },
+  { value: 'HB', label: 'Bremen' },
+  { value: 'HH', label: 'Hamburg' },
+  { value: 'HE', label: 'Hessen' },
+  { value: 'MV', label: 'Mecklenburg-Vorpommern' },
+  { value: 'NI', label: 'Niedersachsen' },
+  { value: 'NW', label: 'Nordrhein-Westfalen' },
+  { value: 'RP', label: 'Rheinland-Pfalz' },
+  { value: 'SL', label: 'Saarland' },
+  { value: 'SN', label: 'Sachsen' },
+  { value: 'ST', label: 'Sachsen-Anhalt' },
+  { value: 'SH', label: 'Schleswig-Holstein' },
+  { value: 'TH', label: 'Thüringen' },
+];
 
 interface RefineAccordionProps {
   value: RefineFields;
@@ -201,6 +224,49 @@ export const RefineAccordion = forwardRef<HTMLDivElement, RefineAccordionProps>(
                   </span>
                 </div>
                 <p className="text-label-sm text-on-surface-variant">{t('pkvPremiumHint')}</p>
+              </div>
+            )}
+
+            {/* Church tax — only when target is DE */}
+            {targetCountrySlug === 'de' && (
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={value.churchMember}
+                    onClick={() => set('churchMember', !value.churchMember)}
+                    className={cn(
+                      'relative w-10 h-6 rounded-full transition-colors shrink-0',
+                      value.churchMember ? 'bg-primary' : 'bg-surface-container-high',
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform',
+                        value.churchMember && 'translate-x-4',
+                      )}
+                    />
+                  </button>
+                  <span className="text-body-md text-on-surface">{t('churchLabel')}</span>
+                </label>
+                {value.churchMember && (
+                  <div className="space-y-2">
+                    <p className="text-label-sm font-medium text-on-surface-variant uppercase tracking-wider">
+                      {t('bundeslandLabel')}
+                    </p>
+                    <select
+                      value={value.bundesland ?? ''}
+                      onChange={(e) => set('bundesland', e.target.value || null)}
+                      className="input-field max-w-[16rem]"
+                    >
+                      <option value="">{t('bundeslandPlaceholder')}</option>
+                      {BUNDESLAENDER.map((b) => (
+                        <option key={b.value} value={b.value}>{b.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -75,6 +75,9 @@
       "partnerGrossPlaceholder": "z. B. 45000",
       "partnerGrossUnit": "€ / Jahr",
       "partnerGrossHint": "Für das Ehegatten-Splitting (Deutschland). Ohne Angabe wird vom Alleinverdiener ausgegangen.",
+      "churchLabel": "Kirchensteuerpflichtig",
+      "bundeslandLabel": "Bundesland",
+      "bundeslandPlaceholder": "Bundesland wählen …",
       "cta": {
         "hint": "Verfeinere dein Ergebnis mit deinen persönlichen Angaben.",
         "scrollDown": "Genauer rechnen ↓",

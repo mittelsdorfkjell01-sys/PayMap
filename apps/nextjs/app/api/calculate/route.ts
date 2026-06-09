@@ -21,6 +21,10 @@ const RequestSchema = z.object({
   privateKvPremium: z.number().nonnegative().max(100000).optional(),
   specialRegimeId: z.string().optional(),
   partnerGross: z.number().optional(),
+  // DE church tax: levied only when churchMember; bundesland selects the rate
+  // (8% in BY/BW, 9% elsewhere).
+  churchMember: z.boolean().optional(),
+  bundesland: z.string().optional(),
   year: z.number().int().min(2020).max(2030).optional(),
   locale: z.enum(['de', 'en']).default('de'),
   persistShare: z.boolean().optional(),
@@ -119,6 +123,8 @@ export async function POST(req: NextRequest) {
       year,
       specialRegimeId: data.specialRegimeId,
       partnerGross: data.partnerGross,
+      churchMember: data.churchMember,
+      bundesland: data.bundesland,
     } as const;
 
     fromResult = calculate(fromCountry, { ...opts, gross: fromGross, currency: fromCity.currency, region: fromRegion, cityScope: fromCityScope }, fromTaxData);

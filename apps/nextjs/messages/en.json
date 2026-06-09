@@ -75,6 +75,9 @@
       "partnerGrossPlaceholder": "e.g. 45000",
       "partnerGrossUnit": "€ / year",
       "partnerGrossHint": "For the German married-couple splitting. Without it, a single earner is assumed.",
+      "churchLabel": "Liable for church tax",
+      "bundeslandLabel": "Federal state",
+      "bundeslandPlaceholder": "Select a state …",
       "cta": {
         "hint": "Refine your result with your personal details.",
         "scrollDown": "Refine result ↓",
