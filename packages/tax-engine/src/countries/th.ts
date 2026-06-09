@@ -21,10 +21,12 @@ export const th: CountryModule = {
 
   getDeductions(gross: number, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('th', opts.year);
-    // Standard deduction: 50% of gross, capped.
+    // Standard expense deduction: 50% of gross, capped, plus the personal allowance.
     const pct = deductionPercentage(data, 'standard');
     const max = deductionAmount(data, 'standard_max');
-    return r(Math.min(gross * pct, max));
+    const expense = Math.min(gross * pct, max);
+    const personal = deductionAmount(data, 'personal_allowance');
+    return r(Math.min(gross, expense + personal));
   },
 
   getAvailableRegimes(): SpecialRegimeInfo[] {
@@ -37,9 +39,9 @@ export const th: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Thailand 2025 (THB). Approximate calculation. Since 2024, foreign income remitted to Thailand is taxable. Personal allowances and additional deductions not fully included. Not tax advice.';
+      return 'Thailand 2025 (THB). Approximate calculation including the 50% expense deduction and the 60,000 THB personal allowance. Since 2024, foreign income remitted to Thailand is taxable. Further family/insurance allowances not included. Not tax advice.';
     }
-    return 'Thailand 2025 (THB). Näherungsrechnung. Seit 2024 sind ausländische Einkünfte, die nach Thailand überwiesen werden, steuerpflichtig. Persönliche Freibeträge und weitere Abzüge nicht vollständig berücksichtigt. Keine Steuerberatung.';
+    return 'Thailand 2025 (THB). Näherungsrechnung inkl. 50%-Werbungskostenabzug und persönlichem Freibetrag (60.000 THB). Seit 2024 sind ausländische Einkünfte, die nach Thailand überwiesen werden, steuerpflichtig. Weitere Familien-/Versicherungsfreibeträge nicht berücksichtigt. Keine Steuerberatung.';
   },
 };
 

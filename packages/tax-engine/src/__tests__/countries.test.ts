@@ -239,20 +239,21 @@ describe('NL — Standard (ohne Ruling)', () => {
 // Jahressechstel parameters. NB: the AT base brackets themselves (12.816 …)
 // look like 2024 values; aligning them to official 2025 figures is a separate
 // open item and would shift these goldens slightly.
-describe('AT 2026 (A.8 — 13./14. Gehalt / Jahressechstel)', () => {
-  it('40k EUR: netMonthly ~2,260 €/mo (±2%)', () => {
+describe('AT 2026 (A.8 — 13./14. Gehalt / Jahressechstel + Verkehrsabsetzbetrag)', () => {
+  // Now also applies the Verkehrsabsetzbetrag (€496 credit on the laufende-Bezüge tax).
+  it('40k EUR: netMonthly ~2,302 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 40000, 'EUR'));
-    expect(withinTolerance(result.netMonthly, 2260)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 2301.73)).toBe(true);
   });
 
-  it('80k EUR: netMonthly ~3,841 €/mo (±2%)', () => {
+  it('80k EUR: netMonthly ~3,883 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 80000, 'EUR'));
-    expect(withinTolerance(result.netMonthly, 3841)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 3882.5)).toBe(true);
   });
 
-  it('120k EUR: netMonthly ~5,187 €/mo (±2%)', () => {
+  it('120k EUR: netMonthly ~5,229 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 120000, 'EUR'));
-    expect(withinTolerance(result.netMonthly, 5187)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 5228.55)).toBe(true);
   });
 });
 
@@ -262,10 +263,11 @@ describe('AT 2026 (A.8 — 13./14. Gehalt / Jahressechstel)', () => {
 // regionale/comunale apply when a region/city is set (see the Milan case).
 
 describe('IT — Standard (IRPEF 2026)', () => {
-  it('40k EUR: netMonthly ~2,160 €/mo (±2%)', () => {
-    // IRPEF: 28000*0.23 + 12000*0.33 = 6440+3960 = 10,400; social 3,676; net ~25,924/yr
+  it('40k EUR: netMonthly ~2,233 €/mo (±2%)', () => {
+    // IRPEF 10,400 − detrazione lavoro 868,18 (Art. 13: 1.910×(50.000−40.000)/22.000)
+    // = 9.531,82; social 3,676 → net ~26.792/yr
     const result = calculate('it', opts('it', 40000, 'EUR'));
-    expect(withinTolerance(result.netMonthly, 2160)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 2232.68)).toBe(true);
   });
 
   it('80k EUR: netMonthly ~3,837 €/mo (±2%)', () => {
@@ -369,22 +371,22 @@ describe('FR', () => {
 });
 
 // ─── Irland ───────────────────────────────────────────────────────────────────
-// Source: revenue.ie
-// IE: Steuergutschriften (Personal Credit 1.875€, PAYE Credit 1.875€ = 3.750€) NICHT modelliert
-// → tatsächliches Netto ca. 313€/mo höher als berechnet
+// Source: revenue.ie (Budget 2025). PAYE + USC; personal (€2.000) + employee
+// (€2.000) tax credits now applied to the PAYE tax (not USC/PRSI). PRSI 4%.
 
 describe('IE', () => {
-  it.skip('40k EUR: Steuergutschriften nicht modelliert — Referenzwert nicht verlässlich', () => {
-    // Ohne Credits (unser Modell): Tax PAYE+USC ~10,980; PRSI: 1,600; net: ~27,420/yr = 2,285/mo
-    // Mit Credits (Realwelt): ~14,730 netto nach steuer + credits = ~27,420+3,750 = ~31,170/yr = ~2,598/mo
-    // Wir testen die Modell-interne Konsistenz, keine externe Referenz
+  it('40k EUR: netMonthly ~2,779 €/mo (±2%)', () => {
+    // PAYE 8.000 (40k×0.2) − credits 4.000 = 4.000; USC 1.046,82; PRSI 1.600
+    // → net ~33.353/yr
+    const result = calculate('ie', opts('ie', 40000, 'EUR'));
+    expect(withinTolerance(result.netMonthly, 2779.43)).toBe(true);
   });
 
-  it('80k EUR (ohne Credits): netMonthly ~4,167 €/mo (±2%)', () => {
-    // PAYE+USC: ~26,795; PRSI: 3,200; total: 29,995; net: 50,005/yr
+  it('80k EUR: netMonthly ~4,500 €/mo (±2%)', () => {
+    // PAYE 42.000×0.2 + 38.000×0.4 = 8.400+15.200 = 23.600 − 4.000 credits = 19.600;
+    // USC 3.195,28; PRSI 3.200 → net ~54.005/yr
     const result = calculate('ie', opts('ie', 80000, 'EUR'));
-    // Unser Modell (ohne Credits) — intern konsistent
-    expect(withinTolerance(result.netMonthly, 4167)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 4500.39)).toBe(true);
   });
 
   it('PAYE+USC steigt progressiv', () => {
@@ -393,10 +395,9 @@ describe('IE', () => {
     expect(r80.effectiveRate).toBeGreaterThan(r40.effectiveRate);
   });
 
-  it('120k EUR: netMonthly ~5,533 €/mo (±2%)', () => {
+  it('120k EUR: netMonthly ~6,100 €/mo (±2%)', () => {
     const result = calculate('ie', opts('ie', 120000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(5100);
-    expect(result.netMonthly).toBeLessThan(6000);
+    expect(withinTolerance(result.netMonthly, 6100.39)).toBe(true);
   });
 });
 
@@ -459,25 +460,26 @@ describe('PL', () => {
 });
 
 // ─── Tschechien ────────────────────────────────────────────────────────────────
-// Source: financnisprava.cz / mesicni-mzda.cz (CZK)
-// CZ: Steuergutschrift (základní sleva 30.840 CZK) NICHT modelliert → Netto höher in Realität
+// Source: financnisprava.cz (CZK). Základní sleva na poplatníka 30.840 CZK/yr
+// (§35ba ZDP) now applied as a non-refundable credit against income tax.
 
 describe('CZ', () => {
-  it.skip('Základní sleva (30.840 CZK/yr) nicht modelliert — externe Referenz unzuverlässig', () => {
-    // Modell überschätzt Steuerlast um ~2.570 CZK/mo
-    // Erst nach Sprint 3 / Erweiterung des Modells testbar
-  });
-
-  it('800.000 CZK: netMonthly ~49,333 CZK/mo (±2%)', () => {
-    // Tax: 800000*0.15=120,000; social: pension=52,000+health=36,000=88,000; net: 592,000/yr
+  it('Základní sleva senkt die Steuer um 30.840 CZK/yr', () => {
+    // 800k: Steuer 120.000 − sleva 30.840 = 89.160 (statt 120.000 ohne Gutschrift).
     const result = calculate('cz', opts('cz', 800000, 'CZK'));
-    expect(withinTolerance(result.netMonthly, 49333)).toBe(true);
+    expect(result.incomeTax).toBe(800000 * 0.15 - 30840);
   });
 
-  it('1.200.000 CZK: netMonthly ~74,000 CZK/mo (±2%)', () => {
-    // Tax: 1200000*0.15=180,000; social: 132,000; net: 888,000/yr
+  it('800.000 CZK: netMonthly ~51,903 CZK/mo (±2%)', () => {
+    // Tax 120.000 − sleva 30.840 = 89.160; social 88.000 → net 622.840/yr
+    const result = calculate('cz', opts('cz', 800000, 'CZK'));
+    expect(withinTolerance(result.netMonthly, 51903.33)).toBe(true);
+  });
+
+  it('1.200.000 CZK: netMonthly ~76,570 CZK/mo (±2%)', () => {
+    // Tax 180.000 − sleva 30.840 = 149.160; social 132.000 → net 918.840/yr
     const result = calculate('cz', opts('cz', 1200000, 'CZK'));
-    expect(withinTolerance(result.netMonthly, 74000)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 76570)).toBe(true);
   });
 
   it('Spitzensteuersatz 23% ab 1.582.812 CZK', () => {
@@ -577,10 +579,11 @@ describe('TH', () => {
     expect(result.netMonthly).toBeLessThan(43000);
   });
 
-  it('2.000.000 THB: netMonthly ~137,583 THB/mo (±2%)', () => {
-    // Deduction: 100000; taxable: 1900000; tax: 340000; social: 9000; net: 1651000/yr
+  it('2.000.000 THB: netMonthly ~138,833 THB/mo (±2%)', () => {
+    // Deduction: 100.000 expense + 60.000 personal = 160.000; taxable 1.840.000;
+    // tax 319.000; social 9.000 → net 1.666.000/yr
     const result = calculate('th', opts('th', 2000000, 'THB'));
-    expect(withinTolerance(result.netMonthly, 137583)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 138833.33)).toBe(true);
   });
 
   it('SV max 9.000 THB/Jahr (Deckel greift ab 180.000 THB Brutto)', () => {

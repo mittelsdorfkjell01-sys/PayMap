@@ -47,7 +47,10 @@ export const at: CountryModule = {
     const data = taxData ?? getDefaultTaxData('at', opts.year);
     // AT has no standard deduction, so `taxable` === gross here.
     const { laufende, sonder } = splitGross(taxable);
-    const taxLaufende = progressiveTax(laufende, bracketsFor(data, 'employed'));
+    // Verkehrsabsetzbetrag: non-refundable credit against the tax on the
+    // laufende Bezüge (erhöhter VAB / Zuschlag for low incomes out of scope).
+    const vab = deductionAmount(data, 'verkehrsabsetzbetrag');
+    const taxLaufende = Math.max(0, progressiveTax(laufende, bracketsFor(data, 'employed')) - vab);
     const taxSonder = sonderzahlungTax(sonder, data);
     return r(taxLaufende + taxSonder);
   },
@@ -91,9 +94,9 @@ export const at: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Austria 2025. Includes the 13th/14th salary (Jahressechstel): special payments taxed at the reduced 6%/27% rates. Church tax and individual deductions not considered. Not tax advice.';
+      return 'Austria 2026. Includes the 13th/14th salary (Jahressechstel): special payments taxed at the reduced 6%/27% rates, plus the Verkehrsabsetzbetrag (€496 credit). Church contribution and other individual deductions not considered. Not tax advice.';
     }
-    return 'Österreich 2025. Berücksichtigt 13./14. Gehalt (Jahressechstel): Sonderzahlungen mit den begünstigten Sätzen 6%/27% besteuert. Kirchenbeitrag und individuelle Freibeträge nicht berücksichtigt. Keine Steuerberatung.';
+    return 'Österreich 2026. Berücksichtigt 13./14. Gehalt (Jahressechstel): Sonderzahlungen mit den begünstigten Sätzen 6%/27%, plus Verkehrsabsetzbetrag (496 € Absetzbetrag). Kirchenbeitrag und weitere individuelle Freibeträge nicht berücksichtigt. Keine Steuerberatung.';
   },
 };
 

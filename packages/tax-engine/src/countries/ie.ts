@@ -1,6 +1,6 @@
 import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
 import { getDefaultTaxData } from '../data/countries';
-import { bracketsFor, progressiveTax, socialAmount } from '../data/helpers';
+import { bracketsFor, progressiveTax, socialAmount, deductionAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
@@ -9,7 +9,11 @@ export const ie: CountryModule = {
 
   calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('ie', opts.year);
-    const paye = progressiveTax(taxable, bracketsFor(data, 'employed'));
+    // Personal + employee (PAYE) tax credits are non-refundable and reduce the
+    // PAYE income tax only — not the USC. Source: revenue.ie (Budget 2025).
+    const credits =
+      deductionAmount(data, 'personal_credit') + deductionAmount(data, 'employee_credit');
+    const paye = Math.max(0, progressiveTax(taxable, bracketsFor(data, 'employed')) - credits);
     const usc = progressiveTax(taxable, bracketsFor(data, 'usc'));
     return r(paye + usc);
   },
@@ -35,9 +39,9 @@ export const ie: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Ireland 2025. Includes PAYE and USC. PRSI modeled as a flat contribution. Tax credits (personal, PAYE) not applied — actual net will be higher. Not tax advice.';
+      return 'Ireland 2025. Includes PAYE and USC, with the personal and employee tax credits applied to the PAYE tax. PRSI modeled as a flat contribution. Not tax advice.';
     }
-    return 'Irland 2025. Beinhaltet PAYE und USC. PRSI als Pauschalabgabe modelliert. Steuergutschriften (Personal Credit, PAYE Credit) nicht abgezogen — tatsächliches Netto höher. Keine Steuerberatung.';
+    return 'Irland 2025. Beinhaltet PAYE und USC inkl. Personal- und Arbeitnehmer-Steuergutschrift (auf die PAYE-Steuer). PRSI als Pauschalabgabe modelliert. Keine Steuerberatung.';
   },
 };
 

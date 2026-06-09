@@ -9,7 +9,12 @@ export const fr: CountryModule = {
 
   calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('fr', opts.year);
-    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
+    const tax = progressiveTax(taxable, bracketsFor(data, 'employed'));
+    // Décote (single): reduces small tax bills, 0 above ~€1.964. No effect at
+    // the typical comparison incomes (tax ≫ threshold) but accurate for low ones.
+    const decoteMax = deductionAmount(data, 'decote_single');
+    const decote = Math.max(0, decoteMax - deductionPercentage(data, 'decote_rate') * tax);
+    return r(Math.max(0, tax - decote));
   },
 
   getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
@@ -40,9 +45,9 @@ export const fr: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'France 2025. Approximate calculation. Social contributions (CSG, CRDS, etc.) simplified to 22%. Quotient familial for married/children reduces tax but is not fully modeled. Not tax advice.';
+      return 'France 2025. Approximate calculation with the 10% abatement and the décote (low-income tax reduction). Social contributions (CSG, CRDS, etc.) simplified to 22%. Quotient familial for married/children not fully modeled. Not tax advice.';
     }
-    return 'Frankreich 2025. Näherungsrechnung. Sozialabgaben (CSG, CRDS etc.) vereinfacht auf 22%. Quotient familial für Verheiratete/Kinder nicht vollständig abgebildet. Keine Steuerberatung.';
+    return 'Frankreich 2025. Näherungsrechnung inkl. 10%-Abschlag und Décote (Steuerermäßigung für niedrige Einkommen). Sozialabgaben (CSG, CRDS etc.) vereinfacht auf 22%. Quotient familial für Verheiratete/Kinder nicht vollständig abgebildet. Keine Steuerberatung.';
   },
 };
 

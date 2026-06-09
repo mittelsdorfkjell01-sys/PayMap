@@ -119,6 +119,10 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       // Jahressechstel (A.8): special-payment (13th/14th salary) parameters.
       { type: 'sonderzahlung_freigrenze', amount: 2570 }, // below this → no tax
       { type: 'sonderzahlung_sv_reduction', percentage: 0.01 }, // SV ~1% lower on Sonderzahlungen
+      // Verkehrsabsetzbetrag (§33 Abs. 5 EStG), 2026: €496 — non-refundable
+      // credit against the tax on laufende Bezüge. The erhöhter VAB / Zuschlag
+      // (low income, phase-out < ~€30.259) are out of scope. Source: BMF / finanz.at.
+      { type: 'verkehrsabsetzbetrag', amount: 496 },
     ],
     surcharges: [
       // Sonderzahlungen scale: first €620 free, 6% on the next €24,380, then 27%.
@@ -315,6 +319,11 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       { type: 'abatement', percentage: 0.1 },
       { type: 'abatement_min', amount: 495 },
       { type: 'abatement_max', amount: 13522 },
+      // Décote (Art. 197 CGI) — reduces low tax bills: décote = 889 − 45,25% ×
+      // impôt (single), floored at 0; 0 above ~€1.964 of tax. Source:
+      // impots.gouv.fr. (Couple variant not modelled — single only.)
+      { type: 'decote_single', amount: 889 },
+      { type: 'decote_rate', percentage: 0.4525 },
     ],
     surcharges: [],
     fixedAmounts: [],
@@ -331,7 +340,17 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       { from: 50000, to: null, rate: 0.43 },
     ],
     social: [{ type: 'pension', rate: 0.0919, ceiling: 119650 }],
-    deductions: [],
+    deductions: [
+      // Detrazioni per redditi di lavoro dipendente, Art. 13 TUIR. Credit
+      // against IRPEF (not the addizionale), declining to 0 at €50.000.
+      // Source: agenziaentrate.gov.it. (Minor €65 bonus €25k–35k omitted.)
+      { type: 'detrazione_low', amount: 1955 }, // reddito ≤ 15.000
+      { type: 'detrazione_low_threshold', amount: 15000 },
+      { type: 'detrazione_base', amount: 1910 }, // base for the two upper formulas
+      { type: 'detrazione_mid_add', amount: 1190 }, // extra within 15.000–28.000
+      { type: 'detrazione_mid_threshold', amount: 28000 },
+      { type: 'detrazione_zero_threshold', amount: 50000 },
+    ],
     surcharges: [
       // Addizionale regionale (progressive) — MEF, anno d'imposta 2026.
       // Lazio: piano di rientro (max) — €60 detrazione 28.001–30.000 omitted (Anhang A).
@@ -376,7 +395,12 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       { from: 70044, to: null, rate: 0.08, employmentType: 'usc' },
     ],
     social: [{ type: 'prsi', rate: 0.04, ceiling: null }],
-    deductions: [],
+    deductions: [
+      // Income tax credits 2025 (Budget 2025) — non-refundable, reduce the PAYE
+      // income tax only (not USC, not PRSI). Source: revenue.ie.
+      { type: 'personal_credit', amount: 2000 },
+      { type: 'employee_credit', amount: 2000 },
+    ],
     surcharges: [],
     fixedAmounts: [],
   },
@@ -428,7 +452,11 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
       { type: 'pension', rate: 0.065, ceiling: null },
       { type: 'health', rate: 0.045, ceiling: null },
     ],
-    deductions: [],
+    deductions: [
+      // Sleva na poplatníka (basic taxpayer credit), §35ba ZDP: 30.840 CZK/yr.
+      // Non-refundable credit against income tax. Source: financnisprava.cz.
+      { type: 'sleva_poplatnik', amount: 30840 },
+    ],
     surcharges: [],
     fixedAmounts: [],
   },
@@ -492,6 +520,8 @@ export const DEFAULT_TAX_DATA: Record<string, TaxData> = {
     deductions: [
       { type: 'standard', percentage: 0.5 },
       { type: 'standard_max', amount: 100000 },
+      // Personal allowance (ค่าลดหย่อนส่วนตัว) 60.000 THB. Source: rd.go.th.
+      { type: 'personal_allowance', amount: 60000 },
     ],
     surcharges: [],
     fixedAmounts: [],
