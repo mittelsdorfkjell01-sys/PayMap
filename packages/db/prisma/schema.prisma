@@ -67,6 +67,16 @@ model Country {
   sourceUrl String?
   updatedAt DateTime @updatedAt
 
+  // ── Boolean filter flags for the Trends page (NOT scores; 0/1 filters). ──
+  // Nullable: null = "Daten ausstehend" (no reliable source yet) — never guessed.
+  // Each flag carries its own sourceUrl.
+  dbaGermany          Boolean? // double-taxation treaty with Germany in force
+  dbaGermanySourceUrl String?
+  euEea               Boolean? // EU or EEA member
+  euEeaSourceUrl      String?
+  nomadVisa           Boolean? // offers a digital-nomad / remote-work visa
+  nomadVisaSourceUrl  String?
+
   cities                  City[]
   taxBrackets             TaxBracket[]
   specialRegimes          SpecialRegime[]
