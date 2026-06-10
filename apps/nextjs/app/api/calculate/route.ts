@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { calculate, calculateApproximate } from '@paymap/tax-engine';
 import { findCity } from '@/lib/city-lookup';
+import { loadTaxData } from '@/lib/tax-data';
 import { prisma } from '@/lib/prisma';
 import { flags } from '@/lib/feature-flags';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -16,8 +17,14 @@ const RequestSchema = z.object({
   familyStatus: z.enum(['single', 'married', 'divorced']).optional(),
   children: z.number().int().min(0).max(20).optional(),
   kvType: z.enum(['statutory', 'private']).optional(),
+  // DE PKV monthly premium (used as health contribution when kvType='private').
+  privateKvPremium: z.number().nonnegative().max(100000).optional(),
   specialRegimeId: z.string().optional(),
   partnerGross: z.number().optional(),
+  // DE church tax: levied only when churchMember; bundesland selects the rate
+  // (8% in BY/BW, 9% elsewhere).
+  churchMember: z.boolean().optional(),
+  bundesland: z.string().optional(),
   year: z.number().int().min(2020).max(2030).optional(),
   locale: z.enum(['de', 'en']).default('de'),
   persistShare: z.boolean().optional(),
@@ -88,24 +95,40 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Tax tables (brackets, social, deductions, surcharges, fixed amounts) for
+  // both countries, plus the sub-national region from each city. The city slug
+  // doubles as the cityScope for municipal surcharges (NYC city tax, IT
+  // addizionale comunale).
+  const fromRegion = fromCity.regionSlug ?? undefined;
+  const toRegion = toCity.regionSlug ?? undefined;
+  const fromCityScope = fromCity.slug;
+  const toCityScope = toCity.slug;
+  const [fromTaxData, toTaxData] = await Promise.all([
+    loadTaxData(fromCountry, year),
+    loadTaxData(toCountry, year),
+  ]);
+
   let fromResult, toResult;
 
   if (approximate) {
-    fromResult = calculateApproximate(fromCountry, fromGross, fromCity.currency, year, data.locale);
-    toResult = calculateApproximate(toCountry, toGross, toCity.currency, year, data.locale);
+    fromResult = calculateApproximate(fromCountry, fromGross, fromCity.currency, year, data.locale, fromTaxData, fromRegion, fromCityScope);
+    toResult = calculateApproximate(toCountry, toGross, toCity.currency, year, data.locale, toTaxData, toRegion, toCityScope);
   } else {
     const opts = {
       employment: data.employment ?? 'employed',
       familyStatus: data.familyStatus ?? 'single',
       children: data.children ?? 0,
       kvType: data.kvType ?? 'statutory',
+      privateKvPremium: data.privateKvPremium,
       year,
       specialRegimeId: data.specialRegimeId,
       partnerGross: data.partnerGross,
+      churchMember: data.churchMember,
+      bundesland: data.bundesland,
     } as const;
 
-    fromResult = calculate(fromCountry, { ...opts, gross: fromGross, currency: fromCity.currency });
-    toResult = calculate(toCountry, { ...opts, gross: toGross, currency: toCity.currency });
+    fromResult = calculate(fromCountry, { ...opts, gross: fromGross, currency: fromCity.currency, region: fromRegion, cityScope: fromCityScope }, fromTaxData);
+    toResult = calculate(toCountry, { ...opts, gross: toGross, currency: toCity.currency, region: toRegion, cityScope: toCityScope }, toTaxData);
   }
 
   // Net figures live in each city's local currency; normalise to EUR before
@@ -146,7 +169,9 @@ export async function POST(req: NextRequest) {
         kvType: data.kvType ?? 'statutory',
         year,
         specialRegimeId: toRegimeRow.slug,
-      });
+        region: toRegion,
+        cityScope: toCityScope,
+      }, toTaxData);
       taxWithRegime = {
         netMonthly: regimeCalc.netMonthly,
         netAnnual: regimeCalc.netAnnual,

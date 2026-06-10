@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
+import { DEFAULT_TAX_DATA, TAX_DATA_SOURCES, REGIONS, CITY_REGIONS } from "@paymap/tax-engine";
 
 const prisma = new PrismaClient();
 
@@ -586,50 +587,14 @@ async function main() {
     }
   }
 
-  // ─── TaxBrackets (DE 2025) ────────────────────────────────────────────────
-  const deId = countryMap.get("de")!;
-  const existingBrackets = await prisma.taxBracket.count({ where: { countryId: deId, year: 2025 } });
-  if (existingBrackets === 0) {
-    await prisma.taxBracket.createMany({
-      data: [
-        { countryId: deId, fromAmount: 0,      toAmount: 12084,  rate: 0.00, year: 2025, employmentType: "employed" },
-        { countryId: deId, fromAmount: 12084,   toAmount: 17005,  rate: 0.14, year: 2025, employmentType: "employed" },
-        { countryId: deId, fromAmount: 17005,   toAmount: 66760,  rate: 0.24, year: 2025, employmentType: "employed" },
-        { countryId: deId, fromAmount: 66760,   toAmount: 277825, rate: 0.42, year: 2025, employmentType: "employed" },
-        { countryId: deId, fromAmount: 277825,  toAmount: null as unknown as number, rate: 0.45, year: 2025, employmentType: "employed" },
-        { countryId: deId, fromAmount: 0,       toAmount: 22347,  rate: 0.00, year: 2025, employmentType: "freelancer" },
-        { countryId: deId, fromAmount: 22347,   toAmount: 66760,  rate: 0.30, year: 2025, employmentType: "freelancer" },
-        { countryId: deId, fromAmount: 66760,   toAmount: null as unknown as number, rate: 0.42, year: 2025, employmentType: "freelancer" },
-      ],
-    });
-  }
-
-  // ─── SocialContributions (DE 2025) ────────────────────────────────────────
-  const existingSocial = await prisma.socialContribution.count({ where: { countryId: deId, year: 2025 } });
-  if (existingSocial === 0) {
-    await prisma.socialContribution.createMany({
-      data: [
-        { countryId: deId, type: "pension",      rate: 0.093, ceiling: 96600, employeeSide: true, year: 2025 },
-        { countryId: deId, type: "unemployment", rate: 0.013, ceiling: 96600, employeeSide: true, year: 2025 },
-        { countryId: deId, type: "health",       rate: 0.073, ceiling: 66150, employeeSide: true, year: 2025 },
-        { countryId: deId, type: "care",         rate: 0.018, ceiling: 66150, employeeSide: true, year: 2025 },
-      ],
-    });
-  }
-
-  // ─── Deductions (DE 2025) ─────────────────────────────────────────────────
-  // § 3 Abs. 3 SolzG: Freigrenze VZ 2025 = 19.950 € (ledig)
-  const existingDeductions = await prisma.deduction.count({ where: { countryId: deId, year: 2025 } });
-  if (existingDeductions === 0) {
-    await prisma.deduction.createMany({
-      data: [
-        { countryId: deId, type: "werbungskosten",  amount: 1230,  year: 2025, condition: "employed" },
-        { countryId: deId, type: "grundfreibetrag", amount: 12084, year: 2025, condition: "all" },
-        { countryId: deId, type: "kinderfreibetrag", amount: 6612, year: 2025, condition: "per_child" },
-        { countryId: deId, type: "soli_freigrenze", amount: 19950, year: 2025, condition: "single" },
-      ],
-    });
-  }
+  // ─── Tax tables for ALL countries (canonical engine dataset) ──────────────
+  // Single source of truth: packages/tax-engine/src/data/countries.ts. The DB
+  // mirrors that dataset so the engine (which reads tax values from the DB at
+  // runtime) and the seed never diverge ("no second truth in TS"). Every row
+  // carries the issuing authority's sourceUrl. Idempotent: skips a category for
+  // a country/year if rows already exist.
+  const regionMap = await seedRegionsAndLinks(countryMap, cityMap);
+  await seedTaxData(countryMap, regionMap);
 
   // ─── ExchangeRates ────────────────────────────────────────────────────────
   const rates = [
@@ -2323,223 +2288,6 @@ async function main() {
     },
   ]);
 
-  // ─── TaxBrackets + SocialContributions für alle weiteren Länder ──────────
-  type BracketDef = { fromAmount: number; toAmount: number | null; rate: number; employmentType: string };
-  type SocialDef  = { type: string; rate: number; ceiling: number | null; employeeSide: boolean };
-
-  const countrySeedData: Array<{ slug: string; year: number; brackets: BracketDef[]; social: SocialDef[] }> = [
-    { slug: "at", year: 2025, brackets: [
-      { fromAmount: 0,       toAmount: 12816,   rate: 0.00, employmentType: "employed" },
-      { fromAmount: 12816,   toAmount: 20818,   rate: 0.20, employmentType: "employed" },
-      { fromAmount: 20818,   toAmount: 34513,   rate: 0.30, employmentType: "employed" },
-      { fromAmount: 34513,   toAmount: 66612,   rate: 0.40, employmentType: "employed" },
-      { fromAmount: 66612,   toAmount: 99266,   rate: 0.48, employmentType: "employed" },
-      { fromAmount: 99266,   toAmount: 1000000, rate: 0.50, employmentType: "employed" },
-      { fromAmount: 1000000, toAmount: null,    rate: 0.55, employmentType: "employed" },
-      { fromAmount: 0,       toAmount: 12816,   rate: 0.00, employmentType: "self_employed" },
-      { fromAmount: 12816,   toAmount: 34513,   rate: 0.25, employmentType: "self_employed" },
-      { fromAmount: 34513,   toAmount: 66612,   rate: 0.40, employmentType: "self_employed" },
-      { fromAmount: 66612,   toAmount: null,    rate: 0.50, employmentType: "self_employed" },
-    ], social: [
-      { type: "pension",      rate: 0.1025, ceiling: 6450 * 14, employeeSide: true },
-      { type: "health",       rate: 0.0387, ceiling: 6450 * 14, employeeSide: true },
-      { type: "unemployment", rate: 0.0300, ceiling: 6450 * 14, employeeSide: true },
-    ]},
-    { slug: "ch", year: 2025, brackets: [
-      { fromAmount: 0,      toAmount: 17800,  rate: 0.00, employmentType: "employed" },
-      { fromAmount: 17800,  toAmount: 55200,  rate: 0.15, employmentType: "employed" },
-      { fromAmount: 55200,  toAmount: 85000,  rate: 0.22, employmentType: "employed" },
-      { fromAmount: 85000,  toAmount: 130000, rate: 0.27, employmentType: "employed" },
-      { fromAmount: 130000, toAmount: null,   rate: 0.30, employmentType: "employed" },
-      { fromAmount: 0,      toAmount: 17800,  rate: 0.00, employmentType: "self_employed" },
-      { fromAmount: 17800,  toAmount: 85000,  rate: 0.18, employmentType: "self_employed" },
-      { fromAmount: 85000,  toAmount: null,   rate: 0.28, employmentType: "self_employed" },
-    ], social: [
-      { type: "ahv_iv_eo",   rate: 0.0535, ceiling: 148200, employeeSide: true },
-      { type: "alv",         rate: 0.0110, ceiling: 148200, employeeSide: true },
-      { type: "pension_bvg", rate: 0.0750, ceiling: 88200,  employeeSide: true },
-    ]},
-    { slug: "pt", year: 2025, brackets: [
-      { fromAmount: 0,     toAmount: 7703,  rate: 0.1325, employmentType: "employed" },
-      { fromAmount: 7703,  toAmount: 11623, rate: 0.18,   employmentType: "employed" },
-      { fromAmount: 11623, toAmount: 16472, rate: 0.23,   employmentType: "employed" },
-      { fromAmount: 16472, toAmount: 21321, rate: 0.26,   employmentType: "employed" },
-      { fromAmount: 21321, toAmount: 27146, rate: 0.3275, employmentType: "employed" },
-      { fromAmount: 27146, toAmount: 39791, rate: 0.37,   employmentType: "employed" },
-      { fromAmount: 39791, toAmount: 51997, rate: 0.435,  employmentType: "employed" },
-      { fromAmount: 51997, toAmount: 81199, rate: 0.45,   employmentType: "employed" },
-      { fromAmount: 81199, toAmount: null,  rate: 0.48,   employmentType: "employed" },
-      { fromAmount: 0,     toAmount: null,  rate: 0.20,   employmentType: "ifici" },
-    ], social: [
-      { type: "social_security", rate: 0.11, ceiling: null, employeeSide: true },
-    ]},
-    { slug: "es", year: 2025, brackets: [
-      { fromAmount: 0,      toAmount: 12450,  rate: 0.19, employmentType: "employed" },
-      { fromAmount: 12450,  toAmount: 20200,  rate: 0.24, employmentType: "employed" },
-      { fromAmount: 20200,  toAmount: 35200,  rate: 0.30, employmentType: "employed" },
-      { fromAmount: 35200,  toAmount: 60000,  rate: 0.37, employmentType: "employed" },
-      { fromAmount: 60000,  toAmount: 300000, rate: 0.45, employmentType: "employed" },
-      { fromAmount: 300000, toAmount: null,   rate: 0.47, employmentType: "employed" },
-      { fromAmount: 0,      toAmount: 600000, rate: 0.24, employmentType: "beckham" },
-      { fromAmount: 600000, toAmount: null,   rate: 0.47, employmentType: "beckham" },
-    ], social: [
-      { type: "social_security", rate: 0.0635, ceiling: 58513, employeeSide: true },
-    ]},
-    { slug: "nl", year: 2025, brackets: [
-      { fromAmount: 0,     toAmount: 38441, rate: 0.3697, employmentType: "employed" },
-      { fromAmount: 38441, toAmount: null,  rate: 0.495,  employmentType: "employed" },
-      { fromAmount: 0,     toAmount: 38441, rate: 0.259,  employmentType: "ruling30" },
-      { fromAmount: 38441, toAmount: null,  rate: 0.347,  employmentType: "ruling30" },
-    ], social: [
-      { type: "aow_anw", rate: 0.1765, ceiling: 38441, employeeSide: true },
-      { type: "wlz",     rate: 0.0928, ceiling: 38441, employeeSide: true },
-    ]},
-    { slug: "ee", year: 2025, brackets: [
-      { fromAmount: 0,    toAmount: 7848, rate: 0.00, employmentType: "employed" },
-      { fromAmount: 7848, toAmount: null, rate: 0.20, employmentType: "employed" },
-      { fromAmount: 0,    toAmount: null, rate: 0.20, employmentType: "self_employed" },
-    ], social: [
-      { type: "unemployment", rate: 0.016, ceiling: null, employeeSide: true },
-    ]},
-    { slug: "fr", year: 2025, brackets: [
-      { fromAmount: 0,      toAmount: 11294,  rate: 0.00, employmentType: "employed" },
-      { fromAmount: 11294,  toAmount: 28797,  rate: 0.11, employmentType: "employed" },
-      { fromAmount: 28797,  toAmount: 82341,  rate: 0.30, employmentType: "employed" },
-      { fromAmount: 82341,  toAmount: 177106, rate: 0.41, employmentType: "employed" },
-      { fromAmount: 177106, toAmount: null,   rate: 0.45, employmentType: "employed" },
-    ], social: [
-      { type: "csg_crds",      rate: 0.098,  ceiling: null,   employeeSide: true },
-      { type: "health",        rate: 0.0075, ceiling: null,   employeeSide: true },
-      { type: "unemployment",  rate: 0.024,  ceiling: 166272, employeeSide: true },
-      { type: "pension_base",  rate: 0.069,  ceiling: 47100,  employeeSide: true },
-      { type: "pension_compl", rate: 0.0315, ceiling: 188400, employeeSide: true },
-    ]},
-    { slug: "it", year: 2025, brackets: [
-      { fromAmount: 0,     toAmount: 28000, rate: 0.23,  employmentType: "employed" },
-      { fromAmount: 28000, toAmount: 50000, rate: 0.35,  employmentType: "employed" },
-      { fromAmount: 50000, toAmount: null,  rate: 0.43,  employmentType: "employed" },
-      { fromAmount: 0,     toAmount: 28000, rate: 0.115, employmentType: "impatriate" },
-      { fromAmount: 28000, toAmount: 50000, rate: 0.175, employmentType: "impatriate" },
-      { fromAmount: 50000, toAmount: null,  rate: 0.215, employmentType: "impatriate" },
-    ], social: [
-      { type: "pension",      rate: 0.0919, ceiling: 116123, employeeSide: true },
-      { type: "health",       rate: 0.0053, ceiling: null,   employeeSide: true },
-      { type: "unemployment", rate: 0.0030, ceiling: null,   employeeSide: true },
-    ]},
-    { slug: "ie", year: 2025, brackets: [
-      { fromAmount: 0,     toAmount: 42000, rate: 0.20, employmentType: "employed" },
-      { fromAmount: 42000, toAmount: null,  rate: 0.40, employmentType: "employed" },
-    ], social: [
-      { type: "prsi",  rate: 0.04,  ceiling: null,  employeeSide: true },
-      { type: "usc_1", rate: 0.005, ceiling: 12012, employeeSide: true },
-      { type: "usc_2", rate: 0.020, ceiling: 25760, employeeSide: true },
-      { type: "usc_3", rate: 0.040, ceiling: 70044, employeeSide: true },
-      { type: "usc_4", rate: 0.080, ceiling: null,  employeeSide: true },
-    ]},
-    { slug: "pl", year: 2025, brackets: [
-      { fromAmount: 0,      toAmount: 30000,  rate: 0.00, employmentType: "employed" },
-      { fromAmount: 30000,  toAmount: 120000, rate: 0.12, employmentType: "employed" },
-      { fromAmount: 120000, toAmount: null,   rate: 0.32, employmentType: "employed" },
-    ], social: [
-      { type: "pension",    rate: 0.0976, ceiling: 234720, employeeSide: true },
-      { type: "disability", rate: 0.015,  ceiling: 234720, employeeSide: true },
-      { type: "sick_pay",   rate: 0.0245, ceiling: null,   employeeSide: true },
-      { type: "health",     rate: 0.09,   ceiling: null,   employeeSide: true },
-    ]},
-    { slug: "cz", year: 2025, brackets: [
-      { fromAmount: 0,       toAmount: 1582812, rate: 0.15, employmentType: "employed" },
-      { fromAmount: 1582812, toAmount: null,    rate: 0.23, employmentType: "employed" },
-    ], social: [
-      { type: "pension", rate: 0.065, ceiling: 2234736, employeeSide: true },
-      { type: "health",  rate: 0.045, ceiling: null,    employeeSide: true },
-    ]},
-    { slug: "hu", year: 2025, brackets: [
-      { fromAmount: 0, toAmount: null, rate: 0.15, employmentType: "employed" },
-    ], social: [
-      { type: "pension",      rate: 0.10,  ceiling: null, employeeSide: true },
-      { type: "health",       rate: 0.07,  ceiling: null, employeeSide: true },
-      { type: "unemployment", rate: 0.015, ceiling: null, employeeSide: true },
-    ]},
-    { slug: "ro", year: 2025, brackets: [
-      { fromAmount: 0, toAmount: null, rate: 0.10, employmentType: "employed" },
-    ], social: [
-      { type: "cas_pension", rate: 0.25, ceiling: null, employeeSide: true },
-      { type: "cass_health", rate: 0.10, ceiling: null, employeeSide: true },
-    ]},
-    { slug: "uae", year: 2025, brackets: [
-      { fromAmount: 0, toAmount: null, rate: 0.00, employmentType: "employed" },
-    ], social: [
-      { type: "none", rate: 0.00, ceiling: null, employeeSide: true },
-    ]},
-    { slug: "th", year: 2025, brackets: [
-      { fromAmount: 0,       toAmount: 150000,  rate: 0.00, employmentType: "employed" },
-      { fromAmount: 150000,  toAmount: 300000,  rate: 0.05, employmentType: "employed" },
-      { fromAmount: 300000,  toAmount: 500000,  rate: 0.10, employmentType: "employed" },
-      { fromAmount: 500000,  toAmount: 750000,  rate: 0.15, employmentType: "employed" },
-      { fromAmount: 750000,  toAmount: 1000000, rate: 0.20, employmentType: "employed" },
-      { fromAmount: 1000000, toAmount: 2000000, rate: 0.25, employmentType: "employed" },
-      { fromAmount: 2000000, toAmount: 5000000, rate: 0.30, employmentType: "employed" },
-      { fromAmount: 5000000, toAmount: null,    rate: 0.35, employmentType: "employed" },
-    ], social: [
-      { type: "social_security", rate: 0.05, ceiling: 9000, employeeSide: true },
-    ]},
-    { slug: "gb", year: 2025, brackets: [
-      { fromAmount: 0,      toAmount: 12570,  rate: 0.00, employmentType: "employed" },
-      { fromAmount: 12570,  toAmount: 50270,  rate: 0.20, employmentType: "employed" },
-      { fromAmount: 50270,  toAmount: 125140, rate: 0.40, employmentType: "employed" },
-      { fromAmount: 125140, toAmount: null,   rate: 0.45, employmentType: "employed" },
-    ], social: [
-      { type: "ni_main",   rate: 0.08, ceiling: 50270, employeeSide: true },
-      { type: "ni_higher", rate: 0.02, ceiling: null,  employeeSide: true },
-    ]},
-    { slug: "us", year: 2025, brackets: [
-      { fromAmount: 0,      toAmount: 11925,  rate: 0.10, employmentType: "employed" },
-      { fromAmount: 11925,  toAmount: 48475,  rate: 0.12, employmentType: "employed" },
-      { fromAmount: 48475,  toAmount: 103350, rate: 0.22, employmentType: "employed" },
-      { fromAmount: 103350, toAmount: 197300, rate: 0.24, employmentType: "employed" },
-      { fromAmount: 197300, toAmount: 250525, rate: 0.32, employmentType: "employed" },
-      { fromAmount: 250525, toAmount: 626350, rate: 0.35, employmentType: "employed" },
-      { fromAmount: 626350, toAmount: null,   rate: 0.37, employmentType: "employed" },
-    ], social: [
-      { type: "social_security", rate: 0.062,  ceiling: 176100, employeeSide: true },
-      { type: "medicare",        rate: 0.0145, ceiling: null,   employeeSide: true },
-    ]},
-    { slug: "sg", year: 2025, brackets: [
-      { fromAmount: 0,      toAmount: 20000,  rate: 0.00,  employmentType: "employed" },
-      { fromAmount: 20000,  toAmount: 30000,  rate: 0.02,  employmentType: "employed" },
-      { fromAmount: 30000,  toAmount: 40000,  rate: 0.035, employmentType: "employed" },
-      { fromAmount: 40000,  toAmount: 80000,  rate: 0.07,  employmentType: "employed" },
-      { fromAmount: 80000,  toAmount: 120000, rate: 0.115, employmentType: "employed" },
-      { fromAmount: 120000, toAmount: 160000, rate: 0.15,  employmentType: "employed" },
-      { fromAmount: 160000, toAmount: 200000, rate: 0.18,  employmentType: "employed" },
-      { fromAmount: 200000, toAmount: 240000, rate: 0.19,  employmentType: "employed" },
-      { fromAmount: 240000, toAmount: 280000, rate: 0.195, employmentType: "employed" },
-      { fromAmount: 280000, toAmount: 320000, rate: 0.20,  employmentType: "employed" },
-      { fromAmount: 320000, toAmount: null,   rate: 0.22,  employmentType: "employed" },
-    ], social: [
-      { type: "cpf", rate: 0.00, ceiling: null, employeeSide: true },
-    ]},
-    { slug: "ge", year: 2025, brackets: [
-      { fromAmount: 0,      toAmount: null,   rate: 0.20, employmentType: "employed" },
-      { fromAmount: 0,      toAmount: 500000, rate: 0.01, employmentType: "small_business" },
-    ], social: [
-      { type: "pension", rate: 0.02, ceiling: null, employeeSide: true },
-    ]},
-  ];
-
-  for (const cs of countrySeedData) {
-    const countryId = countryMap.get(cs.slug);
-    if (!countryId) continue;
-    const existingB = await prisma.taxBracket.count({ where: { countryId, year: cs.year } });
-    if (existingB === 0) {
-      await prisma.taxBracket.createMany({ data: cs.brackets.map((b) => ({ ...b, countryId, year: cs.year })) });
-    }
-    const existingS = await prisma.socialContribution.count({ where: { countryId, year: cs.year } });
-    if (existingS === 0) {
-      await prisma.socialContribution.createMany({ data: cs.social.map((s) => ({ ...s, countryId, year: cs.year })) });
-    }
-  }
-
   // ─── Extra CitySearchAggregate-Paare ─────────────────────────────────────
   type ExtraPair = { from: string; to: string; count30d: number };
   const extraPairs: ExtraPair[] = [
@@ -2591,6 +2339,133 @@ async function main() {
   }
 
   console.log("✅ Seed v3 complete");
+}
+
+/**
+ * Creates a Region row per REGIONS entry (idempotent on countryId+slug) and
+ * links cities to their region (City.regionId) per CITY_REGIONS. Returns a map
+ * of region slug → Region id, used to resolve regional tax rows.
+ */
+async function seedRegionsAndLinks(
+  countryMap: Map<string, string>,
+  cityMap: Map<string, string>,
+): Promise<Map<string, string>> {
+  const regionMap = new Map<string, string>();
+  for (const reg of REGIONS) {
+    const cId = countryMap.get(reg.countryCode);
+    if (!cId) continue;
+    const existing = await prisma.region.findFirst({ where: { countryId: cId, slug: reg.slug } });
+    const row = existing
+      ? await prisma.region.update({ where: { id: existing.id }, data: { nameDE: reg.nameDE, nameEN: reg.nameEN } })
+      : await prisma.region.create({ data: { countryId: cId, slug: reg.slug, nameDE: reg.nameDE, nameEN: reg.nameEN } });
+    regionMap.set(reg.slug, row.id);
+  }
+
+  for (const [citySlug, regionSlug] of Object.entries(CITY_REGIONS)) {
+    const cityId = cityMap.get(citySlug);
+    const regionId = regionMap.get(regionSlug);
+    if (!cityId || !regionId) continue; // city not seeded → skip
+    await prisma.city.update({ where: { id: cityId }, data: { regionId } });
+  }
+
+  return regionMap;
+}
+
+/**
+ * Seeds the year-versioned tax tables for every country from the canonical
+ * engine dataset (DEFAULT_TAX_DATA). The DB becomes a faithful mirror of the
+ * engine values, so there is a single source of truth. Idempotent per
+ * country/year/category. Regional rows carry the resolved Region id.
+ */
+async function seedTaxData(countryMap: Map<string, string>, regionMap: Map<string, string>) {
+  const toRegionId = (slug?: string | null) => (slug ? regionMap.get(slug) ?? null : null);
+  for (const [slug, td] of Object.entries(DEFAULT_TAX_DATA)) {
+    const cId = countryMap.get(slug);
+    if (!cId) continue;
+    const src = TAX_DATA_SOURCES[slug] ?? "";
+    const year = td.year;
+
+    if (td.brackets.length > 0 &&
+        (await prisma.taxBracket.count({ where: { countryId: cId, year } })) === 0) {
+      await prisma.taxBracket.createMany({
+        data: td.brackets.map((b) => ({
+          countryId: cId,
+          regionId: toRegionId(b.regionId),
+          filingStatus: b.filingStatus ?? null,
+          fromAmount: b.from,
+          toAmount: b.to ?? null,
+          rate: b.rate,
+          year,
+          employmentType: b.employmentType ?? "employed",
+          sourceUrl: src || null,
+        })),
+      });
+    }
+
+    if (td.social.length > 0 &&
+        (await prisma.socialContribution.count({ where: { countryId: cId, year } })) === 0) {
+      await prisma.socialContribution.createMany({
+        data: td.social.map((s) => ({
+          countryId: cId,
+          type: s.type,
+          rate: s.rate,
+          ceiling: s.ceiling ?? null,
+          employeeSide: true,
+          year,
+          sourceUrl: src || null,
+        })),
+      });
+    }
+
+    if (td.deductions.length > 0 &&
+        (await prisma.deduction.count({ where: { countryId: cId, year } })) === 0) {
+      await prisma.deduction.createMany({
+        data: td.deductions.map((d) => ({
+          countryId: cId,
+          type: d.type,
+          amount: d.amount ?? null,
+          percentage: d.percentage ?? null,
+          condition: d.condition ?? null,
+          year,
+          sourceUrl: src || null,
+        })),
+      });
+    }
+
+    if (td.surcharges.length > 0 &&
+        (await prisma.surcharge.count({ where: { countryId: cId, year } })) === 0) {
+      await prisma.surcharge.createMany({
+        data: td.surcharges.map((s) => ({
+          countryId: cId,
+          regionId: toRegionId(s.regionId),
+          cityScope: s.cityScope ?? null,
+          type: s.type,
+          baseType: s.baseType,
+          rate: s.rate ?? null,
+          brackets: (s.brackets ?? undefined) as object | undefined,
+          allowance: s.allowance ?? null,
+          variantKey: s.variantKey ?? null,
+          year,
+          sourceUrl: src, // required (non-null)
+        })),
+      });
+    }
+
+    if (td.fixedAmounts.length > 0 &&
+        (await prisma.fixedAmount.count({ where: { countryId: cId, year } })) === 0) {
+      await prisma.fixedAmount.createMany({
+        data: td.fixedAmounts.map((f) => ({
+          countryId: cId,
+          regionId: toRegionId(f.regionId),
+          type: f.type,
+          amount: f.amount,
+          period: f.period,
+          year,
+          sourceUrl: src, // required (non-null)
+        })),
+      });
+    }
+  }
 }
 
 main()

@@ -1,52 +1,31 @@
 /**
- * South Africa — Personal Income Tax 2025/2026 (1 March 2025 – 28 Feb 2026)
- * Source: https://www.sars.gov.za/
- *
- * Primary rebate (R17,235) reduces tax payable directly — modelled inside
- * calculateIncomeTax (tax credit, not an income deduction).
- *
- * UIF (Unemployment Insurance Fund): 1% employee contribution,
- * capped at a monthly remuneration of R17,711.58 (= R212,539/year).
- *
- * No mandatory medical aid contribution from gross (medical aid tax credits
- * exist but are complex and not modelled here).
+ * South Africa — Personal Income Tax 2025/2026 (1 Mar 2025 – 28 Feb 2026).
+ * Primary rebate reduces tax payable directly (tax credit, not income deduction).
  */
 
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount, deductionAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
-const PRIMARY_REBATE = 17_235;
-const UIF_SALARY_CAP = 212_539; // R17,711.58/month × 12
-
-const ZA_BRACKETS = [
-  { from:         0, to:   237_100, rate: 0.18 },
-  { from:   237_100, to:   370_500, rate: 0.26 },
-  { from:   370_500, to:   512_800, rate: 0.31 },
-  { from:   512_800, to:   673_000, rate: 0.36 },
-  { from:   673_000, to:   857_900, rate: 0.39 },
-  { from:   857_900, to: 1_817_000, rate: 0.41 },
-  { from: 1_817_000, to:  Infinity, rate: 0.45 },
-];
-
-function calcBrackets(taxable: number): number {
-  let tax = 0;
-  for (const b of ZA_BRACKETS) {
-    if (taxable <= b.from) break;
-    tax += (Math.min(taxable, b.to) - b.from) * b.rate;
-  }
-  return r(tax);
+function calcTaxAfterRebate(taxable: number, data: TaxData): number {
+  const beforeRebate = progressiveTax(taxable, bracketsFor(data, 'employed'));
+  const rebate = deductionAmount(data, 'primary_rebate');
+  return r(Math.max(0, beforeRebate - rebate));
 }
 
 export const za: CountryModule = {
   countryCode: 'za',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    return r(Math.max(0, calcBrackets(taxable) - PRIMARY_REBATE));
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('za', opts.year);
+    return calcTaxAfterRebate(taxable, data);
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    const uif = r(Math.min(gross, UIF_SALARY_CAP) * 0.01);
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('za', opts.year);
+    const uif = r(socialAmount(data, 'unemployment', gross));
     return { health: 0, pension: 0, unemployment: uif, care: 0, total: uif };
   },
 
@@ -58,8 +37,9 @@ export const za: CountryModule = {
     return [];
   },
 
-  applySpecialRegime(gross: number, _regimeId: string, _opts: TaxOptions): number {
-    return r(Math.max(0, calcBrackets(gross) - PRIMARY_REBATE));
+  applySpecialRegime(gross: number, _regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('za', opts.year);
+    return calcTaxAfterRebate(gross, data);
   },
 
   getDisclaimer(locale: string): string {

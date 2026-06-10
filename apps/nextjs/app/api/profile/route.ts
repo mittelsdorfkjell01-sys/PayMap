@@ -28,7 +28,6 @@ const UpdateSchema = z.object({
   employment: z.enum(['employed', 'freelancer', 'founder', 'passive']).optional(),
   familyStatus: z.enum(['single', 'married', 'divorced']).optional(),
   childrenCount: z.number().int().min(0).max(20).optional(),
-  childrenAges: z.array(z.string()).optional(),
   kvType: z.enum(['statutory', 'private']).optional(),
   taxResidency: z.string().optional(),
   onboardingDone: z.boolean().optional(),

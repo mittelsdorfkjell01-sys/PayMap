@@ -18,6 +18,8 @@ model City {
 
   countryId String?
   country   Country? @relation(fields: [countryId], references: [id])
+  regionId  String?
+  region    Region?  @relation(fields: [regionId], references: [id])
   nameDE    String?
   nameEN    String?
   currency  String?
@@ -67,14 +69,40 @@ model Country {
   sourceUrl String?
   updatedAt DateTime @updatedAt
 
+  // Whether the calculation engine models marital status (splitting / MFJ) for
+  // this country. When false, a "married" calculation falls back to single
+  // assessment and the UI shows a disclaimer at the target result.
+  maritalStatusModeled Boolean @default(false)
+
   cities                  City[]
+  regions                 Region[]
   taxBrackets             TaxBracket[]
+  surcharges              Surcharge[]
+  fixedAmounts            FixedAmount[]
   specialRegimes          SpecialRegime[]
   socialContribs          SocialContribution[]
   deductions              Deduction[]
   visaRules               VisaRule[]
   countryProfiles         CountryProfile[]
   countrySalaryBenchmarks CountrySalaryBenchmark[]
+}
+
+// Sub-national tax region (Spanish comunidad, Italian regione, US state,
+// Swiss Kanton, …). A null regionId on a City means purely national taxation.
+model Region {
+  id        String  @id @default(cuid())
+  countryId String
+  country   Country @relation(fields: [countryId], references: [id])
+  slug      String // e.g. "comunidad-madrid", "cataluna", "us-ny", "lazio", "kanton-zuerich"
+  nameDE    String
+  nameEN    String
+
+  cities       City[]
+  taxBrackets  TaxBracket[]
+  surcharges   Surcharge[]
+  fixedAmounts FixedAmount[]
+
+  @@unique([countryId, slug])
 }
 
 model CostOfLivingItem {
@@ -138,11 +166,54 @@ model TaxBracket {
   id             String  @id @default(cuid())
   countryId      String
   country        Country @relation(fields: [countryId], references: [id])
+  // null = national / federal scale; set = regional scale (ES comunidad,
+  // US state, …) applied in addition to / instead of the national scale.
+  regionId       String?
+  region         Region? @relation(fields: [regionId], references: [id])
+  // null = applies regardless of filing status; "single" / "married" for
+  // status-dependent scales (US MFJ, DE).
+  filingStatus   String?
   fromAmount     Float
   toAmount       Float?
   rate           Float
   year           Int
   employmentType String
+  sourceUrl      String?
+}
+
+// Surcharge levied as a percentage of a tax base (DE Soli, DE Kirchensteuer,
+// IT addizionale regionale/comunale, NYC city tax). Either a flat `rate` or a
+// progressive `brackets` ladder applies.
+model Surcharge {
+  id         String  @id @default(cuid())
+  countryId  String
+  country    Country @relation(fields: [countryId], references: [id])
+  regionId   String? // null = country-wide
+  region     Region? @relation(fields: [regionId], references: [id])
+  cityScope  String? // for municipal surcharges (e.g. "roma", "milano", "nyc"); null = not city-bound
+  type       String // "soli" | "church" | "addizionale_regionale" | "addizionale_comunale" | "nyc_city"
+  baseType   String // "income_tax" | "taxable_income"
+  rate       Float? // flat rate, or null when progressive (then `brackets`)
+  brackets   Json? // progressive ladder [{from,to,rate}] for Lazio/Lombardia/NYC
+  allowance  Float? // exemption threshold / allowance
+  variantKey String? // e.g. "8" / "9" for church tax BY/BW vs. rest
+  year       Int
+  sourceUrl  String
+}
+
+// Fixed monetary amount (CH mandatory health premium, DE Werbungskostenpauschale,
+// personal allowances, …) rather than a percentage.
+model FixedAmount {
+  id        String  @id @default(cuid())
+  countryId String
+  country   Country @relation(fields: [countryId], references: [id])
+  regionId  String?
+  region    Region? @relation(fields: [regionId], references: [id])
+  type      String // "health_premium" | "work_allowance" | "personal_minimum" | ...
+  amount    Float
+  period    String // "monthly" | "yearly"
+  year      Int
+  sourceUrl String
 }
 
 model SpecialRegime {
@@ -209,6 +280,7 @@ model SocialContribution {
   ceiling      Float?
   employeeSide Boolean
   year         Int
+  sourceUrl    String?
 }
 
 model Deduction {
@@ -220,6 +292,7 @@ model Deduction {
   percentage Float?
   condition  String?
   year       Int
+  sourceUrl  String?
 }
 
 model VisaRule {

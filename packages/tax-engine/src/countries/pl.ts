@@ -1,47 +1,42 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount, deductionAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
 /**
- * Polen 2025 (PLN)
- * Grundfreibetrag: 30.000 PLN
+ * Poland 2025 (PLN). 12/32% scale over the 30k allowance, plus a 4% solidarity
+ * levy on income above 1M PLN (modelled as a surcharge row).
  */
-function calcIncomeTax(taxable: number): number {
-  const grundfreibetrag = 30000;
+function calcIncomeTax(taxable: number, data: TaxData): number {
+  const grundfreibetrag = deductionAmount(data, 'grundfreibetrag');
   const effective = Math.max(0, taxable - grundfreibetrag);
+  let tax = progressiveTax(effective, bracketsFor(data, 'employed'));
 
-  let tax = 0;
-  if (effective <= 0) {
-    tax = 0;
-  } else if (effective <= 120000) {
-    tax = effective * 0.12;
-  } else {
-    tax = 120000 * 0.12 + (effective - 120000) * 0.32;
+  const solidarity = data.surcharges.find((s) => s.type === 'solidarity');
+  if (solidarity) {
+    const allowance = solidarity.allowance ?? 0;
+    const rate = solidarity.rate ?? 0;
+    if (taxable > allowance) tax += (taxable - allowance) * rate;
   }
-
-  // Solidaritätszuschlag: 4% auf Einkommen über 1 Mio PLN
-  if (taxable > 1000000) {
-    tax += (taxable - 1000000) * 0.04;
-  }
-
   return r(tax);
 }
 
 export const pl: CountryModule = {
   countryCode: 'pl',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    return calcIncomeTax(taxable);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('pl', opts.year);
+    return calcIncomeTax(taxable, data);
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // Vereinfachte AN-Abgaben: ~13.71%
-    const pension = r(gross * 0.0976);   // ZUS Rente
-    const health = r(gross * 0.09);      // Kranken (NFZ)
-    const unemployment = r(gross * 0.0167); // Unfall
-    const care = 0;
-    const total = r(pension + health + unemployment + care);
-    return { health, pension, unemployment, care, total };
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('pl', opts.year);
+    const pension = r(socialAmount(data, 'pension', gross));
+    const health = r(socialAmount(data, 'health', gross));
+    const unemployment = r(socialAmount(data, 'unemployment', gross));
+    const total = r(pension + health + unemployment);
+    return { health, pension, unemployment, care: 0, total };
   },
 
   getDeductions(_gross: number, _opts: TaxOptions): number {

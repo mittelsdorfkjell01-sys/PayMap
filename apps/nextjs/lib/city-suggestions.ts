@@ -7,6 +7,7 @@ async function fetchCitiesByIds(ids: string[]): Promise<CityData[]> {
     where: { id: { in: ids }, isActive: true },
     include: {
       country: { select: { slug: true } },
+      region: { select: { slug: true } },
       lifestyle: { select: { category: true, score: true } },
     },
   });
@@ -24,6 +25,7 @@ async function fetchCitiesByIds(ids: string[]): Promise<CityData[]> {
       flag: city.flag,
       currency: city.currency ?? 'EUR',
       countrySlug: city.country?.slug ?? 'de',
+      regionSlug: city.region?.slug ?? null,
       lat: city.lat,
       lng: city.lng,
       lifestyle,

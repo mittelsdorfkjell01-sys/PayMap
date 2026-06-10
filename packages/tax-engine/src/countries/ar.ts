@@ -1,71 +1,41 @@
 /**
  * Argentina — Impuesto a las Ganancias 4ª categoría 2025
- * Source: https://www.afip.gob.ar/
- *
- * ⚠ HIGH UNCERTAINTY: Brackets and MNI are adjusted quarterly for inflation (AFIP).
- * Values below reflect approximate Q1 2025 figures.
- * Use a high variance factor (0.35) and treat results as rough estimates only.
- *
- * MNI (mínimo no imponible): ~ARS 38,400,000/year for single person (Q1 2025 approx.)
- *
- * Social contributions (employee):
- *   Jubilación (ANSES): 11%
- *   PAMI (INSSJP): 3%
- *   Obra Social: 3%
- *   Total: 17%
+ * ⚠ HIGH UNCERTAINTY: brackets and MNI are adjusted quarterly for inflation.
  */
 
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount, deductionAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
-
-// ⚠ Approximate Q1 2025 — adjusted quarterly by AFIP
-const MNI = 38_400_000;
-
-const AR_BRACKETS = [
-  { from:           0, to:   8_000_000, rate: 0.05 },
-  { from:   8_000_000, to:  16_000_000, rate: 0.09 },
-  { from:  16_000_000, to:  24_000_000, rate: 0.12 },
-  { from:  24_000_000, to:  32_000_000, rate: 0.15 },
-  { from:  32_000_000, to:  48_000_000, rate: 0.19 },
-  { from:  48_000_000, to:  64_000_000, rate: 0.23 },
-  { from:  64_000_000, to:  96_000_000, rate: 0.27 },
-  { from:  96_000_000, to: 128_000_000, rate: 0.31 },
-  { from: 128_000_000, to:    Infinity, rate: 0.35 },
-];
-
-function calcIncomeTax(pkp: number): number {
-  let tax = 0;
-  for (const b of AR_BRACKETS) {
-    if (pkp <= b.from) break;
-    tax += (Math.min(pkp, b.to) - b.from) * b.rate;
-  }
-  return r(tax);
-}
 
 export const ar: CountryModule = {
   countryCode: 'ar',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    return calcIncomeTax(taxable);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('ar', opts.year);
+    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    const pension = r(gross * 0.11);
-    const health  = r(gross * 0.06); // PAMI 3% + obra social 3%
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('ar', opts.year);
+    const pension = r(socialAmount(data, 'pension', gross)); // jubilación
+    const health = r(socialAmount(data, 'health', gross)); // PAMI + obra social
     return { health, pension, unemployment: 0, care: 0, total: r(health + pension) };
   },
 
-  getDeductions(gross: number, _opts: TaxOptions): number {
-    return Math.min(gross, MNI);
+  getDeductions(gross: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('ar', opts.year);
+    return Math.min(gross, deductionAmount(data, 'mni'));
   },
 
   getAvailableRegimes(): SpecialRegimeInfo[] {
     return [];
   },
 
-  applySpecialRegime(gross: number, _regimeId: string, _opts: TaxOptions): number {
-    return calcIncomeTax(Math.max(0, gross - MNI));
+  applySpecialRegime(gross: number, _regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('ar', opts.year);
+    return r(progressiveTax(Math.max(0, gross - deductionAmount(data, 'mni')), bracketsFor(data, 'employed')));
   },
 
   getDisclaimer(locale: string): string {

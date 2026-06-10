@@ -33,28 +33,28 @@ function opts(country: string, gross: number, currency: string, overrides: Parti
 // Source: portaldasfinancas.gov.pt / simuladores.at.gov.pt
 // PT social: 11% flat (no cap), no deductions
 
-describe('PT — Standard', () => {
-  it('40k EUR: netMonthly ~2,068 €/mo (±2%)', () => {
-    // Tax brackets 2025 on 40k: 0-7703→1021, 7703-11623→706, 11623-16472→1115,
-    // 16472-21321→1261, 21321-27146→1908, 27146-39791→4679, 39791-40000→91 = ~10,781
-    // Social: 4,400; net: ~24,820/yr
+// Now applies the dedução específica Categoria A (Art. 25 CIRS): max(€4.462,15,
+// SS contributions). At ≥40k the SS (11%) dominates, so the base = gross − SS.
+// Annual-settlement basis (collecta), not monthly retention.
+describe('PT — Standard (mit dedução específica)', () => {
+  it('40k EUR: netMonthly ~2,207 €/mo (±2%)', () => {
+    // Dedução específica max(4.462,15, SS 4.400) = 4.462,15; base 35.537,85;
+    // collecta 9.115; social 4.400 → net 26.485/yr
     const result = calculate('pt', opts('pt', 40000, 'EUR'));
-    // Source: simulador AT 2025 ~2,000-2,150 €/month (hohe Sozialabgaben 11%)
-    expect(withinTolerance(result.netMonthly, 2068)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 2207.09)).toBe(true);
   });
 
-  it('80k EUR: netMonthly ~3,550 €/mo (±2%)', () => {
-    // Tax: ~28,600; social: 8,800; total: ~37,400; net: ~42,600/yr
+  it('80k EUR: netMonthly ~3,880 €/mo (±2%)', () => {
+    // Dedução específica = SS 8.800 (> fixed); base 71.200; collecta 24.640;
+    // social 8.800 → net 46.560/yr
     const result = calculate('pt', opts('pt', 80000, 'EUR'));
-    // Source: simulador AT 2025 ~3,450-3,600 €/month
-    expect(withinTolerance(result.netMonthly, 3550)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 3880.04)).toBe(true);
   });
 
-  it('120k EUR: netMonthly ~4,733 €/mo (±2%)', () => {
-    // Tax on 120k (all 48% tier from 81,199): complex brackets
+  it('120k EUR: netMonthly ~5,448 €/mo (±2%)', () => {
+    // Dedução específica = SS 13.200; base 106.800 (all in 48% tier from 81.199)
     const result = calculate('pt', opts('pt', 120000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(4400);
-    expect(result.netMonthly).toBeLessThan(5100);
+    expect(withinTolerance(result.netMonthly, 5447.7)).toBe(true);
   });
 });
 
@@ -71,7 +71,9 @@ describe('PT — IFICI+ Regime (20% flat)', () => {
     const standard = calculate('pt', opts('pt', 80000, 'EUR'));
     const ifici = calculate('pt', opts('pt', 80000, 'EUR', { specialRegimeId: 'ifici-pt' }));
     expect(ifici.netMonthly).toBeGreaterThan(standard.netMonthly);
-    expect(ifici.netMonthly - standard.netMonthly).toBeGreaterThan(800); // >800 €/mo Ersparnis
+    // Vorteil ~720 €/mo — kleiner als früher, da die dedução específica das
+    // Standard-Netto angehoben hat (war zuvor zu niedrig berechnet).
+    expect(ifici.netMonthly - standard.netMonthly).toBeGreaterThan(700);
   });
 
   it('120k EUR mit IFICI: netMonthly ~6,533 €/mo (±2%)', () => {
@@ -82,32 +84,48 @@ describe('PT — IFICI+ Regime (20% flat)', () => {
 });
 
 // ─── Spanien ───────────────────────────────────────────────────────────────────
-// Source: agenciatributaria.es / conversor-salario.es
-// ES brackets: Staat + durchschnittliche Regionalsteuer approx.
+// Source: state scale Art. 63.1 LIRPF (sede.agenciatributaria.gob.es); comunidad
+// scales: comunidad.madrid (BOCM), atc.gencat.cat (Cataluña DL 5/2025), atv.gva.es
+// (Valencia Ley 13/1997). IRPF = state scale + the city's comunidad regional scale (A.1).
+// IRPF now applies the mínimo personal (€5.550, credit: escala(base)−escala(mínimo)
+// on both state and comunidad scale), deductible social security and the €2.000
+// work expense. External anchor @60k Madrid (single, 2026): es.talent.com →
+// 42.209 €/yr; engine 42.367 €/yr (<0,4%). Retrieved 2026-06-09. ±2%.
 
-describe('ES — Standard', () => {
-  it('40k EUR: netMonthly ~2,247 €/mo (±2%)', () => {
-    // Tax: 0-12450→2366, 12450-20200→1860, 20200-35200→4500, 35200-40000→1776 = ~10,502
-    // Social: 40000*0.0635=2,540; net: ~26,958/yr = 2,246/mo
-    const result = calculate('es', opts('es', 40000, 'EUR'));
-    // Note: Modell enthält keine persönlichen Steuerabzüge (mínimo personal etc.)
-    // Externe Rechner zeigen höhere Werte durch deductions — unser Modell konservativ
-    expect(result.netMonthly).toBeGreaterThan(2100);
-    expect(result.netMonthly).toBeLessThan(2450);
+describe('ES — Standard (region-specific comunidad scale + mínimo, A.1)', () => {
+  it('40k EUR Madrid: netMonthly ~2,517 €/mo (±2%)', () => {
+    // Base 40.000 − SS 2.540 − 2.000 = 35.460; cuota = [escala_est + escala_Madrid]
+    // − escala(5.550) = 7.259; social 2.540 → net 30.201/yr
+    const result = calculate('es', opts('es', 40000, 'EUR', { region: 'comunidad-madrid' }));
+    expect(withinTolerance(result.netMonthly, 2516.73)).toBe(true);
   });
 
-  it('80k EUR: netMonthly ~4,128 €/mo (±2%)', () => {
-    // Tax: ~26,902; social: 3,560; total: ~30,462; net: ~49,538/yr
-    const result = calculate('es', opts('es', 80000, 'EUR'));
-    // Source: conversor-salario.es ~4,050-4,200 €/month
-    expect(withinTolerance(result.netMonthly, 4128)).toBe(true);
+  it('60k EUR Madrid: netMonthly ~3,531 €/mo (±2%) — externer Anker 42.209 €/yr', () => {
+    const result = calculate('es', opts('es', 60000, 'EUR', { region: 'comunidad-madrid' }));
+    expect(withinTolerance(result.netMonthly, 3530.58)).toBe(true);
+    expect(result.netAnnual).toBeGreaterThan(41000);
+    expect(result.netAnnual).toBeLessThan(43500);
   });
 
-  it('120k EUR: netMonthly ~5,962 €/mo (±2%)', () => {
-    // Tax: brackets up to 120k (45% zone): ~44,902; social: 56064*0.0635=3,560; net: ~71,538/yr
-    const result = calculate('es', opts('es', 120000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(5600);
-    expect(result.netMonthly).toBeLessThan(6400);
+  it('80k EUR Madrid: netMonthly ~4,507 €/mo (±2%)', () => {
+    const result = calculate('es', opts('es', 80000, 'EUR', { region: 'comunidad-madrid' }));
+    expect(withinTolerance(result.netMonthly, 4506.55)).toBe(true);
+  });
+
+  it('120k EUR Madrid: netMonthly ~6,407 €/mo (±2%)', () => {
+    const result = calculate('es', opts('es', 120000, 'EUR', { region: 'comunidad-madrid' }));
+    expect(withinTolerance(result.netMonthly, 6406.55)).toBe(true);
+  });
+
+  it('80k EUR: Madrid > Barcelona > Valencia net (region matters, A.9)', () => {
+    // Madrid is the cheapest comunidad, Valencia the most expensive at this income.
+    const madrid = calculate('es', opts('es', 80000, 'EUR', { region: 'comunidad-madrid' }));
+    const barcelona = calculate('es', opts('es', 80000, 'EUR', { region: 'cataluna' }));
+    const valencia = calculate('es', opts('es', 80000, 'EUR', { region: 'comunitat-valenciana' }));
+    expect(madrid.netMonthly).toBeGreaterThan(barcelona.netMonthly);
+    expect(barcelona.netMonthly).toBeGreaterThan(valencia.netMonthly);
+    expect(withinTolerance(barcelona.netMonthly, 4395.84)).toBe(true);
+    expect(withinTolerance(valencia.netMonthly, 4361.7)).toBe(true);
   });
 });
 
@@ -119,8 +137,8 @@ describe('ES — Beckham Law (24% flat bis 600k)', () => {
     expect(withinTolerance(result.netMonthly, 4770)).toBe(true);
   });
 
-  it('Beckham net > Standard net', () => {
-    const standard = calculate('es', opts('es', 80000, 'EUR'));
+  it('Beckham net > Standard net (vs Madrid comunidad)', () => {
+    const standard = calculate('es', opts('es', 80000, 'EUR', { region: 'comunidad-madrid' }));
     const beckham = calculate('es', opts('es', 80000, 'EUR', { specialRegimeId: 'beckham-es' }));
     expect(beckham.netMonthly).toBeGreaterThan(standard.netMonthly);
   });
@@ -129,6 +147,9 @@ describe('ES — Beckham Law (24% flat bis 600k)', () => {
 // ─── Niederlande — 30%-Ruling gestaffelt ──────────────────────────────────────
 // Source: belastingdienst.nl — 30%-ruling reform 2024
 // Drei Phasen: Jahr 1 = 30%, Jahr 2-3 = 20%, Jahr 4-5 = 10%
+// NB: Das Ruling-Regime selbst bleibt unverändert (kein Heffingskorting-Abzug im
+// Regime-Pfad — bewusste Scope-Grenze). Die Goldens verschieben sich ggü. früher
+// nur, weil die Box-1-Brackets jetzt korrekt 3-stufig sind (35,82/37,48/49,50).
 
 describe('NL — 30%-Ruling gestaffelt', () => {
   it('Jahr 1 (rulingYearsActive=0): 30% steuerfrei → niedrigste Steuerlast', () => {
@@ -136,8 +157,8 @@ describe('NL — 30%-Ruling gestaffelt', () => {
       specialRegimeId: 'ruling30-nl',
       rulingYearsActive: 0,
     }));
-    // Tax auf 70% = 56,000: Bracket 1: 38441*0.3697=14,221, Rest: 17559*0.495=8,692 → 22,913
-    expect(withinTolerance(year1.netMonthly, 4757)).toBe(true); // (80,000 - 22,913) / 12
+    // Tax auf 70% = 56,000: 38441*0.3582 + 17559*0.3748 = 13,769.57 + 6,581.12 = 20,350.69
+    expect(withinTolerance(year1.netMonthly, 4970.78)).toBe(true); // (80,000 - 20,350.69) / 12
   });
 
   it('Jahr 2-3 (rulingYearsActive=2): 20% steuerfrei → mittlere Steuerlast', () => {
@@ -145,8 +166,8 @@ describe('NL — 30%-Ruling gestaffelt', () => {
       specialRegimeId: 'ruling30-nl',
       rulingYearsActive: 2,
     }));
-    // Tax auf 80% = 64,000: Bracket 1: 14,221; Rest: 25559*0.495=12,652 → 26,873
-    expect(withinTolerance(year2.netMonthly, 4427)).toBe(true); // (80,000 - 26,873) / 12
+    // Tax auf 80% = 64,000: 13,769.57 + 25559*0.3748 = 13,769.57 + 9,579.51 = 23,349.08
+    expect(withinTolerance(year2.netMonthly, 4720.91)).toBe(true); // (80,000 - 23,349.08) / 12
   });
 
   it('Jahr 4-5 (rulingYearsActive=4): 10% steuerfrei → höchste Steuerlast', () => {
@@ -154,8 +175,8 @@ describe('NL — 30%-Ruling gestaffelt', () => {
       specialRegimeId: 'ruling30-nl',
       rulingYearsActive: 4,
     }));
-    // Tax auf 90% = 72,000: Bracket 1: 14,221; Rest: 33559*0.495=16,612 → 30,833
-    expect(withinTolerance(year4.netMonthly, 4097)).toBe(true); // (80,000 - 30,833) / 12
+    // Tax auf 90% = 72,000: 13,769.57 + 33559*0.3748 = 13,769.57 + 12,577.92 = 26,347.49
+    expect(withinTolerance(year4.netMonthly, 4471.04)).toBe(true); // (80,000 - 26,347.49) / 12
   });
 
   it('Steuerlast steigt von Jahr 1 → Jahr 2 → Jahr 4', () => {
@@ -167,23 +188,42 @@ describe('NL — 30%-Ruling gestaffelt', () => {
   });
 });
 
+// ─── Niederlande — Standard (3-stufige Box-1-Skala + heffingskortingen) ────────
+// Sources (retrieved 2026-06-09):
+//   Brackets: belastingdienst.nl …/box_1 (35,82% / 37,48% / 49,50%)
+//   Algemene heffingskorting 2025: max €3.068, afbouw 6,337% > €28.406
+//   Arbeidskorting 2025: belastingdienst.nl tabel-arbeidskorting-2025 (max €5.599)
+// Net @60k ≈ 43.713 €/yr — im offiziellen Zielkorridor 43–44k und deckungsgleich
+// mit gängigen NL bruto-netto Rechnern (±2%). Externe Stützpunkte: siehe PR5.
+
 describe('NL — Standard (ohne Ruling)', () => {
-  it('80k EUR: netMonthly ~3,753 €/mo (±2%)', () => {
-    // Bracket 1: 38441*0.3697=14,221; Bracket 2: 41559*0.495=20,572 → total 34,793
-    // Net: 45,207 / 12 = 3,767
-    const result = calculate('nl', opts('nl', 80000, 'EUR'));
-    // Source: belastingdienst.nl simulator ~3,700-3,800 €/month
-    expect(result.netMonthly).toBeGreaterThan(3600);
-    expect(result.netMonthly).toBeLessThan(3950);
+  it('40k EUR: netMonthly ~2,792 €/mo (±2%)', () => {
+    // Box-1 14,353.89 − AHK 2,333.26 − arbeidskorting 5,529.53 = tax 6,491.10
+    // Net: 33,508.90 / 12 = 2,792.41
+    const result = calculate('nl', opts('nl', 40000, 'EUR'));
+    expect(withinTolerance(result.netMonthly, 2792.41)).toBe(true);
   });
 
-  it('40k EUR: netMonthly ~2,494 €/mo (±2%)', () => {
-    // Tax: 40000*0.3697 = 14,788; net: 25,212/12 = 2,101 — wait recalculate
-    // Actually: Bracket 1 only (40000 ≤ 38441? NO — 40000 > 38441)
-    // Tax: 38441*0.3697 + 1559*0.495 = 14,221 + 772 = 14,993; net: 25,007/12 = 2,084
-    const result = calculate('nl', opts('nl', 40000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(1900);
-    expect(result.netMonthly).toBeLessThan(2400);
+  it('60k EUR: netMonthly ~3,643 €/mo (±2%) — Zielkorridor 43–44k/yr', () => {
+    // Box-1 21,849.88 − AHK 1,065.87 − arbeidskorting 4,496.83 = tax 16,287.18
+    // Net: 43,712.82 / 12 = 3,642.74
+    const result = calculate('nl', opts('nl', 60000, 'EUR'));
+    expect(withinTolerance(result.netMonthly, 3642.73)).toBe(true);
+    expect(result.netAnnual).toBeGreaterThan(43000);
+    expect(result.netAnnual).toBeLessThan(44000);
+  });
+
+  it('80k EUR: netMonthly ~4,456 €/mo (±2%)', () => {
+    // Box-1 29,728.48 − AHK 0 (>76.820 afbouw) − arbeidskorting 3,194.83 = tax 26,533.65
+    // Net: 53,466.35 / 12 = 4,455.53
+    const result = calculate('nl', opts('nl', 80000, 'EUR'));
+    expect(withinTolerance(result.netMonthly, 4455.53)).toBe(true);
+  });
+
+  it('heffingskortingen bauen mit steigendem Einkommen ab (Progression)', () => {
+    const r60 = calculate('nl', opts('nl', 60000, 'EUR'));
+    const r80 = calculate('nl', opts('nl', 80000, 'EUR'));
+    expect(r80.effectiveRate).toBeGreaterThan(r60.effectiveRate);
   });
 });
 
@@ -191,55 +231,66 @@ describe('NL — Standard (ohne Ruling)', () => {
 // Source: bmf.gv.at Lohnsteuerrechner 2025
 // AT: Sondergebühren (13./14. Gehalt) NICHT modelliert → Netto höher in Realität
 
-describe('AT', () => {
-  it('40k EUR: netMonthly ~1,931 €/mo (±2%)', () => {
-    // Tax: 0-12816: 0; 12816-20818: 1600; 20818-34513: 4109; 34513-40000: 5488*0.41=2250 → ~7,959
-    // Social: 40000*0.1812 = 7,248; total: ~15,207; net: ~24,793/yr
+// A.8 — Austria now splits the annual gross into 12 laufende Bezüge (progressive)
+// + 2 Sonderzahlungen (13th/14th salary) taxed under the Jahressechstel scheme
+// (€620 free, 6% on the next €24,380, then 27%; SV ~1% lower). This raises the
+// net vs. the previous naive full-progressive model — that was the bug.
+// Golden values are derived from the engine's AT bracket set + the verified
+// Jahressechstel parameters. NB: the AT base brackets themselves (12.816 …)
+// look like 2024 values; aligning them to official 2025 figures is a separate
+// open item and would shift these goldens slightly.
+describe('AT 2026 (A.8 — 13./14. Gehalt / Jahressechstel + Verkehrsabsetzbetrag)', () => {
+  // Now also applies the Verkehrsabsetzbetrag (€496 credit on the laufende-Bezüge tax).
+  it('40k EUR: netMonthly ~2,302 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 40000, 'EUR'));
-    // Source: bmf.gv.at ~1,900-2,000 €/month (ohne Sonderzahlung)
-    expect(result.netMonthly).toBeGreaterThan(1800);
-    expect(result.netMonthly).toBeLessThan(2100);
+    expect(withinTolerance(result.netMonthly, 2301.73)).toBe(true);
   });
 
-  it('80k EUR: netMonthly ~3,351 €/mo (±2%)', () => {
-    // Tax: ~25,296; social: 14,496; total: ~39,792; net: ~40,208/yr
+  it('80k EUR: netMonthly ~3,883 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 80000, 'EUR'));
-    // Source: bmf.gv.at ~3,200-3,450 €/month
-    expect(withinTolerance(result.netMonthly, 3351)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 3882.5)).toBe(true);
   });
 
-  it('120k EUR: netMonthly ~4,396 €/mo (±2%)', () => {
-    // 99266-120000: 20734*0.50 = 10,367; sub-total brackets: ~35,791; social: ~21,744; net: ~62,465/yr
+  it('120k EUR: netMonthly ~5,229 €/mo (±2%)', () => {
     const result = calculate('at', opts('at', 120000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(4100);
-    expect(result.netMonthly).toBeLessThan(4700);
+    expect(withinTolerance(result.netMonthly, 5228.55)).toBe(true);
   });
 });
 
 // ─── Italien ───────────────────────────────────────────────────────────────────
-// Source: agenziaentrate.gov.it — IRPEF 2025
-// Note: Addizionale regionale/comunale (~1-3%) nicht enthalten → Realnet etwas niedriger
+// Source: agenziaentrate.gov.it — IRPEF 2026 (L. 199/2025): 23% / 33% / 43%
+// (2nd bracket cut 35→33). National cases carry IRPEF only; the addizionale
+// regionale/comunale apply when a region/city is set (see the Milan case).
 
-describe('IT — Standard', () => {
-  it('40k EUR: netMonthly ~2,330 €/mo (±2%)', () => {
-    // Tax: 28000*0.23+12000*0.35=6440+4200=10,640; social: 40000*0.0919=3,676; net: ~25,684/yr
+describe('IT — Standard (IRPEF 2026)', () => {
+  it('40k EUR: netMonthly ~2,233 €/mo (±2%)', () => {
+    // IRPEF 10,400 − detrazione lavoro 868,18 (Art. 13: 1.910×(50.000−40.000)/22.000)
+    // = 9.531,82; social 3,676 → net ~26.792/yr
     const result = calculate('it', opts('it', 40000, 'EUR'));
-    // Source: fiscoetasse.com ~2,250-2,400 €/month
-    expect(result.netMonthly).toBeGreaterThan(2100);
-    expect(result.netMonthly).toBeLessThan(2550);
+    expect(withinTolerance(result.netMonthly, 2232.68)).toBe(true);
   });
 
-  it('80k EUR: netMonthly ~3,801 €/mo (±2%)', () => {
-    // Tax: ~27,040; social: 7,352; total: ~34,392; net: ~45,608/yr
+  it('80k EUR: netMonthly ~3,837 €/mo (±2%)', () => {
+    // IRPEF: 6440 + 22000*0.33 + 30000*0.43 = 26,600; social 7,352; net ~46,048/yr
     const result = calculate('it', opts('it', 80000, 'EUR'));
-    // Source: fiscoetasse.com ~3,700-3,900 €/month
-    expect(withinTolerance(result.netMonthly, 3801)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 3837)).toBe(true);
   });
 
   it('Effektivrate steigt mit Einkommen (Progressionstest)', () => {
     const r40 = calculate('it', opts('it', 40000, 'EUR'));
     const r80 = calculate('it', opts('it', 80000, 'EUR'));
     expect(r80.effectiveRate).toBeGreaterThan(r40.effectiveRate);
+  });
+});
+
+describe('IT — Mailand/Lombardia (A.4 addizionale, 2026)', () => {
+  it('80k EUR Milan: IRPEF + addizionale regionale + comunale, netMonthly ~3,677 €/mo (±2%)', () => {
+    // IRPEF 26,600 + Lombardia reg. (1,287.3) + Milano com. 0.8% (640) = 28,527.3;
+    // social 7,352; net ~44,121/yr. Source: MEF addizionali regionali 2026; Comune di Milano.
+    const result = calculate('it', opts('it', 80000, 'EUR', { region: 'lombardia', cityScope: 'mailand' }));
+    expect(withinTolerance(result.netMonthly, 3677)).toBe(true);
+    const national = calculate('it', opts('it', 80000, 'EUR'));
+    expect(result.netMonthly).toBeLessThan(national.netMonthly); // addizionale reduce net
   });
 });
 
@@ -259,31 +310,30 @@ describe('IT — Impatriate Regime (50% steuerfrei)', () => {
 });
 
 // ─── Schweiz ───────────────────────────────────────────────────────────────────
-// Source: ktax.ch, taxcalculator.ch (Kanton Zürich Approximation)
-// CH: KK-Prämien (ca. 450-600 CHF/Mo) NICHT enthalten → Realnet niedriger
+// Source: Kanton Zürich Approximation. Income tax = effective-rate approximation
+// (Anhang A). Now includes the mandatory KVG basic-insurance premium: mittlere
+// Erwachsenenprämie Zürich 2025 = CHF 431,60/Mo (BAG/priminfo.admin.ch).
 
 describe('CH', () => {
-  it('60.000 CHF: netMonthly ~4,243 CHF/mo (±2%)', () => {
-    // Rate 0.15 (50-100k bracket): tax=9,000; social: pension=3,180, unem=min(60k,88.2k)*0.011=660 → total 3,840
-    // Total deductions: 12,840; net: 47,160/yr = 3,930/mo
+  it('60.000 CHF: netMonthly ~3,498 CHF/mo (±2%)', () => {
+    // tax 9.000; social pension 3.180 + unem 660 + KVG-Prämie 5.179,20 = 9.019,20
+    // net 41.980,80/yr = 3.498,40/mo
     const result = calculate('ch', opts('ch', 60000, 'CHF'));
-    // Source: taxcalculator.ch ZH ~3,800-4,100 CHF/month (ohne KK)
-    expect(result.netMonthly).toBeGreaterThan(3600);
-    expect(result.netMonthly).toBeLessThan(4400);
+    expect(withinTolerance(result.netMonthly, 3498.4)).toBe(true);
+    // KVG-Prämie ist im health-Beitrag enthalten (CHF 431,60 × 12)
+    expect(result.socialContributions.health).toBeCloseTo(431.6 * 12, 1);
   });
 
-  it('100.000 CHF: netMonthly ~6,144 CHF/mo (±2%)', () => {
-    // Rate 0.20: tax=20,000; social: pension=5,300, unem=88200*0.011=970 → 6,270; net: 73,730/yr
+  it('100.000 CHF: netMonthly ~5,713 CHF/mo (±2%)', () => {
+    // tax 20.000; social pension 5.300 + unem 970,20 + KVG 5.179,20 = 11.449,40
     const result = calculate('ch', opts('ch', 100000, 'CHF'));
-    // Source: taxcalculator.ch ZH ~5,900-6,400 CHF/month
-    expect(withinTolerance(result.netMonthly, 6144)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 5712.55)).toBe(true);
   });
 
-  it('150.000 CHF: netMonthly ~8,530 CHF/mo (±2%)', () => {
-    // Rate 0.25: tax=37,500; social: pension=7,950, unem=88200*0.011=970 → 8,920; net: ~103,580/yr
+  it('150.000 CHF: netMonthly ~8,200 CHF/mo (±2%)', () => {
+    // tax 37.500; social pension 7.950 + unem 970,20 + KVG 5.179,20 = 14.099,40
     const result = calculate('ch', opts('ch', 150000, 'CHF'));
-    expect(result.netMonthly).toBeGreaterThan(8000);
-    expect(result.netMonthly).toBeLessThan(9200);
+    expect(withinTolerance(result.netMonthly, 8200.05)).toBe(true);
   });
 });
 
@@ -320,22 +370,22 @@ describe('FR', () => {
 });
 
 // ─── Irland ───────────────────────────────────────────────────────────────────
-// Source: revenue.ie
-// IE: Steuergutschriften (Personal Credit 1.875€, PAYE Credit 1.875€ = 3.750€) NICHT modelliert
-// → tatsächliches Netto ca. 313€/mo höher als berechnet
+// Source: revenue.ie (Budget 2025). PAYE + USC; personal (€2.000) + employee
+// (€2.000) tax credits now applied to the PAYE tax (not USC/PRSI). PRSI 4%.
 
 describe('IE', () => {
-  it.skip('40k EUR: Steuergutschriften nicht modelliert — Referenzwert nicht verlässlich', () => {
-    // Ohne Credits (unser Modell): Tax PAYE+USC ~10,980; PRSI: 1,600; net: ~27,420/yr = 2,285/mo
-    // Mit Credits (Realwelt): ~14,730 netto nach steuer + credits = ~27,420+3,750 = ~31,170/yr = ~2,598/mo
-    // Wir testen die Modell-interne Konsistenz, keine externe Referenz
+  it('40k EUR: netMonthly ~2,779 €/mo (±2%)', () => {
+    // PAYE 8.000 (40k×0.2) − credits 4.000 = 4.000; USC 1.046,82; PRSI 1.600
+    // → net ~33.353/yr
+    const result = calculate('ie', opts('ie', 40000, 'EUR'));
+    expect(withinTolerance(result.netMonthly, 2779.43)).toBe(true);
   });
 
-  it('80k EUR (ohne Credits): netMonthly ~4,167 €/mo (±2%)', () => {
-    // PAYE+USC: ~26,795; PRSI: 3,200; total: 29,995; net: 50,005/yr
+  it('80k EUR: netMonthly ~4,500 €/mo (±2%)', () => {
+    // PAYE 42.000×0.2 + 38.000×0.4 = 8.400+15.200 = 23.600 − 4.000 credits = 19.600;
+    // USC 3.195,28; PRSI 3.200 → net ~54.005/yr
     const result = calculate('ie', opts('ie', 80000, 'EUR'));
-    // Unser Modell (ohne Credits) — intern konsistent
-    expect(withinTolerance(result.netMonthly, 4167)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 4500.39)).toBe(true);
   });
 
   it('PAYE+USC steigt progressiv', () => {
@@ -344,10 +394,9 @@ describe('IE', () => {
     expect(r80.effectiveRate).toBeGreaterThan(r40.effectiveRate);
   });
 
-  it('120k EUR: netMonthly ~5,533 €/mo (±2%)', () => {
+  it('120k EUR: netMonthly ~6,100 €/mo (±2%)', () => {
     const result = calculate('ie', opts('ie', 120000, 'EUR'));
-    expect(result.netMonthly).toBeGreaterThan(5100);
-    expect(result.netMonthly).toBeLessThan(6000);
+    expect(withinTolerance(result.netMonthly, 6100.39)).toBe(true);
   });
 });
 
@@ -410,25 +459,26 @@ describe('PL', () => {
 });
 
 // ─── Tschechien ────────────────────────────────────────────────────────────────
-// Source: financnisprava.cz / mesicni-mzda.cz (CZK)
-// CZ: Steuergutschrift (základní sleva 30.840 CZK) NICHT modelliert → Netto höher in Realität
+// Source: financnisprava.cz (CZK). Základní sleva na poplatníka 30.840 CZK/yr
+// (§35ba ZDP) now applied as a non-refundable credit against income tax.
 
 describe('CZ', () => {
-  it.skip('Základní sleva (30.840 CZK/yr) nicht modelliert — externe Referenz unzuverlässig', () => {
-    // Modell überschätzt Steuerlast um ~2.570 CZK/mo
-    // Erst nach Sprint 3 / Erweiterung des Modells testbar
-  });
-
-  it('800.000 CZK: netMonthly ~49,333 CZK/mo (±2%)', () => {
-    // Tax: 800000*0.15=120,000; social: pension=52,000+health=36,000=88,000; net: 592,000/yr
+  it('Základní sleva senkt die Steuer um 30.840 CZK/yr', () => {
+    // 800k: Steuer 120.000 − sleva 30.840 = 89.160 (statt 120.000 ohne Gutschrift).
     const result = calculate('cz', opts('cz', 800000, 'CZK'));
-    expect(withinTolerance(result.netMonthly, 49333)).toBe(true);
+    expect(result.incomeTax).toBe(800000 * 0.15 - 30840);
   });
 
-  it('1.200.000 CZK: netMonthly ~74,000 CZK/mo (±2%)', () => {
-    // Tax: 1200000*0.15=180,000; social: 132,000; net: 888,000/yr
+  it('800.000 CZK: netMonthly ~51,903 CZK/mo (±2%)', () => {
+    // Tax 120.000 − sleva 30.840 = 89.160; social 88.000 → net 622.840/yr
+    const result = calculate('cz', opts('cz', 800000, 'CZK'));
+    expect(withinTolerance(result.netMonthly, 51903.33)).toBe(true);
+  });
+
+  it('1.200.000 CZK: netMonthly ~76,570 CZK/mo (±2%)', () => {
+    // Tax 180.000 − sleva 30.840 = 149.160; social 132.000 → net 918.840/yr
     const result = calculate('cz', opts('cz', 1200000, 'CZK'));
-    expect(withinTolerance(result.netMonthly, 74000)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 76570)).toBe(true);
   });
 
   it('Spitzensteuersatz 23% ab 1.582.812 CZK', () => {
@@ -528,10 +578,11 @@ describe('TH', () => {
     expect(result.netMonthly).toBeLessThan(43000);
   });
 
-  it('2.000.000 THB: netMonthly ~137,583 THB/mo (±2%)', () => {
-    // Deduction: 100000; taxable: 1900000; tax: 340000; social: 9000; net: 1651000/yr
+  it('2.000.000 THB: netMonthly ~138,833 THB/mo (±2%)', () => {
+    // Deduction: 100.000 expense + 60.000 personal = 160.000; taxable 1.840.000;
+    // tax 319.000; social 9.000 → net 1.666.000/yr
     const result = calculate('th', opts('th', 2000000, 'THB'));
-    expect(withinTolerance(result.netMonthly, 137583)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 138833.33)).toBe(true);
   });
 
   it('SV max 9.000 THB/Jahr (Deckel greift ab 180.000 THB Brutto)', () => {
@@ -544,15 +595,16 @@ describe('TH', () => {
 });
 
 // ─── USA ───────────────────────────────────────────────────────────────────────
-// Source: irs.gov — Federal Tax 2025 (state tax NOT included)
+// Source: irs.gov — Federal Tax 2026 (Rev. Proc. 2025-32); SS wage base 2026
+// $184,500 (SSA). State tax: Florida = federal only here; NY brackets + NYC city
+// tax seeded separately once confirmed.
 
-describe('US', () => {
-  it('100k USD, single: netMonthly ~6,554 USD/mo (±2%)', () => {
-    // Standard deduction 14,600; taxable: 85,400
-    // Tax: 1192.50+4386+8123.50=13,702; FICA: 6200+1450=7,650; net: 78,648/yr
+describe('US — Federal 2026', () => {
+  it('100k USD, single: netMonthly ~6,598 USD/mo (±2%)', () => {
+    // Standard deduction 16,100; taxable 83,900
+    // Tax: 1240 + 4560 + 22%*33,500 = 13,170; FICA 6,200 + 1,450 = 7,650; net 79,180/yr
     const result = calculate('us', opts('us', 100000, 'USD'));
-    // Source: IRS tax tables 2025, federal only
-    expect(withinTolerance(result.netMonthly, 6554)).toBe(true);
+    expect(withinTolerance(result.netMonthly, 6598)).toBe(true);
   });
 
   it('100k USD, married (MFJ): netMonthly > single (größeres standard deduction)', () => {
@@ -561,20 +613,40 @@ describe('US', () => {
     expect(married.netMonthly).toBeGreaterThan(single.netMonthly);
   });
 
-  it('200k USD, single: netMonthly ~10,928 USD/mo (±2%)', () => {
-    // Standard deduction 14,600; taxable: 185,400
-    // Tax: 1192.50+4386+12078+19,944=37,601; FICA: SS cap: 168600*0.062=10,453; Medicare: 200000*0.0145=2900 → 13,353
-    // Net: ~149,046/yr ÷ 12 = ~12,421/mo
+  it('200k USD, single: netMonthly ~12,411 USD/mo (±2%)', () => {
+    // taxable 183,900; tax 36,734; FICA SS cap 184,500*0.062=11,439 + Medicare 2,900
     const result = calculate('us', opts('us', 200000, 'USD'));
-    expect(result.netMonthly).toBeGreaterThan(11000);
-    expect(result.netMonthly).toBeLessThan(13500);
+    expect(withinTolerance(result.netMonthly, 12411)).toBe(true);
   });
 
-  it('Social Security cap bei 168.600 USD', () => {
-    const below = calculate('us', opts('us', 168600, 'USD'));
+  it('Social Security cap bei 184.500 USD (2026)', () => {
+    const below = calculate('us', opts('us', 184500, 'USD'));
     const above = calculate('us', opts('us', 250000, 'USD'));
-    // SS Pension sollte nicht mehr steigen nach cap
     expect(above.socialContributions.pension).toBe(below.socialContributions.pension);
+  });
+});
+
+describe('US — New York (state + NYC) vs Florida (A.3, 2026)', () => {
+  it('150k single NYC: federal + NY state + NYC city tax, netMonthly ~8,384 USD/mo (±2%)', () => {
+    // Federal 24,734 + NY state (taxable 142,000) 7,809.75 + NYC 5,379.09 = 37,922.84;
+    // FICA 11,475; net ~100,602/yr. Source: IRS 2026; tax.ny.gov 2026 (phase-in).
+    const result = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'new-york' }));
+    expect(withinTolerance(result.netMonthly, 8384)).toBe(true);
+  });
+
+  it('Florida (federal only) > New York no-NYC > NYC', () => {
+    const florida = calculate('us', opts('us', 150000, 'USD', { region: 'us-fl', cityScope: 'miami' }));
+    const nyNoCity = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'albany' }));
+    const nyc = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'new-york' }));
+    expect(florida.netMonthly).toBeGreaterThan(nyNoCity.netMonthly); // no state tax in FL
+    expect(nyNoCity.netMonthly).toBeGreaterThan(nyc.netMonthly); // NYC adds city tax
+  });
+
+  it('NYC city tax thresholds differ by filing status (single vs MFJ)', () => {
+    const single = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'new-york' }));
+    const married = calculate('us', opts('us', 150000, 'USD', { region: 'us-ny', cityScope: 'new-york', familyStatus: 'married' }));
+    // Both compute; married has lower total tax (wider federal + NY MFJ brackets)
+    expect(married.netMonthly).toBeGreaterThan(single.netMonthly);
   });
 });
 

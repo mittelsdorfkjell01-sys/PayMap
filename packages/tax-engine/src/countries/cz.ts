@@ -1,35 +1,25 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount, deductionAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
-
-/**
- * Tschechien 2025 (CZK)
- * Grenze für Spitzensteuersatz: 1.582.812 CZK (36× Durchschnittslohn)
- */
-function calcIncomeTax(taxable: number): number {
-  const threshold = 1582812;
-  let tax = 0;
-  if (taxable <= threshold) {
-    tax = taxable * 0.15;
-  } else {
-    tax = threshold * 0.15 + (taxable - threshold) * 0.23;
-  }
-  return r(tax);
-}
 
 export const cz: CountryModule = {
   countryCode: 'cz',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    return calcIncomeTax(taxable);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('cz', opts.year);
+    // Sleva na poplatníka: non-refundable taxpayer credit, floored at 0.
+    const sleva = deductionAmount(data, 'sleva_poplatnik');
+    const tax = progressiveTax(taxable, bracketsFor(data, 'employed'));
+    return r(Math.max(0, tax - sleva));
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // Sozial AN: 6.5% Pension + 4.5% Kranken = 11%
-    const pension = r(gross * 0.065);
-    const health = r(gross * 0.045);
-    const total = r(pension + health);
-    return { health, pension, unemployment: 0, care: 0, total };
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('cz', opts.year);
+    const pension = r(socialAmount(data, 'pension', gross));
+    const health = r(socialAmount(data, 'health', gross));
+    return { health, pension, unemployment: 0, care: 0, total: r(pension + health) };
   },
 
   getDeductions(_gross: number, _opts: TaxOptions): number {
@@ -46,9 +36,9 @@ export const cz: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Czech Republic 2025 (CZK). Approximate calculation. Tax credits (taxpayer credit 30.840 CZK/year) not applied — actual net will be higher. Not tax advice.';
+      return 'Czech Republic 2025 (CZK). Approximate calculation including the basic taxpayer credit (sleva na poplatníka, 30.840 CZK/year). Not tax advice.';
     }
-    return 'Tschechien 2025 (CZK). Näherungsrechnung. Steuerfreibetrag (Základní sleva 30.840 CZK/Jahr) nicht abgezogen — tatsächliches Netto höher. Keine Steuerberatung.';
+    return 'Tschechien 2025 (CZK). Näherungsrechnung inkl. Steuerfreibetrag (Základní sleva 30.840 CZK/Jahr). Keine Steuerberatung.';
   },
 };
 

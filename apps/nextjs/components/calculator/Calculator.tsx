@@ -69,6 +69,10 @@ const EMPTY_REFINE: RefineFields = {
   familyStatus: null,
   children: 0,
   kvType: null,
+  privateKvPremium: null,
+  partnerGross: null,
+  churchMember: false,
+  bundesland: null,
 };
 
 function CityAutocomplete({
@@ -147,7 +151,6 @@ interface UserProfile {
   employment: string | null;
   familyStatus: string | null;
   childrenCount: number | null;
-  childrenAges: string[] | null;
   kvType: string | null;
   onboardingDone: boolean;
 }
@@ -244,8 +247,8 @@ export default function Calculator() {
   // Re-fetch when refine fields change (debounced)
   useEffect(() => {
     if (!resultRef.current) return;
-    const { employment, familyStatus, children, kvType } = debouncedRefine;
-    const hasAnyField = employment !== null || familyStatus !== null || children > 0 || kvType !== null;
+    const { employment, familyStatus, children, kvType, privateKvPremium, partnerGross, churchMember, bundesland } = debouncedRefine;
+    const hasAnyField = employment !== null || familyStatus !== null || children > 0 || kvType !== null || churchMember;
     if (!hasAnyField) return;
 
     const { fromCity, toCity, grossSalary } = formRef.current;
@@ -257,6 +260,12 @@ export default function Calculator() {
     if (familyStatus) payload.familyStatus = familyStatus;
     if (children > 0) payload.children = children;
     if (kvType) payload.kvType = kvType;
+    if (kvType === 'private' && privateKvPremium != null) payload.privateKvPremium = privateKvPremium;
+    if (familyStatus === 'married' && partnerGross != null) payload.partnerGross = partnerGross;
+    if (churchMember) {
+      payload.churchMember = true;
+      if (bundesland) payload.bundesland = bundesland;
+    }
 
     setLoading(true);
     fetch('/api/calculate', {

@@ -1,20 +1,21 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, deductionAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
 /**
- * Grundfreibetrag 2025: 654 €/Mo = 7.848 €/Jahr.
- * Läuft ab 25.200 € aus (linearer Auslauf).
+ * Estonia. Flat tax (rate from data) with a basic allowance that phases out
+ * linearly between two income thresholds (phase-out logic kept in code).
  */
-function getBasicAllowance(gross: number): number {
-  const maxAllowance = 7848;
-  const phaseOutStart = 14400;
-  const phaseOutEnd = 25200;
+function getBasicAllowance(gross: number, data: TaxData): number {
+  const maxAllowance = deductionAmount(data, 'basic_allowance');
+  const phaseOutStart = deductionAmount(data, 'allowance_phaseout_start');
+  const phaseOutEnd = deductionAmount(data, 'allowance_phaseout_end');
 
   if (gross <= phaseOutStart) return maxAllowance;
   if (gross >= phaseOutEnd) return 0;
 
-  // Linearer Auslauf zwischen 14.400 und 25.200
   const ratio = (gross - phaseOutStart) / (phaseOutEnd - phaseOutStart);
   return r(maxAllowance * (1 - ratio));
 }
@@ -22,19 +23,19 @@ function getBasicAllowance(gross: number): number {
 export const ee: CountryModule = {
   countryCode: 'ee',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    // 20% Flat auf zu versteuerndes Einkommen nach Grundfreibetrag
-    return r(Math.max(0, taxable) * 0.20);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('ee', opts.year);
+    return r(progressiveTax(Math.max(0, taxable), bracketsFor(data, 'employed')));
   },
 
   getSocialContributions(_gross: number, _opts: TaxOptions): SocialContributions {
-    // Sozialsteuer (33%) wird vom Arbeitgeber gezahlt.
-    // AN-Anteil: 0% für Angestellte in Precise Mode.
+    // Employer pays social tax (33%); employee share 0 for employed.
     return { health: 0, pension: 0, unemployment: 0, care: 0, total: 0 };
   },
 
-  getDeductions(gross: number, _opts: TaxOptions): number {
-    return getBasicAllowance(gross);
+  getDeductions(gross: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('ee', opts.year);
+    return getBasicAllowance(gross, data);
   },
 
   getAvailableRegimes(): SpecialRegimeInfo[] {
@@ -49,14 +50,13 @@ export const ee: CountryModule = {
     ];
   },
 
-  applySpecialRegime(_gross: number, regimeId: string, _opts: TaxOptions): number {
+  applySpecialRegime(gross: number, regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('ee', opts.year);
     if (regimeId === 'ou-ee') {
-      // Einbehaltene Gewinne: 0% Steuer
-      // Ausschüttungen: 20%
-      // Gibt 0 zurück (Gewinne einbehalten, keine Steuer)
+      // Retained profits: 0% tax (distributions taxed at 20%).
       return 0;
     }
-    return r(Math.max(0, _gross) * 0.20);
+    return r(progressiveTax(Math.max(0, gross), bracketsFor(data, 'employed')));
   },
 
   getDisclaimer(locale: string): string {

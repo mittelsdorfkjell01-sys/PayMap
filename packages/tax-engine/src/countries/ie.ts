@@ -1,47 +1,27 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax, socialAmount, deductionAmount } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
-
-interface Bracket {
-  from: number;
-  to: number;
-  rate: number;
-}
-
-const PAYE_BRACKETS: Bracket[] = [
-  { from: 0, to: 42000, rate: 0.20 },
-  { from: 42000, to: Infinity, rate: 0.40 },
-];
-
-const USC_BRACKETS: Bracket[] = [
-  { from: 0, to: 12012, rate: 0.005 },
-  { from: 12012, to: 22920, rate: 0.02 },
-  { from: 22920, to: 70044, rate: 0.045 },
-  { from: 70044, to: Infinity, rate: 0.08 },
-];
-
-function calcProgressive(taxable: number, brackets: Bracket[]): number {
-  let tax = 0;
-  for (const b of brackets) {
-    if (taxable <= b.from) break;
-    const slice = Math.min(taxable, b.to) - b.from;
-    tax += slice * b.rate;
-  }
-  return r(tax);
-}
 
 export const ie: CountryModule = {
   countryCode: 'ie',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    const paye = calcProgressive(taxable, PAYE_BRACKETS);
-    const usc = calcProgressive(taxable, USC_BRACKETS);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('ie', opts.year);
+    // Personal + employee (PAYE) tax credits are non-refundable and reduce the
+    // PAYE income tax only — not the USC. Source: revenue.ie (Budget 2025).
+    const credits =
+      deductionAmount(data, 'personal_credit') + deductionAmount(data, 'employee_credit');
+    const paye = Math.max(0, progressiveTax(taxable, bracketsFor(data, 'employed')) - credits);
+    const usc = progressiveTax(taxable, bracketsFor(data, 'usc'));
     return r(paye + usc);
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // PRSI AN: 4% Flat, kein Deckel
-    const pension = r(gross * 0.04); // PRSI modeled as pension contribution
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('ie', opts.year);
+    // PRSI modeled as a flat contribution under pension.
+    const pension = r(socialAmount(data, 'prsi', gross));
     return { health: 0, pension, unemployment: 0, care: 0, total: pension };
   },
 
@@ -59,9 +39,9 @@ export const ie: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Ireland 2025. Includes PAYE and USC. PRSI modeled as a flat contribution. Tax credits (personal, PAYE) not applied — actual net will be higher. Not tax advice.';
+      return 'Ireland 2025. Includes PAYE and USC, with the personal and employee tax credits applied to the PAYE tax. PRSI modeled as a flat contribution. Not tax advice.';
     }
-    return 'Irland 2025. Beinhaltet PAYE und USC. PRSI als Pauschalabgabe modelliert. Steuergutschriften (Personal Credit, PAYE Credit) nicht abgezogen — tatsächliches Netto höher. Keine Steuerberatung.';
+    return 'Irland 2025. Beinhaltet PAYE und USC inkl. Personal- und Arbeitnehmer-Steuergutschrift (auf die PAYE-Steuer). PRSI als Pauschalabgabe modelliert. Keine Steuerberatung.';
   },
 };
 

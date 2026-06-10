@@ -1,12 +1,14 @@
-import { TaxOptions, TaxResult, ApproximateResult, TaxBreakdownLine, SocialContributions } from './types';
+import { TaxOptions, TaxResult, ApproximateResult, TaxBreakdownLine, SocialContributions, TaxData } from './types';
 import { getCountryModule } from './registry';
-import { calculateSoli } from './countries/de';
+import { calculateSoli, calculateChurchTax } from './countries/de';
+import { getDefaultTaxData } from './data/countries';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
 function buildBreakdown(
   incomeTax: number,
   soli: number,
+  churchTax: number,
   social: SocialContributions,
   deductions: number,
 ): TaxBreakdownLine[] {
@@ -35,6 +37,15 @@ function buildBreakdown(
       label: 'Solidaritätszuschlag',
       labelEN: 'Solidarity Surcharge',
       amount: soli,
+      isDeduction: true,
+    });
+  }
+
+  if (churchTax > 0) {
+    lines.push({
+      label: 'Kirchensteuer',
+      labelEN: 'Church Tax',
+      amount: churchTax,
       isDeduction: true,
     });
   }
@@ -78,34 +89,38 @@ function buildBreakdown(
   return lines;
 }
 
-export function calculate(countryCode: string, opts: TaxOptions): TaxResult {
+export function calculate(countryCode: string, opts: TaxOptions, taxData?: TaxData): TaxResult {
   const module = getCountryModule(countryCode);
+  // Values come from the DB-loaded taxData; fall back to the canonical seed
+  // dataset (used by unit tests and when no DB data was supplied).
+  const data = taxData ?? getDefaultTaxData(countryCode, opts.year);
 
-  const deductions = r(module.getDeductions(opts.gross, opts));
+  const deductions = r(module.getDeductions(opts.gross, opts, data));
   const taxableIncome = r(Math.max(0, opts.gross - deductions));
 
   let incomeTax: number;
   if (opts.specialRegimeId) {
-    incomeTax = r(module.applySpecialRegime(opts.gross, opts.specialRegimeId, opts));
+    incomeTax = r(module.applySpecialRegime(opts.gross, opts.specialRegimeId, opts, data));
   } else {
-    incomeTax = r(module.calculateIncomeTax(taxableIncome, opts));
+    incomeTax = r(module.calculateIncomeTax(taxableIncome, opts, data));
   }
 
-  const social = module.getSocialContributions(opts.gross, opts);
+  const social = module.getSocialContributions(opts.gross, opts, data);
 
-  // Soli nur für DE
-  const soli = countryCode === 'de' ? calculateSoli(incomeTax, opts) : 0;
+  // Soli + Kirchensteuer nur für DE
+  const soli = countryCode === 'de' ? calculateSoli(incomeTax, opts, data) : 0;
+  const churchTax = countryCode === 'de' ? calculateChurchTax(incomeTax, opts, data) : 0;
 
-  const totalDeductions = r(incomeTax + soli + social.total);
+  const totalDeductions = r(incomeTax + soli + churchTax + social.total);
   const netAnnual = r(Math.max(0, opts.gross - totalDeductions));
   const netMonthly = r(netAnnual / 12);
   const effectiveRate = opts.gross > 0 ? r(totalDeductions / opts.gross) : 0;
 
   // Marginalrate: Steuer auf taxableIncome+1 minus aktuelle Steuer
-  const taxOnePlus = r(module.calculateIncomeTax(taxableIncome + 1, opts));
+  const taxOnePlus = r(module.calculateIncomeTax(taxableIncome + 1, opts, data));
   const marginalRate = r(taxOnePlus - incomeTax);
 
-  const breakdown = buildBreakdown(incomeTax, soli, social, deductions);
+  const breakdown = buildBreakdown(incomeTax, soli, churchTax, social, deductions);
 
   return {
     gross: opts.gross,
@@ -115,6 +130,7 @@ export function calculate(countryCode: string, opts: TaxOptions): TaxResult {
     incomeTax,
     socialContributions: social,
     soli: soli > 0 ? soli : undefined,
+    churchTax: churchTax > 0 ? churchTax : undefined,
     totalDeductions,
     netAnnual,
     netMonthly,
@@ -168,6 +184,9 @@ export function calculateApproximate(
   currency: string,
   year: number,
   locale: string = 'de',
+  taxData?: TaxData,
+  region?: string,
+  cityScope?: string,
 ): ApproximateResult {
   const opts: TaxOptions = {
     gross,
@@ -177,9 +196,11 @@ export function calculateApproximate(
     children: 0,
     kvType: 'statutory',
     year,
+    region,
+    cityScope,
   };
 
-  const base = calculate(countryCode, opts);
+  const base = calculate(countryCode, opts, taxData);
   const variance = VARIANCE_MAP[countryCode.toLowerCase()] ?? 0.20;
 
   const netMonthlyMin = r(base.netMonthly * (1 - variance));

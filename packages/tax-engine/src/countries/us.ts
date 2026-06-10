@@ -1,70 +1,73 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import {
+  bracketsFor,
+  regionalBracketsFor,
+  progressiveTax,
+  socialAmount,
+  surchargesFor,
+  applySurcharge,
+} from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
-interface Bracket {
-  from: number;
-  to: number;
-  rate: number;
+function filingStatus(opts: TaxOptions): 'single' | 'married' {
+  return opts.familyStatus === 'married' ? 'married' : 'single';
 }
 
-// Federal Brackets 2025 (single)
-const BRACKETS_2025_SINGLE: Bracket[] = [
-  { from: 0, to: 11925, rate: 0.10 },
-  { from: 11925, to: 48475, rate: 0.12 },
-  { from: 48475, to: 103350, rate: 0.22 },
-  { from: 103350, to: 197300, rate: 0.24 },
-  { from: 197300, to: 250525, rate: 0.32 },
-  { from: 250525, to: 626350, rate: 0.35 },
-  { from: 626350, to: Infinity, rate: 0.37 },
-];
+// State standard deduction (e.g. NY) is encoded on a deduction row whose
+// `condition` is "<region>:<filingStatus>" (or "<region>"). 0 when absent.
+function stateStandardDeduction(data: TaxData, region: string, fs: string): number {
+  const d =
+    data.deductions.find((x) => x.type === 'standard_state' && x.condition === `${region}:${fs}`) ??
+    data.deductions.find((x) => x.type === 'standard_state' && x.condition === region);
+  return d?.amount ?? 0;
+}
 
-// MFJ brackets 2025 (Married Filing Jointly) — approximation as double single brackets
-const BRACKETS_2025_MFJ: Bracket[] = [
-  { from: 0, to: 23850, rate: 0.10 },
-  { from: 23850, to: 96950, rate: 0.12 },
-  { from: 96950, to: 206700, rate: 0.22 },
-  { from: 206700, to: 394600, rate: 0.24 },
-  { from: 394600, to: 501050, rate: 0.32 },
-  { from: 501050, to: 751600, rate: 0.35 },
-  { from: 751600, to: Infinity, rate: 0.37 },
-];
+// Federal (on federal taxable) + state layer + city tax (both on the state's own
+// taxable income = gross − state standard deduction). Florida has no state
+// brackets → state/city layers are 0 (A.3).
+function usIncomeTax(taxable: number, opts: TaxOptions, data: TaxData): number {
+  const fs = filingStatus(opts);
+  const federal = progressiveTax(taxable, bracketsFor(data, 'employed', { filingStatus: fs }));
 
-function calcProgressiveTax(taxable: number, brackets: Bracket[]): number {
-  let tax = 0;
-  for (const b of brackets) {
-    if (taxable <= b.from) break;
-    const slice = Math.min(taxable, b.to) - b.from;
-    tax += slice * b.rate;
+  let state = 0;
+  let city = 0;
+  if (opts.region) {
+    const stateTaxable = Math.max(0, opts.gross - stateStandardDeduction(data, opts.region, fs));
+    state = progressiveTax(stateTaxable, regionalBracketsFor(data, 'employed', opts.region, { filingStatus: fs }));
+    if (opts.cityScope) {
+      for (const s of surchargesFor(data, 'nyc_city', { cityScope: opts.cityScope })) {
+        // NYC thresholds differ by filing status (variantKey single/married).
+        if (s.variantKey && s.variantKey !== fs) continue;
+        city += applySurcharge(s, stateTaxable);
+      }
+    }
   }
-  return r(tax);
+  return federal + state + city;
 }
 
 export const us: CountryModule = {
   countryCode: 'us',
 
-  calculateIncomeTax(taxable: number, opts: TaxOptions): number {
-    const brackets = opts.familyStatus === 'married' ? BRACKETS_2025_MFJ : BRACKETS_2025_SINGLE;
-    return calcProgressiveTax(taxable, brackets);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('us', opts.year);
+    return r(usIncomeTax(taxable, opts, data));
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // FICA (AN):
-    // Social Security: 6.2%, max wage base 168.600 USD
-    // Medicare: 1.45%, no cap
-    const ssBbg = 168600;
-    const ssBase = Math.min(gross, ssBbg);
-    const pension = r(ssBase * 0.062);       // Social Security
-    const health = r(gross * 0.0145);        // Medicare
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('us', opts.year);
+    const pension = r(socialAmount(data, 'social_security', gross));
+    const health = r(socialAmount(data, 'medicare', gross));
     const total = r(pension + health);
     return { health, pension, unemployment: 0, care: 0, total };
   },
 
-  getDeductions(_gross: number, opts: TaxOptions): number {
-    // Standard deduction 2025
-    // Single / Divorced: 14.600 USD, Married Filing Jointly: 29.200 USD
-    if (opts.familyStatus === 'married') return 29200;
-    return 14600;
+  getDeductions(_gross: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('us', opts.year);
+    const cond = filingStatus(opts);
+    const row = data.deductions.find((d) => d.type === 'standard' && d.condition === cond);
+    return r(row?.amount ?? 0);
   },
 
   getAvailableRegimes(): SpecialRegimeInfo[] {
@@ -77,9 +80,9 @@ export const us: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'USA 2025 — Federal Income Tax only. State income tax (0–13% depending on state) not included. Significant variations by state possible. Not tax advice.';
+      return 'USA 2025 — Federal + state income tax. New York incl. NYC city tax; Florida has no state income tax. NY tax-benefit recapture (>$107,650) approximated. Not tax advice.';
     }
-    return 'USA 2025 — Nur Federal Income Tax. State Tax (0–13%, je nach Bundesstaat) nicht eingerechnet. Erhebliche Abweichungen je nach Bundesstaat möglich. Keine Steuerberatung.';
+    return 'USA 2025 — Federal + State Income Tax. New York inkl. NYC City Tax; Florida ohne State Tax. NY Tax-Benefit-Recapture (>107.650 $) approximiert. Keine Steuerberatung.';
   },
 };
 

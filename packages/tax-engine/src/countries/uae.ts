@@ -1,12 +1,15 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import { bracketsFor, progressiveTax } from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
 export const uae: CountryModule = {
   countryCode: 'uae',
 
-  calculateIncomeTax(_taxable: number, _opts: TaxOptions): number {
-    return 0;
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('uae', opts.year);
+    return r(progressiveTax(taxable, bracketsFor(data, 'employed')));
   },
 
   getSocialContributions(_gross: number, _opts: TaxOptions): SocialContributions {

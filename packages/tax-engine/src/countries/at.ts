@@ -1,46 +1,81 @@
-import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo } from '../types';
+import { CountryModule, TaxOptions, SocialContributions, SpecialRegimeInfo, TaxData } from '../types';
+import { getDefaultTaxData } from '../data/countries';
+import {
+  bracketsFor,
+  progressiveTax,
+  socialRate,
+  deductionAmount,
+  deductionPercentage,
+  surchargesFor,
+} from '../data/helpers';
 
 const r = (x: number) => Math.round(x * 100) / 100;
 
-interface Bracket {
-  from: number;
-  to: number;
-  rate: number;
+// Austrian wages are paid in 14 instalments: 12 laufende Bezüge + 2
+// Sonderzahlungen (13th/14th salary). The annual gross is split accordingly;
+// the special payments are taxed under the Jahressechstel scheme at much lower
+// rates, and carry slightly lower social contributions (A.8).
+const INSTALMENTS = 14;
+const LAUFENDE = 12;
+const SONDER = 2;
+
+function splitGross(gross: number) {
+  const monthly = gross / INSTALMENTS;
+  return { laufende: monthly * LAUFENDE, sonder: monthly * SONDER };
 }
 
-const BRACKETS_2025: Bracket[] = [
-  { from: 0, to: 12816, rate: 0 },
-  { from: 12816, to: 20818, rate: 0.20 },
-  { from: 20818, to: 34513, rate: 0.30 },
-  { from: 34513, to: 66612, rate: 0.41 },
-  { from: 66612, to: 99266, rate: 0.48 },
-  { from: 99266, to: 1000000, rate: 0.50 },
-  { from: 1000000, to: Infinity, rate: 0.55 },
-];
-
-function calcProgressiveTax(taxable: number): number {
+// Tax on the Sonderzahlungen via the Jahressechstel scale. Below the Freigrenze
+// the special payments are untaxed.
+function sonderzahlungTax(sonder: number, data: TaxData): number {
+  const freigrenze = deductionAmount(data, 'sonderzahlung_freigrenze');
+  if (sonder <= freigrenze) return 0;
+  const scale = surchargesFor(data, 'sonderzahlung')[0];
+  if (!scale?.brackets) return 0;
   let tax = 0;
-  for (const b of BRACKETS_2025) {
-    if (taxable <= b.from) break;
-    const slice = Math.min(taxable, b.to) - b.from;
-    tax += slice * b.rate;
+  for (const b of scale.brackets) {
+    const to = b.to ?? Infinity;
+    if (sonder <= b.from) break;
+    tax += (Math.min(sonder, to) - b.from) * b.rate;
   }
-  return r(tax);
+  return tax;
 }
 
 export const at: CountryModule = {
   countryCode: 'at',
 
-  calculateIncomeTax(taxable: number, _opts: TaxOptions): number {
-    return calcProgressiveTax(taxable);
+  calculateIncomeTax(taxable: number, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('at', opts.year);
+    // AT has no standard deduction, so `taxable` === gross here.
+    const { laufende, sonder } = splitGross(taxable);
+    // Verkehrsabsetzbetrag: non-refundable credit against the tax on the
+    // laufende Bezüge (erhöhter VAB / Zuschlag for low incomes out of scope).
+    const vab = deductionAmount(data, 'verkehrsabsetzbetrag');
+    const taxLaufende = Math.max(0, progressiveTax(laufende, bracketsFor(data, 'employed')) - vab);
+    const taxSonder = sonderzahlungTax(sonder, data);
+    return r(taxLaufende + taxSonder);
   },
 
-  getSocialContributions(gross: number, _opts: TaxOptions): SocialContributions {
-    // AN-Sozialabgaben: Pension 10.25%, KV 3.87%, AV 3.0%, UV 1.0% = 18.12%
-    const pension = r(gross * 0.1025);
-    const health = r(gross * 0.0387);
-    const unemployment = r(gross * 0.030);
-    const care = r(gross * 0.010);
+  getSocialContributions(gross: number, opts: TaxOptions, taxData?: TaxData): SocialContributions {
+    const data = taxData ?? getDefaultTaxData('at', opts.year);
+    const { laufende, sonder } = splitGross(gross);
+
+    const rates = {
+      pension: socialRate(data, 'pension'),
+      health: socialRate(data, 'health'),
+      unemployment: socialRate(data, 'unemployment'),
+      care: socialRate(data, 'care'),
+    };
+    const fullRate = rates.pension + rates.health + rates.unemployment + rates.care;
+    const reduction = deductionPercentage(data, 'sonderzahlung_sv_reduction'); // ~1%
+    // Apply the ~1% reduction to the Sonderzahlung portion, distributed across
+    // the contribution types so the per-type breakdown still sums to the total.
+    const sonderFactor = fullRate > 0 ? 1 - reduction / fullRate : 1;
+    const contrib = (rate: number) => r(rate * laufende + rate * sonder * sonderFactor);
+
+    const pension = contrib(rates.pension);
+    const health = contrib(rates.health);
+    const unemployment = contrib(rates.unemployment);
+    const care = contrib(rates.care);
     const total = r(pension + health + unemployment + care);
     return { health, pension, unemployment, care, total };
   },
@@ -59,9 +94,9 @@ export const at: CountryModule = {
 
   getDisclaimer(locale: string): string {
     if (locale === 'en') {
-      return 'Austria 2025. Approximate calculation. Church tax, individual deductions, and special payments (13th/14th salary at reduced rate) not fully considered. Not tax advice.';
+      return 'Austria 2026. Includes the 13th/14th salary (Jahressechstel): special payments taxed at the reduced 6%/27% rates, plus the Verkehrsabsetzbetrag (€496 credit). Church contribution and other individual deductions not considered. Not tax advice.';
     }
-    return 'Österreich 2025. Näherungsrechnung. Kirchenbeitrag, individuelle Freibeträge und Sonderzahlungen (13./14. Gehalt mit Sondersteuer) nicht vollständig berücksichtigt. Keine Steuerberatung.';
+    return 'Österreich 2026. Berücksichtigt 13./14. Gehalt (Jahressechstel): Sonderzahlungen mit den begünstigten Sätzen 6%/27%, plus Verkehrsabsetzbetrag (496 € Absetzbetrag). Kirchenbeitrag und weitere individuelle Freibeträge nicht berücksichtigt. Keine Steuerberatung.';
   },
 };
 
