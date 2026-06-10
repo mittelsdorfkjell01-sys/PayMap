@@ -100,6 +100,51 @@ export function computeClusterScore(
 }
 
 /**
+ * Per-cluster average of the city's PRESENT category scores; null when the city
+ * has no data in that cluster ("Daten ausstehend"). Unlike computeClusterScore
+ * (which emits a neutral 50 placeholder), this preserves missingness so the UI
+ * can grey out empty cells. Shares the canonical CLUSTER_CATEGORIES — no copy.
+ */
+export function clusterAverages(
+  cityScores: Record<string, number>,
+): Record<ClusterKey, number | null> {
+  const out = {} as Record<ClusterKey, number | null>;
+  for (const cluster of CLUSTER_KEYS) {
+    let sum = 0;
+    let count = 0;
+    for (const cat of CLUSTER_CATEGORIES[cluster]) {
+      const s = cityScores[cat];
+      if (s == null) continue;
+      sum += s;
+      count++;
+    }
+    out[cluster] = count === 0 ? null : Math.round(sum / count);
+  }
+  return out;
+}
+
+/**
+ * Weighted 0–100 total from nullable cluster averages. Clusters with no data are
+ * excluded and the remaining weights re-normalised (same rule as
+ * computeClusterScore). Returns 50 only when the city has no cluster data at all.
+ */
+export function weightedClusterTotal(
+  averages: Record<ClusterKey, number | null>,
+  weights: ClusterWeights = DEFAULT_CLUSTER_WEIGHTS,
+): number {
+  const norm = normalizeClusterWeights(weights);
+  let weightedSum = 0;
+  let covered = 0;
+  for (const cluster of CLUSTER_KEYS) {
+    const v = averages[cluster];
+    if (v == null) continue;
+    weightedSum += v * norm[cluster];
+    covered += norm[cluster];
+  }
+  return covered === 0 ? 50 : Math.round(weightedSum / covered);
+}
+
+/**
  * Parse cluster weights from URL search params.
  * Returns null when no cluster params are present (caller should use defaults).
  * Silently ignores unknown keys and negative values.

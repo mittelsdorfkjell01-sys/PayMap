@@ -40,6 +40,13 @@ export interface RankingRow {
   outdoor: number;
   gastro: number;
   social: number;
+  // Trends-page filter flags (country-level) + coarse region for the region filter.
+  region: string;
+  filters: {
+    dbaGermany: boolean | null;
+    euEea: boolean | null;
+    nomadVisa: boolean | null;
+  };
   scores: Record<string, number>;
   score: number;
   breakdown: Record<string, number>;
@@ -62,6 +69,18 @@ function lifestyleMap(entries: { category: string; score: number }[]): Record<st
   for (const e of entries) m[e.category] = e.score;
   return m;
 }
+
+// Coarse region per country slug, used by the Trends-page region filter.
+const REGION_BY_COUNTRY: Record<string, string> = {
+  de: 'Europa', at: 'Europa', ch: 'Europa', nl: 'Europa', pt: 'Europa', es: 'Europa',
+  fr: 'Europa', it: 'Europa', ie: 'Europa', ee: 'Europa', pl: 'Europa', cz: 'Europa',
+  hu: 'Europa', ro: 'Europa', gb: 'Europa', mt: 'Europa', ge: 'Europa',
+  uae: 'Naher Osten',
+  th: 'Asien', id: 'Asien', sg: 'Asien',
+  us: 'Nordamerika',
+  co: 'Lateinamerika', mx: 'Lateinamerika', ar: 'Lateinamerika',
+  za: 'Afrika',
+};
 
 export async function GET(req: NextRequest) {
   const limited = await checkRateLimit(req);
@@ -99,7 +118,7 @@ export async function GET(req: NextRequest) {
     prisma.city.findMany({
       where: { isActive: true },
       include: {
-        country: { select: { slug: true } },
+        country: { select: { slug: true, dbaGermany: true, euEea: true, nomadVisa: true } },
         lifestyle: { select: { category: true, score: true } },
       },
       orderBy: { sortOrder: 'asc' },
@@ -214,6 +233,12 @@ export async function GET(req: NextRequest) {
       outdoor,
       gastro,
       social,
+      region: REGION_BY_COUNTRY[r.city.country?.slug ?? ''] ?? 'Andere',
+      filters: {
+        dbaGermany: r.city.country?.dbaGermany ?? null,
+        euEea:      r.city.country?.euEea ?? null,
+        nomadVisa:  r.city.country?.nomadVisa ?? null,
+      },
       scores: combinedScores,
       score,
       breakdown:         cluster.breakdown as Record<string, number>,
