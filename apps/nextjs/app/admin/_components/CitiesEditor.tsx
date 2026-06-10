@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { ALL_CATEGORY_KEYS, categoryName } from '@/lib/score-categories';
 
 interface LifestyleScore {
   id: string;
@@ -14,11 +15,8 @@ interface City {
   lifestyle: LifestyleScore[];
 }
 
-const CATEGORIES = [
-  'safety', 'outdoor', 'gastro', 'social', 'climate',
-  'expat_community', 'public_transport', 'healthcare', 'internet',
-  'nightlife', 'family_friendly', 'sports',
-];
+// Derived from the single canonical list — no local copy. Ordered by cluster.
+const CATEGORIES = ALL_CATEGORY_KEYS;
 
 export default function CitiesEditor() {
   const [cities, setCities] = useState<City[]>([]);
@@ -96,8 +94,8 @@ export default function CitiesEditor() {
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="sticky left-0 bg-gray-50 px-4 py-3 text-left font-semibold text-gray-700 whitespace-nowrap min-w-[160px]">Stadt</th>
               {CATEGORIES.map((cat) => (
-                <th key={cat} className="px-3 py-3 text-center font-semibold text-gray-600 whitespace-nowrap min-w-[80px] capitalize">
-                  {cat.replace('_', ' ')}
+                <th key={cat} className="px-3 py-3 text-center font-semibold text-gray-600 whitespace-nowrap min-w-[80px]">
+                  {categoryName(cat, 'de')}
                 </th>
               ))}
             </tr>

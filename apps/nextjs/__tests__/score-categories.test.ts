@@ -14,6 +14,7 @@ import {
 
 const LIB = join(__dirname, '..', 'lib');
 const COMPONENTS = join(__dirname, '..', 'components');
+const APP = join(__dirname, '..', 'app');
 
 const CANONICAL = new Set<string>(Object.values(SCORE_CAT));
 
@@ -114,6 +115,7 @@ describe('static scan — no category key outside the canonical list', () => {
   const consumers = [
     join(COMPONENTS, 'ranking', 'RankingPage.tsx'),
     join(LIB, 'ranking.ts'),
+    join(APP, 'admin', '_components', 'CitiesEditor.tsx'),
   ];
 
   // The canonical keys we explicitly look for as bare string literals.
@@ -136,6 +138,28 @@ describe('static scan — no category key outside the canonical list', () => {
         }
       }
       expect(offenders, `non-canonical category keys: ${offenders.join(', ')}`).toEqual([]);
+    });
+  }
+});
+
+// ─── Invariant 6: every consumer derives from the canonical module ────────────
+// DoD: ranking-score.ts, RankingPage.tsx, the ranking API and admin all import
+// from score-categories.ts (directly or via ranking-score's re-exports).
+
+describe('single source of truth — consumers import the canonical module', () => {
+  const importers: Array<[string, string]> = [
+    ['ranking-score.ts', join(LIB, 'ranking-score.ts')],
+    ['ranking.ts', join(LIB, 'ranking.ts')],
+    ['RankingPage.tsx', join(COMPONENTS, 'ranking', 'RankingPage.tsx')],
+    ['api/ranking/route.ts', join(APP, 'api', 'ranking', 'route.ts')],
+    ['admin/CitiesEditor.tsx', join(APP, 'admin', '_components', 'CitiesEditor.tsx')],
+  ];
+
+  for (const [name, file] of importers) {
+    it(`${name} imports from score-categories (or ranking-score)`, () => {
+      const src = readFileSync(file, 'utf8');
+      const ok = src.includes('score-categories') || src.includes('ranking-score');
+      expect(ok, `${name} does not import the canonical module`).toBe(true);
     });
   }
 });
