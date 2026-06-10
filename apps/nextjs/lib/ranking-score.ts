@@ -1,37 +1,28 @@
 // Cluster-based ranking aggregation.
-// Sits alongside lib/ranking.ts (per-category weights) and adds a 6-cluster
+// Sits alongside lib/ranking.ts (per-category weights) and adds a cluster
 // breakdown view, country-level fallback, and usedFallback / missingCategories tracking.
+//
+// SINGLE SOURCE OF TRUTH: clusters, their category members and the default
+// weights all come from lib/score-categories.ts. This file must never define a
+// second list — it only re-exports and consumes the canonical definitions.
 
-export interface ClusterWeights {
-  finance:        number;
-  safety:         number;
-  health:         number;
-  climate:        number;
-  infrastructure: number;
-  social:         number;
-}
+import {
+  CLUSTER_KEYS,
+  type ClusterKey,
+  CLUSTER_CATEGORIES,
+  DEFAULT_CLUSTER_WEIGHTS,
+} from './score-categories';
 
-export const DEFAULT_CLUSTER_WEIGHTS: ClusterWeights = {
-  finance:        0.30,
-  safety:         0.20,
-  health:         0.10,
-  climate:        0.15,
-  infrastructure: 0.10,
-  social:         0.15,
-};
+// Re-export the canonical pieces so existing importers keep working.
+export { CLUSTER_CATEGORIES, DEFAULT_CLUSTER_WEIGHTS, CLUSTER_KEYS };
+export type { ClusterKey };
 
-export const CLUSTER_CATEGORIES: Record<keyof ClusterWeights, string[]> = {
-  finance:        ['tax_burden_score', 'purchasing_power_score', 'cost_of_living_score'],
-  safety:         ['crime_index', 'political_stability', 'naturkatastrophen_resilienz'],
-  health:         ['healthcare_quality', 'water_drinkable', 'air_quality_pm25'],
-  climate:        ['climate_comfort_score'],
-  infrastructure: ['internet_speed_combined', 'direct_flight_to_germany'],
-  social:         ['english_proficiency', 'lgbtq_acceptance', 'expat_community'],
-};
+/** Cluster weights keyed by the canonical ClusterKey (all 7 clusters). */
+export type ClusterWeights = Record<ClusterKey, number>;
 
 export interface ClusterScoreResult {
   total:             number;
-  breakdown:         Record<keyof ClusterWeights, number>;
+  breakdown:         Record<ClusterKey, number>;
   usedFallback:      boolean;
   missingCategories: string[];
 }
@@ -41,14 +32,14 @@ export function normalizeClusterWeights(weights: ClusterWeights): ClusterWeights
   const total = Object.values(weights).reduce((s, v) => s + v, 0);
   if (total === 0) return { ...DEFAULT_CLUSTER_WEIGHTS };
   const out = {} as ClusterWeights;
-  for (const k of Object.keys(weights) as (keyof ClusterWeights)[]) {
+  for (const k of Object.keys(weights) as ClusterKey[]) {
     out[k] = weights[k] / total;
   }
   return out;
 }
 
 /**
- * Compute a 0–100 composite score via 6 weighted clusters.
+ * Compute a 0–100 composite score via weighted clusters.
  *
  * @param cityScores   Full category→score map for the city.
  * @param weights      Cluster weights (will be normalised; defaults to DEFAULT_CLUSTER_WEIGHTS).
@@ -60,13 +51,13 @@ export function computeClusterScore(
   fallback?: Record<string, number>,
 ): ClusterScoreResult {
   const norm             = normalizeClusterWeights(weights);
-  const breakdown        = {} as Record<keyof ClusterWeights, number>;
+  const breakdown        = {} as Record<ClusterKey, number>;
   const missingCategories: string[] = [];
   let usedFallback       = false;
   let weightedSum        = 0;
   let coveredWeight      = 0;
 
-  for (const cluster of Object.keys(CLUSTER_CATEGORIES) as (keyof ClusterWeights)[]) {
+  for (const cluster of CLUSTER_KEYS) {
     const cats = CLUSTER_CATEGORIES[cluster];
     let sum    = 0;
     let count  = 0;
@@ -89,8 +80,9 @@ export function computeClusterScore(
     }
 
     if (count === 0) {
-      // Entire cluster missing — excluded from total (remaining weights re-normalised below)
-      breakdown[cluster] = 50; // neutral placeholder for display
+      // Entire cluster missing — excluded from total (remaining weights re-normalised below).
+      // 50 is a neutral display placeholder only; it never feeds the weighted total.
+      breakdown[cluster] = 50;
       continue;
     }
 
@@ -113,14 +105,11 @@ export function computeClusterScore(
  * Silently ignores unknown keys and negative values.
  */
 export function parseClusterWeightsFromParams(params: URLSearchParams): ClusterWeights | null {
-  const keys: (keyof ClusterWeights)[] = [
-    'finance', 'safety', 'health', 'climate', 'infrastructure', 'social',
-  ];
-  const hasAny = keys.some((k) => params.has(k));
+  const hasAny = CLUSTER_KEYS.some((k) => params.has(k));
   if (!hasAny) return null;
 
   const w: ClusterWeights = { ...DEFAULT_CLUSTER_WEIGHTS };
-  for (const k of keys) {
+  for (const k of CLUSTER_KEYS) {
     const raw = params.get(k);
     if (raw == null) continue;
     const v = parseFloat(raw);

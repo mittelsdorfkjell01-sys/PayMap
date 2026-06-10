@@ -59,7 +59,7 @@ describe('computeClusterScore — default weights', () => {
     expect(wien.total).toBeGreaterThan(mexico.total);
   });
 
-  it('returns 6 cluster breakdown keys', () => {
+  it('returns all 7 cluster breakdown keys', () => {
     const result = computeClusterScore(WIEN);
     const keys = Object.keys(result.breakdown);
     expect(keys).toContain('finance');
@@ -68,6 +68,7 @@ describe('computeClusterScore — default weights', () => {
     expect(keys).toContain('climate');
     expect(keys).toContain('infrastructure');
     expect(keys).toContain('social');
+    expect(keys).toContain('access');
   });
 
   it('total is between 0 and 100', () => {
@@ -83,7 +84,7 @@ describe('computeClusterScore — default weights', () => {
 
 describe('computeClusterScore — finance:1 weights', () => {
   const financeWeights: ClusterWeights = {
-    finance: 1, safety: 0, health: 0, climate: 0, infrastructure: 0, social: 0,
+    finance: 1, safety: 0, health: 0, climate: 0, infrastructure: 0, social: 0, access: 0,
   };
 
   it('Dubai ranks higher than Wien on pure finance', () => {
@@ -103,7 +104,7 @@ describe('computeClusterScore — finance:1 weights', () => {
 
 describe('computeClusterScore — safety:1 weights', () => {
   const safetyWeights: ClusterWeights = {
-    finance: 0, safety: 1, health: 0, climate: 0, infrastructure: 0, social: 0,
+    finance: 0, safety: 1, health: 0, climate: 0, infrastructure: 0, social: 0, access: 0,
   };
 
   it('Wien ranks higher than Dubai on pure safety', () => {
@@ -117,7 +118,7 @@ describe('computeClusterScore — safety:1 weights', () => {
 
 describe('computeClusterScore — climate:1 weights', () => {
   const climateWeights: ClusterWeights = {
-    finance: 0, safety: 0, health: 0, climate: 1, infrastructure: 0, social: 0,
+    finance: 0, safety: 0, health: 0, climate: 1, infrastructure: 0, social: 0, access: 0,
   };
 
   it('Lissabon (high climate_comfort_score) beats Wien', () => {
@@ -166,7 +167,7 @@ describe('computeClusterScore — missing data', () => {
 describe('normalizeClusterWeights', () => {
   it('normalises weights summing to 2 to sum to 1', () => {
     const raw: ClusterWeights = {
-      finance: 0.6, safety: 0.4, health: 0.2, climate: 0.3, infrastructure: 0.2, social: 0.3,
+      finance: 0.6, safety: 0.4, health: 0.2, climate: 0.3, infrastructure: 0.2, social: 0.3, access: 0.1,
     };
     const norm = normalizeClusterWeights(raw);
     const total = Object.values(norm).reduce((s, v) => s + v, 0);
@@ -174,14 +175,14 @@ describe('normalizeClusterWeights', () => {
   });
 
   it('falls back to DEFAULT_CLUSTER_WEIGHTS when all zeros', () => {
-    const raw: ClusterWeights = { finance: 0, safety: 0, health: 0, climate: 0, infrastructure: 0, social: 0 };
+    const raw: ClusterWeights = { finance: 0, safety: 0, health: 0, climate: 0, infrastructure: 0, social: 0, access: 0 };
     const norm = normalizeClusterWeights(raw);
     expect(norm).toEqual(DEFAULT_CLUSTER_WEIGHTS);
   });
 
   it('computeClusterScore applies non-normalised weights correctly via internal normalisation', () => {
     const doubleWeights: ClusterWeights = {
-      finance: 0.60, safety: 0.40, health: 0.20, climate: 0.30, infrastructure: 0.20, social: 0.30,
+      finance: 0.60, safety: 0.40, health: 0.20, climate: 0.30, infrastructure: 0.20, social: 0.30, access: 0.10,
     };
     const r1 = computeClusterScore(WIEN);
     const r2 = computeClusterScore(WIEN, doubleWeights);
