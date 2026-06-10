@@ -34,8 +34,8 @@ model City {
   weather          CityWeather?
   pois             CityPOI[]
   movingGuides     MovingGuide[]
-  calculationsFrom Calculation[]     @relation("calcFrom")
-  calculationsTo   Calculation[]     @relation("calcTo")
+  calculationsFrom Calculation[]      @relation("calcFrom")
+  calculationsTo   Calculation[]      @relation("calcTo")
   watchlistItems   WatchlistItem[]
   salaryData       SalaryBenchmark[]
   districts        District[]
@@ -45,10 +45,10 @@ model City {
   testimonials     Testimonial[]
   feedback         UserFeedback[]
   changeLogs       CityChangeLog[]
-  searchesFrom     CitySearch[]      @relation("searchFrom")
-  searchesTo       CitySearch[]      @relation("searchTo")
-  plansFrom        MovingPlan[]      @relation("planFrom")
-  plansTo          MovingPlan[]      @relation("planTo")
+  searchesFrom     CitySearch[]       @relation("searchFrom")
+  searchesTo       CitySearch[]       @relation("searchTo")
+  plansFrom        MovingPlan[]       @relation("planFrom")
+  plansTo          MovingPlan[]       @relation("planTo")
 }
 
 model AdminUser {
@@ -137,16 +137,16 @@ model CityLifestyle {
 }
 
 model CityWeather {
-  id             String   @id @default(cuid())
-  cityId         String   @unique
-  city           City     @relation(fields: [cityId], references: [id])
-  sunshineDays   Int
-  rainyDays      Int
-  avgTempSummer  Float
-  avgTempWinter  Float
-  humidityIndex  Int
-  weatherType    String
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(cuid())
+  cityId        String   @unique
+  city          City     @relation(fields: [cityId], references: [id])
+  sunshineDays  Int
+  rainyDays     Int
+  avgTempSummer Float
+  avgTempWinter Float
+  humidityIndex Int
+  weatherType   String
+  updatedAt     DateTime @updatedAt
 }
 
 model CityPOI {
@@ -362,7 +362,7 @@ model District {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  costOfLiving  DistrictCostOfLiving[]
+  costOfLiving DistrictCostOfLiving[]
 
   @@unique([cityId, slug])
 }
