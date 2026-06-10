@@ -263,6 +263,7 @@
     "netWithRegime": "Netto mit Regime",
     "savingsPerYear": "Ersparnis / Jahr",
     "savingsOverDuration": "Ersparnis über Laufzeit",
+    "notCalculable": "Dieses Regime ist kein pauschaler Steuersatz (z. B. Steuerbefreiung, Territorialprinzip oder Freibetrag) und lässt sich nicht überschlägig berechnen. Details in der Regime-Karte unten.",
     "filters": {
       "all": "Alle",
       "employed": "Angestellt",
@@ -283,6 +284,8 @@
       "sourceDate": "Stand",
       "calcWithCountry": "Mit {country} berechnen →",
       "qualifications": "Voraussetzungen",
+      "description": "Was es ist",
+      "background": "Hintergrund",
       "unlimited": "Unbegrenzt",
       "warning": "Achtung",
       "risk_low": "Geringes Risiko",
@@ -290,6 +293,13 @@
       "risk_high": "Hohes Risiko",
       "legalAdvice": "Rechtliche Beratung empfohlen — Dieses Regime ist komplex. Hole vor dem Umzug professionelle Steuerberatung ein.",
       "disclaimer": "Hinweis"
+    },
+    "exitRules": {
+      "title": "Deutsche Wegzugs-Regeln",
+      "subtitle": "Diese Regeln gelten beim Wegzug aus Deutschland — unabhängig vom Zielland."
+    },
+    "exitRule": {
+      "affected": "Wer betroffen ist"
     }
   },
   "guide": {

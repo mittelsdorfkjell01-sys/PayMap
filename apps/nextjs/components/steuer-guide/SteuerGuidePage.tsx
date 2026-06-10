@@ -24,13 +24,46 @@ interface SpecialRegime {
   requiresLegalAdvice: boolean;
   disclaimerDE: string | null;
   disclaimerEN: string | null;
+  descriptionDE: string | null;
+  descriptionEN: string | null;
+  backgroundDE: string | null;
+  backgroundEN: string | null;
   updatedAt: string;
   country: { slug: string; nameDE: string; nameEN: string };
+}
+
+interface ExitRule {
+  id: string;
+  slug: string;
+  ruleType: string;
+  legalRef: string | null;
+  nameDE: string;
+  nameEN: string;
+  descriptionDE: string;
+  descriptionEN: string;
+  affectedDE: string;
+  affectedEN: string;
+  backgroundDE: string | null;
+  backgroundEN: string | null;
+  sourceUrl: string;
+  sourceDE: string;
+  riskLevel: string;
+  requiresLegalAdvice: boolean;
+  disclaimerDE: string | null;
+  disclaimerEN: string | null;
 }
 
 type Filter = 'all' | 'employed' | 'freelancer' | 'euOnly' | 'nonEu' | 'flatTax' | 'zeroTax';
 
 const EU_COUNTRIES = new Set(['de', 'at', 'ch', 'nl', 'pt', 'es', 'fr', 'it', 'ie', 'ee', 'pl', 'cz', 'hu', 'ro']);
+
+// Regimes whose `flatRate` is a genuine effective tax rate on the whole gross —
+// the only ones the Schnellrechner (tax = gross × flatRate) can model honestly.
+// Exemption/territorial regimes (IT 50%-exemption, NL, FR, UK FIG, AT, CH, TH,
+// PL, EE distribution rate) cannot be represented by a single rate.
+const CALCULABLE_REGIME_SLUGS = new Set([
+  'beckham-es', 'ifici-pt', 'grp-mt', 'highly-skilled-mt', 'small-business-ge', 'zero-uae',
+]);
 
 function formatCurrency(n: number): string {
   return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
@@ -54,6 +87,7 @@ function QuickCalculator({ regimes }: { regimes: SpecialRegime[] }) {
     savingsTotal: number;
     duration: number;
   } | null>(null);
+  const [notCalculable, setNotCalculable] = useState(false);
 
   function calculate_() {
     const g = parseFloat(gross);
@@ -61,6 +95,15 @@ function QuickCalculator({ regimes }: { regimes: SpecialRegime[] }) {
 
     const selectedRegime = regimes.find((r) => r.slug === regimeId);
     if (!selectedRegime) return;
+
+    // Exemption/territorial regimes cannot be modelled as a flat rate on gross —
+    // showing a number would mislead. Surface a pointer to the detail card instead.
+    if (!CALCULABLE_REGIME_SLUGS.has(selectedRegime.slug)) {
+      setResult(null);
+      setNotCalculable(true);
+      return;
+    }
+    setNotCalculable(false);
 
     const year = new Date().getFullYear();
     try {
@@ -161,6 +204,13 @@ function QuickCalculator({ regimes }: { regimes: SpecialRegime[] }) {
           ))}
         </div>
       )}
+
+      {notCalculable && (
+        <div className="flex items-start gap-2 bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-4 py-3 text-sm text-on-surface-variant">
+          <span className="shrink-0 mt-0.5">ℹ</span>
+          <span>{t('notCalculable')}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -182,12 +232,17 @@ function RegimeCard({ regime, locale }: { regime: SpecialRegime; locale: string 
   const name = locale === 'de' ? regime.nameDE : regime.nameEN;
   const conditions = locale === 'de' ? regime.conditionsDE : regime.conditionsEN;
   const disclaimer = locale === 'de' ? regime.disclaimerDE : regime.disclaimerEN;
+  const description = locale === 'de' ? regime.descriptionDE : regime.descriptionEN;
+  const background = locale === 'de' ? regime.backgroundDE : regime.backgroundEN;
 
   const riskLabel = t(`regime.risk_${regime.riskLevel}` as Parameters<typeof t>[0]);
   const riskCls = RISK_STYLES[regime.riskLevel] ?? 'bg-surface-container text-on-surface-variant';
 
+  const isCalculable = CALCULABLE_REGIME_SLUGS.has(regime.slug);
   const badges = [
-    { label: formatPercent(regime.flatRate), title: t('regime.taxRate') },
+    // Only show a "tax rate" badge where flatRate is a genuine effective rate;
+    // for exemption/territorial regimes the number would mislead (see card body).
+    ...(isCalculable ? [{ label: formatPercent(regime.flatRate), title: t('regime.taxRate') }] : []),
     { label: regime.durationYears >= 90 ? t('regime.unlimited') : t('regime.years').replace('{n}', String(regime.durationYears)), title: t('regime.duration') },
     { label: isEU ? 'EU' : 'Außerhalb EU', className: isEU ? 'bg-primary/10 text-primary' : 'bg-secondary-container/50 text-secondary' },
     { label: riskLabel, className: riskCls },
@@ -234,6 +289,13 @@ function RegimeCard({ regime, locale }: { regime: SpecialRegime; locale: string 
             </div>
           )}
 
+          {description && (
+            <div className="space-y-1.5">
+              <p className="text-label-sm font-semibold text-on-surface uppercase tracking-wider">{t('regime.description')}</p>
+              <p className="text-body-md text-on-surface leading-relaxed">{description}</p>
+            </div>
+          )}
+
           <p className="text-body-md text-on-surface leading-relaxed">{conditions}</p>
 
           {regime.qualifications.length > 0 && (
@@ -267,6 +329,13 @@ function RegimeCard({ regime, locale }: { regime: SpecialRegime; locale: string 
             </div>
           </div>
 
+          {background && (
+            <div className="space-y-1.5">
+              <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider">{t('regime.background')}</p>
+              <p className="text-body-md text-on-surface-variant leading-relaxed">{background}</p>
+            </div>
+          )}
+
           {/* Disclaimer */}
           {disclaimer && (
             <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-4 py-3 space-y-1">
@@ -287,29 +356,107 @@ function RegimeCard({ regime, locale }: { regime: SpecialRegime; locale: string 
   );
 }
 
+// ─── Exit-Rule-Karte (Säule B) ───────────────────────────────────────────────
+
+function ExitRuleCard({ rule, locale }: { rule: ExitRule; locale: string }) {
+  const t = useTranslations('steuerGuide');
+  const [expanded, setExpanded] = useState(false);
+
+  const name = locale === 'de' ? rule.nameDE : rule.nameEN;
+  const description = locale === 'de' ? rule.descriptionDE : rule.descriptionEN;
+  const affected = locale === 'de' ? rule.affectedDE : rule.affectedEN;
+  const background = locale === 'de' ? rule.backgroundDE : rule.backgroundEN;
+  const disclaimer = locale === 'de' ? rule.disclaimerDE : rule.disclaimerEN;
+
+  const riskLabel = t(`regime.risk_${rule.riskLevel}` as Parameters<typeof t>[0]);
+  const riskCls = RISK_STYLES[rule.riskLevel] ?? 'bg-surface-container text-on-surface-variant';
+
+  return (
+    <div className={cn('glass-card shadow-sm overflow-hidden transition-all', expanded && 'ring-1 ring-primary/30')}>
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full px-5 py-4 flex items-start gap-4 text-left hover:bg-surface-container-low/40 transition-colors"
+      >
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-on-surface">{name}</span>
+            {rule.legalRef && <span className="text-label-sm text-on-surface-variant">· {rule.legalRef}</span>}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className={cn('text-label-sm px-2.5 py-0.5 rounded-full font-semibold', riskCls)}>{riskLabel}</span>
+          </div>
+        </div>
+        <span className="text-on-surface-variant text-sm mt-1 shrink-0">{expanded ? '▲' : '▼'}</span>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-outline-variant/30 px-5 py-5 space-y-4">
+          {rule.requiresLegalAdvice && (
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+              <span className="shrink-0 mt-0.5">⚠</span>
+              <span className="font-medium">{t('regime.legalAdvice')}</span>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <p className="text-label-sm font-semibold text-on-surface uppercase tracking-wider">{t('regime.description')}</p>
+            <p className="text-body-md text-on-surface leading-relaxed">{description}</p>
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-label-sm font-semibold text-on-surface uppercase tracking-wider">{t('exitRule.affected')}</p>
+            <p className="text-body-md text-on-surface-variant leading-relaxed">{affected}</p>
+          </div>
+
+          {background && (
+            <div className="space-y-1.5">
+              <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider">{t('regime.background')}</p>
+              <p className="text-body-md text-on-surface-variant leading-relaxed">{background}</p>
+            </div>
+          )}
+
+          <div className="text-label-sm">
+            <span className="text-on-surface-variant">{t('regime.source')}: </span>
+            <a href={rule.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{rule.sourceDE}</a>
+          </div>
+
+          {disclaimer && (
+            <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-4 py-3 space-y-1">
+              <p className="text-label-sm font-semibold text-on-surface-variant uppercase tracking-wider">{t('regime.disclaimer')}</p>
+              <p className="text-xs text-on-surface-variant leading-relaxed">{disclaimer}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function SteuerGuidePage() {
   const t = useTranslations('steuerGuide');
   const locale = useLocale();
   const [regimes, setRegimes] = useState<SpecialRegime[]>([]);
+  const [exitRules, setExitRules] = useState<ExitRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>('all');
 
   useEffect(() => {
-    fetch('/api/regimes')
-      .then((r) => r.json())
-      .then(setRegimes)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch('/api/regimes').then((r) => r.json()).then(setRegimes).catch(() => {}),
+      fetch('/api/exit-rules').then((r) => r.json()).then(setExitRules).catch(() => {}),
+    ]).finally(() => setLoading(false));
   }, []);
 
   const filtered = regimes.filter((r) => {
     if (filter === 'all') return true;
     if (filter === 'euOnly') return EU_COUNTRIES.has(r.country.slug);
     if (filter === 'nonEu') return !EU_COUNTRIES.has(r.country.slug);
-    if (filter === 'zeroTax') return r.flatRate === 0;
-    if (filter === 'flatTax') return r.flatRate > 0 && r.flatRate <= 0.25;
+    // flatRate is only a true tax rate for calculable regimes; gate the
+    // rate-based filters on that set so placeholder-0 regimes aren't mislabelled.
+    if (filter === 'zeroTax') return CALCULABLE_REGIME_SLUGS.has(r.slug) && r.flatRate === 0;
+    if (filter === 'flatTax') return CALCULABLE_REGIME_SLUGS.has(r.slug) && r.flatRate > 0 && r.flatRate <= 0.25;
     return true;
   });
 
@@ -367,6 +514,21 @@ export default function SteuerGuidePage() {
               <p className="text-on-surface-variant text-body-md">Keine Regime für diesen Filter.</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Säule B — Deutsche Wegzugs-Regeln */}
+      {!loading && exitRules.length > 0 && (
+        <div className="space-y-4 pt-4">
+          <div className="space-y-1">
+            <h2 className="text-headline-sm font-semibold text-on-surface">{t('exitRules.title')}</h2>
+            <p className="text-body-md text-on-surface-variant">{t('exitRules.subtitle')}</p>
+          </div>
+          <div className="space-y-3">
+            {exitRules.map((rule) => (
+              <ExitRuleCard key={rule.id} rule={rule} locale={locale} />
+            ))}
+          </div>
         </div>
       )}
     </div>

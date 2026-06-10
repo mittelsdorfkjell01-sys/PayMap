@@ -263,6 +263,7 @@
     "netWithRegime": "Net with Regime",
     "savingsPerYear": "Savings / Year",
     "savingsOverDuration": "Savings over duration",
+    "notCalculable": "This regime is not a flat tax rate (e.g. an exemption, territorial principle, or allowance) and cannot be estimated here. See the regime card below for details.",
     "filters": {
       "all": "All",
       "employed": "Employed",
@@ -283,6 +284,8 @@
       "sourceDate": "As of",
       "calcWithCountry": "Calculate with {country} →",
       "qualifications": "Requirements",
+      "description": "What it is",
+      "background": "Background",
       "unlimited": "Unlimited",
       "warning": "Warning",
       "risk_low": "Low Risk",
@@ -290,6 +293,13 @@
       "risk_high": "High Risk",
       "legalAdvice": "Legal advice recommended — This regime is complex. Consult a tax professional before relocating.",
       "disclaimer": "Note"
+    },
+    "exitRules": {
+      "title": "German Exit Rules",
+      "subtitle": "These rules apply when leaving Germany — regardless of the destination country."
+    },
+    "exitRule": {
+      "affected": "Who is affected"
     }
   },
   "guide": {

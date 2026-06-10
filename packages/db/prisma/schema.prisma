@@ -165,7 +165,39 @@ model SpecialRegime {
   requiresLegalAdvice Boolean   @default(false)
   disclaimerDE        String?   @db.Text
   disclaimerEN        String?   @db.Text
+  // Long-form prose for the detailed guide ("Was es ist" / "Hintergrund").
+  // Kept separate from `conditions` so the short summary stays scannable.
+  descriptionDE       String?   @db.Text
+  descriptionEN       String?   @db.Text
+  backgroundDE        String?   @db.Text
+  backgroundEN        String?   @db.Text
   updatedAt           DateTime  @updatedAt
+}
+
+// Säule B — German exit/relocation rules that apply regardless of destination
+// country (Wegzugsbesteuerung, erweiterte beschränkte Steuerpflicht, DBA-Status,
+// FBAR/FATCA). Not a SpecialRegime: no flatRate or destination-country benefit.
+model ExitRule {
+  id                  String   @id @default(cuid())
+  slug                String   @unique
+  ruleType            String // exit_tax | extended_limited_liability | dba_status | reporting
+  legalRef            String? // e.g. "§ 6 AStG", "§ 2 AStG"
+  nameDE              String
+  nameEN              String
+  descriptionDE       String   @db.Text // "Was es ist"
+  descriptionEN       String   @db.Text
+  affectedDE          String   @db.Text // "Wer betroffen ist"
+  affectedEN          String   @db.Text
+  backgroundDE        String?  @db.Text // relief / Stundung / notes
+  backgroundEN        String?  @db.Text
+  sourceUrl           String
+  sourceDE            String
+  riskLevel           String   @default("high")
+  requiresLegalAdvice Boolean  @default(true)
+  disclaimerDE        String?  @db.Text
+  disclaimerEN        String?  @db.Text
+  sortOrder           Int      @default(0)
+  updatedAt           DateTime @updatedAt
 }
 
 model SocialContribution {
