@@ -1,6 +1,67 @@
 import { prisma } from './prisma';
 import { CityData } from './city-lookup';
 
+// Curated default destinations, used when no search-aggregate data is available
+// (tracking is off by default, so the aggregates are empty in production). These
+// are the typical emigration targets, ordered by popularity.
+const POPULAR_DESTINATION_SLUGS = [
+  'lissabon', 'barcelona', 'dubai', 'bangkok', 'amsterdam',
+  'madrid', 'zuerich', 'valencia', 'singapur', 'tallinn', 'porto', 'wien',
+];
+
+function toCityData(city: {
+  id: string; slug: string; nameDE: string | null; nameEN: string | null;
+  flag: string; currency: string | null; lat: number | null; lng: number | null;
+  country: { slug: string } | null; region: { slug: string } | null;
+  lifestyle: { category: string; score: number }[];
+}): CityData {
+  const lifestyle: Record<string, number> = {};
+  for (const l of city.lifestyle) lifestyle[l.category] = l.score;
+  return {
+    id: city.id,
+    slug: city.slug,
+    nameDE: city.nameDE ?? city.slug,
+    nameEN: city.nameEN ?? city.slug,
+    flag: city.flag,
+    currency: city.currency ?? 'EUR',
+    countrySlug: city.country?.slug ?? 'de',
+    regionSlug: city.region?.slug ?? null,
+    lat: city.lat,
+    lng: city.lng,
+    lifestyle,
+    costOfLiving: {},
+  };
+}
+
+/**
+ * Static fallback: curated popular destinations (excluding the home city and
+ * any already-selected ids), preserving the curated order.
+ */
+async function fetchFallbackCities(
+  excludeIds: Set<string>,
+  excludeCityId: string,
+  limit: number,
+): Promise<CityData[]> {
+  const cities = await prisma.city.findMany({
+    where: {
+      isActive: true,
+      slug: { in: POPULAR_DESTINATION_SLUGS },
+      id: { notIn: [excludeCityId, ...Array.from(excludeIds)] },
+    },
+    include: {
+      country: { select: { slug: true } },
+      region: { select: { slug: true } },
+      lifestyle: { select: { category: true, score: true } },
+    },
+  });
+  // Preserve the curated POPULAR_DESTINATION_SLUGS order.
+  return POPULAR_DESTINATION_SLUGS
+    .map((slug) => cities.find((c) => c.slug === slug))
+    .filter((c): c is NonNullable<typeof c> => !!c)
+    .slice(0, limit)
+    .map(toCityData);
+}
+
 async function fetchCitiesByIds(ids: string[]): Promise<CityData[]> {
   if (ids.length === 0) return [];
   const cities = await prisma.city.findMany({
@@ -29,6 +90,7 @@ async function fetchCitiesByIds(ids: string[]): Promise<CityData[]> {
       lat: city.lat,
       lng: city.lng,
       lifestyle,
+      costOfLiving: {},
     } satisfies CityData];
   });
 }
@@ -68,5 +130,11 @@ export async function getSuggestedCities(
     if (combined.length >= limit) break;
   }
 
-  return fetchCitiesByIds(combined.slice(0, limit));
+  const fromAggregates = await fetchCitiesByIds(combined.slice(0, limit));
+  if (fromAggregates.length >= limit) return fromAggregates;
+
+  // No (or too little) tracking data — top up with curated popular destinations.
+  const haveIds = new Set(fromAggregates.map((c) => c.id));
+  const staticFill = await fetchFallbackCities(haveIds, fromCityId, limit - fromAggregates.length);
+  return [...fromAggregates, ...staticFill].slice(0, limit);
 }

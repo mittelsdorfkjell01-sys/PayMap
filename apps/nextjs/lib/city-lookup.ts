@@ -13,6 +13,10 @@ export interface CityData {
   lat: number | null;
   lng: number | null;
   lifestyle: Record<string, number>;
+  // Cost-of-living items keyed by category (index_cost, index_rent,
+  // index_grocery, index_utilities, index_transport, total_monthly_estimate, …).
+  // Empty when the city has no seeded CostOfLivingItem rows.
+  costOfLiving: Record<string, number>;
 }
 
 export async function findCity(query: string): Promise<CityData | null> {
@@ -32,6 +36,7 @@ export async function findCity(query: string): Promise<CityData | null> {
       country: { select: { slug: true } },
       region: { select: { slug: true } },
       lifestyle: { select: { category: true, score: true } },
+      costItems: { select: { category: true, value: true, currency: true } },
     },
   });
 
@@ -40,6 +45,11 @@ export async function findCity(query: string): Promise<CityData | null> {
   const lifestyle: Record<string, number> = {};
   for (const l of city.lifestyle) {
     lifestyle[l.category] = l.score;
+  }
+
+  const costOfLiving: Record<string, number> = {};
+  for (const c of city.costItems) {
+    costOfLiving[c.category] = c.value;
   }
 
   return {
@@ -54,6 +64,7 @@ export async function findCity(query: string): Promise<CityData | null> {
     lat: city.lat,
     lng: city.lng,
     lifestyle,
+    costOfLiving,
   };
 }
 
@@ -95,6 +106,7 @@ export async function searchCities(query: string, limit = 8): Promise<CityData[]
       lat: city.lat,
       lng: city.lng,
       lifestyle,
+      costOfLiving: {},
     };
   });
 }
