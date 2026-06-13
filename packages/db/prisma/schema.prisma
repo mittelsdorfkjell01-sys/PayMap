@@ -226,6 +226,14 @@ model SpecialRegime {
   flatRate            Float
   durationYears       Int
   qualifications      Json
+  // Machine-evaluable eligibility rules (array of EligibilityRule). Editable in
+  // the DB; consumed by the tax-engine evaluateEligibility(). `qualifications`
+  // stays as the human-readable list shown in the guide. Null until backfilled.
+  eligibilityCriteria Json?
+  // How the regime affects salary net: replaces_income_tax | reduces_taxable_base
+  // | foreign_income_only | not_applicable_to_salary | partial_not_quantifiable.
+  // Only the first two move the engine's salary net; the API gates on this.
+  regimeEffect        String?
   conditionsDE        String    @db.Text
   conditionsEN        String    @db.Text
   validFrom           DateTime

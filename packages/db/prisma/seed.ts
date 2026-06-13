@@ -87,6 +87,7 @@ async function main() {
     { slug: "zuerich",      flag: "🇨🇭", nameDE: "Zürich",       nameEN: "Zurich",       countrySlug: "ch", currency: "CHF", lat: 47.38,  lng: 8.54,    timezone: "Europe/Zurich",                    isCapital: false, sortOrder: 11 },
     // IT
     { slug: "mailand",      flag: "🇮🇹", nameDE: "Mailand",      nameEN: "Milan",        countrySlug: "it", currency: "EUR", lat: 45.46,  lng: 9.19,    timezone: "Europe/Rome",                      isCapital: false, sortOrder: 12 },
+    { slug: "rom",          flag: "🇮🇹", nameDE: "Rom",          nameEN: "Rome",         countrySlug: "it", currency: "EUR", lat: 41.90,  lng: 12.50,   timezone: "Europe/Rome",                      isCapital: true,  sortOrder: 34 },
     // FR
     { slug: "paris",        flag: "🇫🇷", nameDE: "Paris",        nameEN: "Paris",        countrySlug: "fr", currency: "EUR", lat: 48.85,  lng: 2.35,    timezone: "Europe/Paris",                     isCapital: true,  sortOrder: 13 },
     // IE
@@ -163,6 +164,7 @@ async function main() {
     wien:          { nightlife: 75, remote_work: 78, expat_community: 72, outdoor: 82, safety_general: 92, safety_women: 90, health_system: 90, english_level: 78, political_stability: 88, air_quality: 78, coworking_density: 75, gastro: 85 },
     zuerich:       { nightlife: 62, remote_work: 90, expat_community: 80, outdoor: 92, safety_general: 96, safety_women: 95, health_system: 96, english_level: 90, political_stability: 98, air_quality: 90, coworking_density: 82, gastro: 78 },
     mailand:       { nightlife: 82, remote_work: 80, expat_community: 80, outdoor: 78, safety_general: 75, safety_women: 72, health_system: 84, english_level: 68, political_stability: 72, air_quality: 55, coworking_density: 78, gastro: 92 },
+    rom:           { nightlife: 80, remote_work: 72, expat_community: 78, outdoor: 78, safety_general: 70, safety_women: 65, health_system: 80, english_level: 60, political_stability: 70, air_quality: 58, coworking_density: 72, gastro: 95 },
     paris:         { nightlife: 88, remote_work: 82, expat_community: 85, outdoor: 72, safety_general: 68, safety_women: 62, health_system: 88, english_level: 68, political_stability: 72, air_quality: 58, coworking_density: 85, gastro: 97 },
     dublin:        { nightlife: 82, remote_work: 88, expat_community: 88, outdoor: 72, safety_general: 80, safety_women: 78, health_system: 80, english_level: 99, political_stability: 88, air_quality: 82, coworking_density: 82, gastro: 68 },
     london:        { nightlife: 90, remote_work: 88, expat_community: 95, outdoor: 72, safety_general: 72, safety_women: 68, health_system: 82, english_level: 99, political_stability: 80, air_quality: 62, coworking_density: 92, gastro: 88 },
@@ -212,6 +214,7 @@ async function main() {
     wien:          { sunshineDays: 200, rainyDays: 95,  avgTempSummer: 25.0, avgTempWinter: 0.5,  humidityIndex: 65, weatherType: "continental" },
     zuerich:       { sunshineDays: 185, rainyDays: 110, avgTempSummer: 23.0, avgTempWinter: 0.0,  humidityIndex: 70, weatherType: "continental" },
     mailand:       { sunshineDays: 210, rainyDays: 80,  avgTempSummer: 28.0, avgTempWinter: 3.0,  humidityIndex: 72, weatherType: "humid_subtropical" },
+    rom:           { sunshineDays: 255, rainyDays: 75,  avgTempSummer: 31.0, avgTempWinter: 8.0,  humidityIndex: 68, weatherType: "mediterranean" },
     paris:         { sunshineDays: 185, rainyDays: 110, avgTempSummer: 25.0, avgTempWinter: 4.0,  humidityIndex: 75, weatherType: "oceanic" },
     dublin:        { sunshineDays: 155, rainyDays: 140, avgTempSummer: 18.0, avgTempWinter: 5.0,  humidityIndex: 80, weatherType: "oceanic" },
     london:        { sunshineDays: 165, rainyDays: 130, avgTempSummer: 22.0, avgTempWinter: 5.0,  humidityIndex: 78, weatherType: "oceanic" },
@@ -296,7 +299,7 @@ async function main() {
     {
       countryId: nlId, slug: "ruling30-nl", nameDE: "Expat-Ruling (ehem. 30 %-Regeling, Niederlande)", nameEN: "Expat Ruling (formerly 30% Ruling, Netherlands)",
       flatRate: 0.3697, durationYears: 5,
-      qualifications: ["Aus dem Ausland angeworben mit am NL-Markt knapper Expertise", "Gehaltsnorm ~46.660 € (2025) → 50.436 € ab 2027 (Unter-30 mit Master ~38.338 €)", "Begünstigung gedeckelt (~246.000 € 2025 / 262.000 € 2026)"],
+      qualifications: ["Aus dem Ausland angeworben mit am NL-Markt knapper Expertise", "Steuerpflichtiges Mindestgehalt 48.013 € (2026, nach 30 %-Abzug; Unter-30 mit Master ~36.497 €)", "Begünstigung gedeckelt auf 262.000 € (2026); Satz bleibt 2026 bei 30 %, ab 2027 27 %"],
       conditionsDE: "Arbeitgeber zahlt einen Teil des Bruttolohns steuerfrei als Auslandskosten-Pauschale: 30 % (2025/2026), ab 1.1.2027 auf 27 % gesenkt. Max. 5 Jahre. Die geplante 30-20-10-Staffel wurde zurückgenommen.",
       conditionsEN: "Employer pays part of gross salary tax-free as a foreign-cost allowance: 30% (2025/2026), reduced to 27% from 1 Jan 2027. Max. 5 years. The planned 30-20-10 taper was reversed.",
       validFrom: new Date("2025-01-01"), sourceUrl: "https://www.belastingdienst.nl", sourceDE: "Belastingdienst / business.gov.nl 2025/2026",
@@ -371,9 +374,9 @@ async function main() {
     {
       countryId: mtId, slug: "highly-skilled-mt", nameDE: "Highly Skilled / HQP-Regime (Malta)", nameEN: "Highly Skilled / HQP Regime (Malta)",
       flatRate: 0.15, durationYears: 5,
-      qualifications: ["Qualifizierter Arbeitsvertrag in einem „eligible office\"", "Branchen: Finanzdienstleistungen (MFSA), Online-Gaming (MGA), Luftfahrt (Transport Malta)", "Mindestvergütung ~100.061 € (Basisjahr 2025)"],
-      conditionsDE: "15 % Pauschalsatz auf qualifizierte Erwerbseinkünfte, bis max. 5 Mio. € (darüber befreit). Für EWR-/Schweizer Bürger bis zu 5 aufeinanderfolgende Jahre, für Drittstaatler bis zu 4.",
-      conditionsEN: "15% flat rate on qualifying employment income, up to max. €5m (excess exempt). Up to 5 consecutive years for EEA/Swiss nationals, up to 4 for third-country nationals.",
+      qualifications: ["Qualifizierter Arbeitsvertrag in einem „eligible office\"", "Branchen: Finanzdienstleistungen (MFSA), Online-Gaming (MGA), Luftfahrt (Transport Malta)", "Mindestvergütung 65.000 € (HSI-Regime 2026, LN 20/2026; +10.000 € alle 5 Jahre)"],
+      conditionsDE: "15 % Pauschalsatz auf qualifizierte Erwerbseinkünfte, bis max. 7 Mio. € (darüber zum Normaltarif). Für EWR-/Schweizer Bürger bis zu 5 aufeinanderfolgende Jahre, für Drittstaatler bis zu 4.",
+      conditionsEN: "15% flat rate on qualifying employment income, up to max. €7m (excess at ordinary rates). Up to 5 consecutive years for EEA/Swiss nationals, up to 4 for third-country nationals.",
       validFrom: new Date("2026-01-01"), sourceUrl: "https://mtca.gov.mt/personal-tax/legal-and-technical/test/tax-guidelines-on-highly-qualified-persons-rules", sourceDE: "Malta Tax & Customs Administration; Tax Treatment of Highly Skilled Individuals Rules (LN 20/2026)",
       riskLevel: "low", requiresLegalAdvice: false,
       disclaimerDE: "Die alten HQP Rules erhielten keine Bestimmungen mehr nach dem 31.12.2025; ab 1.1.2026 gilt das konsolidierte „Highly Skilled Individuals\"-Regime (15 %, bis 31.12.2040). Werte vor Antrag amtlich bestätigen. Keine verbindliche Auskunft.",
