@@ -47,8 +47,16 @@ export const pl: CountryModule = {
     return [];
   },
 
-  applySpecialRegime(_gross: number, _regimeId: string, _opts: TaxOptions): number {
-    return 0;
+  applySpecialRegime(gross: number, regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
+    const data = taxData ?? getDefaultTaxData('pl', opts.year);
+    if (regimeId === 'ulga-powrot-pl') {
+      // Ulga na powrót: Erwerbseinkünfte bis 85.528 PLN/Jahr sind PIT-frei
+      // (4 aufeinanderfolgende Jahre); der Rest wird normal nach Skala
+      // besteuert. Limit 2026 bestätigt (unverändert ggü. Vorjahren).
+      const reliefCap = 85_528;
+      return r(calcIncomeTax(Math.max(0, gross - reliefCap), data));
+    }
+    return r(calcIncomeTax(gross, data));
   },
 
   getDisclaimer(locale: string): string {

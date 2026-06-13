@@ -39,8 +39,15 @@ export const fr: CountryModule = {
     return [];
   },
 
-  applySpecialRegime(_gross: number, _regimeId: string, _opts: TaxOptions): number {
-    return 0;
+  applySpecialRegime(gross: number, _regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
+    // Régime des impatriés: die 30 % betreffen nur die Impatriierungs-Prämie
+    // (prime d'impatriation), die sich aus dem Gesamtgehalt nicht isolieren
+    // lässt. Daher KEINE Reduktion des berechneten Gehalts-Nettos — Normaltarif
+    // zurückgeben. Die API erkennt dadurch hasEffect=false und zeigt nur eine
+    // Hinweiskarte statt einer (irreführenden) Zahl.
+    const data = taxData ?? getDefaultTaxData('fr', opts.year);
+    const taxable = Math.max(0, gross - fr.getDeductions(gross, opts, data));
+    return r(fr.calculateIncomeTax(taxable, opts, data));
   },
 
   getDisclaimer(locale: string): string {

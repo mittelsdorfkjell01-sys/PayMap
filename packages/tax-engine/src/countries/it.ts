@@ -82,9 +82,15 @@ export const it: CountryModule = {
   applySpecialRegime(gross: number, regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('it', opts.year);
     if (regimeId === 'impatriate-it') {
-      // 50% des Einkommens steuerfrei → IRPEF nur auf 50% (addizionale on the
-      // reduced base omitted for the regime case).
-      return r(progressiveTax(gross * 0.5, bracketsFor(data, 'employed')));
+      // Regime Impatriati (2024er-Reform, unverändert bis 2026): 50 % des
+      // Einkommens steuerfrei → IRPEF nur auf 50 %; mit minderjährigem Kind
+      // 60 % steuerfrei → nur 40 % steuerpflichtig. Cap 600.000 €/Jahr;
+      // darüber wird voll besteuert. Addizionale auf der reduzierten Basis
+      // hier ausgeklammert.
+      const cap = 600_000;
+      const exemptShare = opts.children > 0 ? 0.6 : 0.5;
+      const taxableBase = gross - Math.min(gross, cap) * exemptShare;
+      return r(progressiveTax(taxableBase, bracketsFor(data, 'employed')));
     }
     return r(itIncomeTax(gross, opts, data));
   },

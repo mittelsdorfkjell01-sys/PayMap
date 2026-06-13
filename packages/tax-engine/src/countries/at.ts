@@ -88,8 +88,13 @@ export const at: CountryModule = {
     return [];
   },
 
-  applySpecialRegime(_gross: number, _regimeId: string, _opts: TaxOptions): number {
-    return 0;
+  applySpecialRegime(gross: number, _regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
+    // Zuzugsbegünstigung (§ 103 EStG): der 30 %-Zuzugsfreibetrag gilt nur für
+    // wissenschaftliche Einkünfte und ist eine BMF-Ermessensentscheidung — aus
+    // dem Gehalt nicht berechenbar. Daher Normaltarif zurückgeben (API:
+    // hasEffect=false → nur Hinweiskarte, keine irreführende Zahl).
+    const data = taxData ?? getDefaultTaxData('at', opts.year);
+    return r(at.calculateIncomeTax(gross, opts, data));
   },
 
   getDisclaimer(locale: string): string {

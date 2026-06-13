@@ -2,6 +2,7 @@
 export type {
   TaxOptions,
   TaxBreakdownLine,
+  BreakdownCategory,
   SocialContributions,
   TaxResult,
   ApproximateResult,
@@ -50,6 +51,19 @@ export {
 
 // Re-export calculate functions
 export { calculate, calculateApproximate } from './calculate';
+
+// Re-export the eligibility engine
+export { evaluateEligibility } from './eligibility';
+export type {
+  EligibilityRule,
+  EligibilityField,
+  EligibilityOp,
+  EligibilityInputs,
+  Verdict,
+  RuleStatus,
+  EvaluatedRule,
+  EligibilityResult,
+} from './eligibility';
 
 // Re-export canonical tax data (single source of truth, used as the engine
 // fallback and to seed the database).

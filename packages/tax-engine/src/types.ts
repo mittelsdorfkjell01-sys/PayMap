@@ -26,11 +26,25 @@ export interface TaxOptions {
   bundesland?: string;
 }
 
+// Semantic category for each breakdown line, so the UI/API can group and order
+// rows independently of the human-readable labels.
+export type BreakdownCategory =
+  | 'deduction'
+  | 'income_tax'
+  | 'surcharge'
+  | 'church_tax'
+  | 'social_pension'
+  | 'social_health'
+  | 'social_unemployment'
+  | 'social_care'
+  | 'other';
+
 export interface TaxBreakdownLine {
   label: string;
   labelEN: string;
   amount: number;
   isDeduction: boolean;
+  category: BreakdownCategory;
 }
 
 export interface SocialContributions {

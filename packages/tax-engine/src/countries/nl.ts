@@ -59,8 +59,8 @@ export const nl: CountryModule = {
     return [
       {
         id: 'ruling30-nl',
-        nameDE: '30%-Ruling (Niederlande) — gestaffelt ab 2024',
-        nameEN: '30% Ruling (Netherlands) — stepped since 2024',
+        nameDE: 'Expat-Ruling (Niederlande) — 30 % (2026), 27 % ab 2027',
+        nameEN: 'Expat Ruling (Netherlands) — 30% (2026), 27% from 2027',
         flatRate: 0.3,
         durationYears: 5,
       },
@@ -69,20 +69,16 @@ export const nl: CountryModule = {
 
   applySpecialRegime(gross: number, regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('nl', opts.year);
-    const brackets = bracketsFor(data, 'employed');
     if (regimeId === 'ruling30-nl') {
-      // Gestaffeltes Ruling ab 2024 (belastingdienst.nl, 2024-reform):
-      //   Phase 1 (Jahr 1):   30 % steuerfrei
-      //   Phase 2 (Jahr 2-3): 20 % steuerfrei
-      //   Phase 3 (Jahr 4-5): 10 % steuerfrei
-      const year = opts.rulingYearsActive ?? 0;
-      let exemptFraction: number;
-      if (year <= 1) exemptFraction = 0.3;
-      else if (year <= 3) exemptFraction = 0.2;
-      else exemptFraction = 0.1;
-      return r(progressiveTax(gross * (1 - exemptFraction), brackets));
+      // Expat-Ruling 2026: flat 30 % steuerfreier Gehaltsanteil. Die im Tax Plan
+      // 2024 geplante 30-20-10-Staffel wurde zurückgenommen; ab 2027 gilt
+      // einheitlich 27 %. Der begünstigte Anteil ist auf 262.000 € (2026,
+      // Balkenende-/WNT-Norm) gedeckelt — darüber kein steuerfreier Anteil.
+      const exemptRate = opts.year >= 2027 ? 0.27 : 0.3;
+      const exempt = Math.min(gross, 262_000) * exemptRate;
+      return r(nl.calculateIncomeTax(Math.max(0, gross - exempt), opts, data));
     }
-    return r(progressiveTax(gross, brackets));
+    return r(nl.calculateIncomeTax(gross, opts, data));
   },
 
   getDisclaimer(locale: string): string {

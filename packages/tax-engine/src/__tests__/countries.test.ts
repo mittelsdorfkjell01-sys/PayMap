@@ -144,47 +144,84 @@ describe('ES — Beckham Law (24% flat bis 600k)', () => {
   });
 });
 
-// ─── Niederlande — 30%-Ruling gestaffelt ──────────────────────────────────────
-// Source: belastingdienst.nl — 30%-ruling reform 2024
-// Drei Phasen: Jahr 1 = 30%, Jahr 2-3 = 20%, Jahr 4-5 = 10%
-// NB: Das Ruling-Regime selbst bleibt unverändert (kein Heffingskorting-Abzug im
-// Regime-Pfad — bewusste Scope-Grenze). Die Goldens verschieben sich ggü. früher
-// nur, weil die Box-1-Brackets jetzt korrekt 3-stufig sind (35,82/37,48/49,50).
-
-describe('NL — 30%-Ruling gestaffelt', () => {
-  it('Jahr 1 (rulingYearsActive=0): 30% steuerfrei → niedrigste Steuerlast', () => {
-    const year1 = calculate('nl', opts('nl', 80000, 'EUR', {
-      specialRegimeId: 'ruling30-nl',
-      rulingYearsActive: 0,
-    }));
-    // Tax auf 70% = 56,000: 38441*0.3582 + 17559*0.3748 = 13,769.57 + 6,581.12 = 20,350.69
-    expect(withinTolerance(year1.netMonthly, 4970.78)).toBe(true); // (80,000 - 20,350.69) / 12
+// ─── Regression: Quoten-Regimes dürfen das Gehalt nicht steuerfrei stellen ────
+// Vor dem Fix lieferten fr/at/pl applySpecialRegime() = 0 (gesamtes Gehalt
+// steuerfrei) — ein gravierender Rechenfehler. FR/AT betreffen nur Teileinkünfte
+// (Prämie bzw. wiss. Einkünfte) → Normaltarif, kein Gehalts-Effekt (hasEffect
+// wird in der API false). PL (Ulga na powrót) befreit bis 85.528 PLN.
+describe('Regression — Sonderregime macht Gehalt nicht steuerfrei', () => {
+  it('FR impatriés: Regime-Netto == Normaltarif (kein Gehalts-Effekt)', () => {
+    const normal = calculate('fr', opts('fr', 90000, 'EUR'));
+    const regime = calculate('fr', opts('fr', 90000, 'EUR', { specialRegimeId: 'impatries-fr' }));
+    expect(regime.netAnnual).toBe(normal.netAnnual);
+    expect(regime.netMonthly).toBeLessThan(regime.gross / 12); // NICHT steuerfrei
   });
 
-  it('Jahr 2-3 (rulingYearsActive=2): 20% steuerfrei → mittlere Steuerlast', () => {
-    const year2 = calculate('nl', opts('nl', 80000, 'EUR', {
-      specialRegimeId: 'ruling30-nl',
-      rulingYearsActive: 2,
-    }));
-    // Tax auf 80% = 64,000: 13,769.57 + 25559*0.3748 = 13,769.57 + 9,579.51 = 23,349.08
-    expect(withinTolerance(year2.netMonthly, 4720.91)).toBe(true); // (80,000 - 23,349.08) / 12
+  it('AT Zuzugsbegünstigung: Regime-Netto == Normaltarif', () => {
+    const normal = calculate('at', opts('at', 90000, 'EUR'));
+    const regime = calculate('at', opts('at', 90000, 'EUR', { specialRegimeId: 'zuzug-at' }));
+    expect(regime.netAnnual).toBe(normal.netAnnual);
+    expect(regime.netMonthly).toBeLessThan(regime.gross / 12);
   });
 
-  it('Jahr 4-5 (rulingYearsActive=4): 10% steuerfrei → höchste Steuerlast', () => {
-    const year4 = calculate('nl', opts('nl', 80000, 'EUR', {
-      specialRegimeId: 'ruling30-nl',
-      rulingYearsActive: 4,
-    }));
-    // Tax auf 90% = 72,000: 13,769.57 + 33559*0.3748 = 13,769.57 + 12,577.92 = 26,347.49
-    expect(withinTolerance(year4.netMonthly, 4471.04)).toBe(true); // (80,000 - 26,347.49) / 12
+  it('PL Ulga na powrót: senkt Steuer, aber Gehalt bleibt teilweise besteuert', () => {
+    const normal = calculate('pl', opts('pl', 300000, 'PLN', { specialRegimeId: undefined }));
+    const regime = calculate('pl', opts('pl', 300000, 'PLN', { specialRegimeId: 'ulga-powrot-pl' }));
+    expect(regime.netAnnual).toBeGreaterThan(normal.netAnnual); // Entlastung wirkt
+    expect(regime.netMonthly).toBeLessThan(regime.gross / 12);  // nicht komplett steuerfrei
   });
+});
 
-  it('Steuerlast steigt von Jahr 1 → Jahr 2 → Jahr 4', () => {
-    const y1 = calculate('nl', opts('nl', 80000, 'EUR', { specialRegimeId: 'ruling30-nl', rulingYearsActive: 0 }));
-    const y2 = calculate('nl', opts('nl', 80000, 'EUR', { specialRegimeId: 'ruling30-nl', rulingYearsActive: 2 }));
+// ─── IT Impatriati — 50 % bzw. 60 % (mit minderjährigem Kind) ─────────────────
+describe('IT — Impatriati 50/60 %', () => {
+  it('mit Kind (60 % befreit) → höheres Netto als ohne Kind (50 %)', () => {
+    const noChild = calculate('it', opts('it', 90000, 'EUR', { specialRegimeId: 'impatriate-it', children: 0 }));
+    const child = calculate('it', opts('it', 90000, 'EUR', { specialRegimeId: 'impatriate-it', children: 1 }));
+    expect(child.netMonthly).toBeGreaterThan(noChild.netMonthly);
+  });
+  it('Regime senkt die Steuer ggü. Normaltarif', () => {
+    const normal = calculate('it', opts('it', 90000, 'EUR'));
+    const regime = calculate('it', opts('it', 90000, 'EUR', { specialRegimeId: 'impatriate-it' }));
+    expect(regime.netMonthly).toBeGreaterThan(normal.netMonthly);
+  });
+});
+
+// ─── Niederlande — Expat-Ruling 2026 (flat 30 %, ab 2027 27 %) ────────────────
+// Sources (retrieved 2026-06-13):
+//   iamsterdam.com / cardon.nl / portsighttax.com — Tax Plan 2026:
+//   Die im Tax Plan 2024 geplante 30-20-10-Staffel wurde ZURÜCKGENOMMEN.
+//   2026: flat 30 % steuerfreier Anteil; ab 1.1.2027 einheitlich 27 %.
+//   Begünstigter Gehaltsanteil gedeckelt auf 262.000 € (2026).
+// Der Regime-Pfad rechnet jetzt über calculateIncomeTax (inkl. heffingskortingen)
+// auf der reduzierten Basis — daher höhere Nettos als im alten Staffel-Golden.
+
+describe('NL — Expat-Ruling 2026 (flat, keine Staffel)', () => {
+  it('2026: 30 % steuerfrei → Netto unabhängig von rulingYearsActive (keine Staffel)', () => {
+    const y0 = calculate('nl', opts('nl', 80000, 'EUR', { specialRegimeId: 'ruling30-nl', rulingYearsActive: 0 }));
     const y4 = calculate('nl', opts('nl', 80000, 'EUR', { specialRegimeId: 'ruling30-nl', rulingYearsActive: 4 }));
-    expect(y1.netMonthly).toBeGreaterThan(y2.netMonthly);
-    expect(y2.netMonthly).toBeGreaterThan(y4.netMonthly);
+    // exempt = 80.000 × 30 % = 24.000 → Steuer auf 56.000 inkl. heffingskortingen
+    expect(withinTolerance(y0.netMonthly, 5477.16)).toBe(true);
+    expect(y4.netMonthly).toBe(y0.netMonthly); // Staffel abgeschafft → identisch
+  });
+
+  it('Ruling senkt die Steuer ggü. Normaltarif', () => {
+    const ruling = calculate('nl', opts('nl', 80000, 'EUR', { specialRegimeId: 'ruling30-nl' }));
+    const normal = calculate('nl', opts('nl', 80000, 'EUR'));
+    expect(ruling.netMonthly).toBeGreaterThan(normal.netMonthly);
+  });
+
+  it('ab 2027: 27 % statt 30 % → etwas weniger Netto als 2026, aber mehr als Normaltarif', () => {
+    const y2026 = calculate('nl', opts('nl', 80000, 'EUR', { specialRegimeId: 'ruling30-nl', year: 2026 }));
+    const y2027 = calculate('nl', opts('nl', 80000, 'EUR', { specialRegimeId: 'ruling30-nl', year: 2027 }));
+    const normal = calculate('nl', opts('nl', 80000, 'EUR', { year: 2027 }));
+    expect(y2027.netMonthly).toBeLessThan(y2026.netMonthly);
+    expect(y2027.netMonthly).toBeGreaterThan(normal.netMonthly);
+  });
+
+  it('Cap 262.000 €: der steuerfreie Anteil wächst oberhalb nicht weiter', () => {
+    // Bei 400.000 € ist exempt auf 262.000 × 30 % = 78.600 gedeckelt.
+    const hi = calculate('nl', opts('nl', 400000, 'EUR', { specialRegimeId: 'ruling30-nl' }));
+    expect(withinTolerance(hi.netMonthly, 20898.21)).toBe(true);
   });
 });
 

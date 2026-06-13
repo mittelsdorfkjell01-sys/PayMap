@@ -4,6 +4,10 @@ import { calculateSoli, calculateChurchTax } from './countries/de';
 import { getDefaultTaxData } from './data/countries';
 
 const r = (x: number) => Math.round(x * 100) / 100;
+// Rates need finer granularity than money: 2-decimal rounding collapses the
+// effective rate to whole percents (0.3705 → 0.37 → "37.0 %"). Keep 4 decimals
+// so the UI can show one decimal place.
+const rate = (x: number) => Math.round(x * 10000) / 10000;
 
 function buildBreakdown(
   incomeTax: number,
@@ -20,6 +24,7 @@ function buildBreakdown(
       labelEN: 'Deductions',
       amount: deductions,
       isDeduction: true,
+      category: 'deduction',
     });
   }
 
@@ -29,6 +34,7 @@ function buildBreakdown(
       labelEN: 'Income Tax',
       amount: incomeTax,
       isDeduction: true,
+      category: 'income_tax',
     });
   }
 
@@ -38,6 +44,7 @@ function buildBreakdown(
       labelEN: 'Solidarity Surcharge',
       amount: soli,
       isDeduction: true,
+      category: 'surcharge',
     });
   }
 
@@ -47,6 +54,7 @@ function buildBreakdown(
       labelEN: 'Church Tax',
       amount: churchTax,
       isDeduction: true,
+      category: 'church_tax',
     });
   }
 
@@ -56,6 +64,7 @@ function buildBreakdown(
       labelEN: 'Pension Insurance',
       amount: social.pension,
       isDeduction: true,
+      category: 'social_pension',
     });
   }
 
@@ -65,6 +74,7 @@ function buildBreakdown(
       labelEN: 'Health Insurance',
       amount: social.health,
       isDeduction: true,
+      category: 'social_health',
     });
   }
 
@@ -74,6 +84,7 @@ function buildBreakdown(
       labelEN: 'Unemployment Insurance',
       amount: social.unemployment,
       isDeduction: true,
+      category: 'social_unemployment',
     });
   }
 
@@ -83,6 +94,7 @@ function buildBreakdown(
       labelEN: 'Care Insurance',
       amount: social.care,
       isDeduction: true,
+      category: 'social_care',
     });
   }
 
@@ -114,7 +126,7 @@ export function calculate(countryCode: string, opts: TaxOptions, taxData?: TaxDa
   const totalDeductions = r(incomeTax + soli + churchTax + social.total);
   const netAnnual = r(Math.max(0, opts.gross - totalDeductions));
   const netMonthly = r(netAnnual / 12);
-  const effectiveRate = opts.gross > 0 ? r(totalDeductions / opts.gross) : 0;
+  const effectiveRate = opts.gross > 0 ? rate(totalDeductions / opts.gross) : 0;
 
   // Marginalrate: Steuer auf taxableIncome+1 minus aktuelle Steuer
   const taxOnePlus = r(module.calculateIncomeTax(taxableIncome + 1, opts, data));
