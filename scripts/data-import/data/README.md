@@ -53,3 +53,7 @@ The importer is **idempotent**: re-running overwrites existing rows matched by
 
 - Fields with commas, quotes, or line-breaks must be wrapped in double-quotes per RFC 4180.
 - `visa-rules.csv` is gitignored — it may contain sensitive source URLs or draft content.
+
+
+noch offen: Die Migrationen sind committet aber nicht deployed. Vor Wirksamkeit auf prod Neon DB: prisma migrate deploy + npm run db:seed (mirror-t Engine-Werte inkl. Region/Surcharge/FixedAmount in die DB). Ich habe nichts an der Prod-DB ausgeführt.
+

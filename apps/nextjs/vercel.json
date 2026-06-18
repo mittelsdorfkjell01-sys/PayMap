@@ -1,8 +1,0 @@
-{
-  "crons": [
-    { "path": "/api/cron/sync-exchange-rates", "schedule": "0 2 * * *" },
-    { "path": "/api/cron/sync-search-aggregates", "schedule": "0 1 * * *" },
-    { "path": "/api/cron/cleanup-calculations", "schedule": "0 3 * * *" },
-    { "path": "/api/cron/detect-stale-content", "schedule": "0 4 * * *" }
-  ]
-}
