@@ -23,6 +23,15 @@ export interface SocialContributions {
   total: number;
 }
 
+export interface SpecialRegime {
+  slug: string;
+  nameDE: string;
+  nameEN: string;
+  flatRate: number;
+  durationYears: number;
+  conditionsDE: string;
+}
+
 export interface CalcSide {
   slug: string;
   country: string;
@@ -32,6 +41,7 @@ export interface CalcSide {
   social: SocialContributions;
   breakdown: BreakdownLine[];
   col: Record<string, number>;
+  regime?: SpecialRegime | null;
 }
 
 export interface CalculateResponse {

@@ -24,7 +24,7 @@ type InsState = Record<InsKey, string>;
 const EMPTY_INS: InsState = { health: "", care: "", pension: "", unemployment: "" };
 
 const COL_ROWS: { key: string; label: string }[] = [
-  { key: "rent_cold_1br", label: "Warmmiete" },
+  { key: "rent_cold_1br", label: "Kaltmiete" },
   { key: "groceries_monthly", label: "Lebensmittel" },
   { key: "transport_monthly", label: "ÖPNV" },
   { key: "internet_monthly", label: "Internet" },
@@ -317,7 +317,7 @@ export default function Calculator() {
             {result && (
               <>
                 <ResultsCard result={result} gross={gross} homeCities={homeCities} targetCities={targetCities} />
-                <SonderregimeBanner />
+                {result.target.regime && <SonderregimeBanner regime={result.target.regime} />}
                 <ColCard result={result} />
                 <DifferenceCard result={result} />
               </>
@@ -435,19 +435,15 @@ function ResultsCard({ result, gross, homeCities, targetCities }: { result: Calc
   );
 }
 
-function SonderregimeBanner() {
+function SonderregimeBanner({ regime }: { regime: NonNullable<CalcSide["regime"]> }) {
   return (
     <section className="flex items-center justify-between gap-8 rounded-banner bg-navy px-8 py-7">
       <div className="max-w-2xl">
         <span className="inline-block rounded-[3px] bg-navy-soft px-3 py-1 text-[11px] font-medium tracking-wide text-white">
           SONDERREGIME
         </span>
-        <h3 className="mt-3 text-lg font-light text-white">IFICI - Portugal</h3>
-        <p className="mt-2 text-[13px] font-light leading-relaxed text-white/85">
-          Das Nachfolgeregime des NHR besteuert qualifizierte Tätigkeiten 10 Jahre lang pauschal mit{" "}
-          <span className="font-medium">20% IRS.</span> Voraussetzung ist eine neue steuerliche Ansässigkeit und ein
-          anerkannter Beruf.
-        </p>
+        <h3 className="mt-3 text-lg font-light text-white">{regime.nameDE}</h3>
+        <p className="mt-2 text-[13px] font-light leading-relaxed text-white/85">{regime.conditionsDE}</p>
       </div>
       <button className="shrink-0 rounded-lg bg-card px-6 py-3 text-sm font-medium text-navy transition-opacity hover:opacity-90">
         Im Guide erklärt

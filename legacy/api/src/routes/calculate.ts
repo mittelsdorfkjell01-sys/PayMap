@@ -111,6 +111,17 @@ router.post("/", async (req, res) => {
 
   const deltaMonthly = target.netMonthly - home.netMonthly;
 
+  // Special regime of the target country (for the Sonderregime banner) — from the
+  // DB, no hardcoded copy. Prefer the one matching the requested id, else the first.
+  const regimes = await prisma.specialRegime.findMany({
+    where: { country: { slug: targetCountry } },
+    select: { slug: true, nameDE: true, nameEN: true, flatRate: true, durationYears: true, conditionsDE: true },
+  });
+  const targetRegime =
+    regimes.find((r) => p.specialRegimeId && (r.slug === p.specialRegimeId || r.slug.startsWith(p.specialRegimeId))) ??
+    regimes[0] ??
+    null;
+
   res.json({
     home: {
       slug: homeCity.slug,
@@ -131,6 +142,7 @@ router.post("/", async (req, res) => {
       social: target.socialContributions,
       breakdown: target.breakdown,
       col: colMap(targetCity.costItems),
+      regime: targetRegime,
     },
     delta: {
       monthly: Math.round(deltaMonthly),
