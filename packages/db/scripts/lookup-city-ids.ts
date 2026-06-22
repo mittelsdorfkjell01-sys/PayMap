@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-dotenv.config({ path: path.resolve(__dirname, '../../../apps/nextjs/.env.local') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const prisma = new PrismaClient();
 prisma.city.findMany({
   where: { slug: { in: ['amsterdam', 'wien', 'dubai', 'porto', 'barcelona', 'rom', 'paris', 'prag', 'budapest', 'zuerich', 'bangkok'] } },
