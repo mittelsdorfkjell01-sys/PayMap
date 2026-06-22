@@ -18,6 +18,7 @@
     "seed:col:porto": "ts-node --project tsconfig.json prisma/seed-col-porto.ts",
     "seed:col:berlin": "ts-node --project tsconfig.json prisma/seed-col-berlin.ts",
     "seed:taxdata": "ts-node --project tsconfig.json prisma/seed-taxdata.ts",
+    "seed:inflation:forecast": "ts-node --project tsconfig.json prisma/seed-inflation-forecast.ts",
     "seed:premium:barcelona": "ts-node --project tsconfig.json prisma/seed-sprint9-barcelona.ts",
     "seed:premium:rom-premium": "ts-node --project tsconfig.json prisma/seed-sprint9-rom-premium.ts",
     "seed:premium:paris": "ts-node --project tsconfig.json prisma/seed-sprint9-paris.ts",
