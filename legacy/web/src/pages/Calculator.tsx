@@ -5,10 +5,10 @@ import DonutChart from "@/components/DonutChart";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Minus, Plus, TrendingUp } from "lucide-react";
+import { ChevronDown, Minus, Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { cn, formatMoney } from "@/lib/utils";
 import { fetchCities, type City } from "@/api/cities";
-import { calculate, type CalcSide, type CalculateResponse, type InsuranceOverrides } from "@/api/calculate";
+import { calculate, type CalcSide, type CalculateResponse, type InflationDTO, type InsuranceOverrides } from "@/api/calculate";
 
 const LOCALE = "de";
 const eur = (n: number) => formatMoney(n, LOCALE);
@@ -453,10 +453,7 @@ function SonderregimeBanner({ regime }: { regime: NonNullable<CalcSide["regime"]
 }
 
 /* ── cost of living + inflation ───────────────────────────────────────────── */
-const INFLATION: { home: [string, string][]; target: [string, string][] } = {
-  home: [["Inflation", "2.6 - 2.7 %"], ["Trend", "↗"], ["Prognose 2027", "2.3 %"]],
-  target: [["Inflation", "3.3 %"], ["Trend", "↗"], ["Prognose 2027", "2.3 %"]],
-};
+const pct = (n: number | null) => (n != null ? `${n.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %` : "—");
 
 function ColBox({ side }: { side: CalcSide }) {
   const total = colTotal(side.col);
@@ -474,16 +471,32 @@ function ColBox({ side }: { side: CalcSide }) {
   );
 }
 
-function InflationBox({ rows }: { rows: [string, string][] }) {
+function InflationBox({ inflation }: { inflation?: InflationDTO }) {
+  const trendIcon =
+    inflation?.trend === "up" ? (
+      <TrendingUp className="h-4 w-4 text-negative" />
+    ) : inflation?.trend === "down" ? (
+      <TrendingDown className="h-4 w-4 text-positive" />
+    ) : (
+      <Minus className="h-4 w-4 text-navy/40" />
+    );
   return (
     <div className="rounded-xl border border-border p-6">
-      <div className="flex flex-col gap-3">
-        {rows.map(([label, value]) => (
-          <div key={label} className="flex items-center justify-between text-sm font-light text-navy">
-            <span>{label}</span>
-            {value === "↗" ? <TrendingUp className="h-4 w-4 text-negative" /> : <span>{value}</span>}
+      <div className="flex flex-col gap-3 text-sm font-light text-navy">
+        <div className="flex items-center justify-between">
+          <span>Inflation{inflation?.period ? ` (${inflation.period})` : ""}</span>
+          <span>{pct(inflation?.current ?? null)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Trend</span>
+          {trendIcon}
+        </div>
+        {inflation?.forecast != null && (
+          <div className="flex items-center justify-between">
+            <span>Prognose {inflation.forecastYear ?? ""}</span>
+            <span>{pct(inflation.forecast)}</span>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
@@ -497,8 +510,8 @@ function ColCard({ result }: { result: CalculateResponse }) {
         <ColBox side={result.target} />
       </div>
       <div className="grid grid-cols-2 gap-6">
-        <InflationBox rows={INFLATION.home} />
-        <InflationBox rows={INFLATION.target} />
+        <InflationBox inflation={result.home.inflation} />
+        <InflationBox inflation={result.target.inflation} />
       </div>
     </section>
   );

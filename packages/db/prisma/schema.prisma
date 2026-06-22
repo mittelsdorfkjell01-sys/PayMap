@@ -85,6 +85,28 @@ model Country {
   visaRules               VisaRule[]
   countryProfiles         CountryProfile[]
   countrySalaryBenchmarks CountrySalaryBenchmark[]
+  indicator               CountryIndicator?
+}
+
+// National economic indicators shown in the calculator (inflation). Inflation is
+// kept live: `inflationCurrent`/`inflationTrend`/`period` are refreshed from the
+// Eurostat HICP API and cached here with `fetchedAt` (stale-checked on read).
+// The forecast (`forecastValue`/`forecastYear`) comes from the EU Commission /
+// IMF forecasts, which update only ~2×/year — admin-editable, not auto-fetched.
+model CountryIndicator {
+  id               String    @id @default(cuid())
+  countryId        String    @unique
+  country          Country   @relation(fields: [countryId], references: [id])
+  inflationCurrent Float? // latest HICP annual rate of change (%)
+  inflationPrev    Float? // previous month (used to derive the trend)
+  inflationTrend   String? // "up" | "down" | "flat"
+  period           String? // e.g. "2025-12"
+  source           String? // e.g. "Eurostat prc_hicp_minr"
+  fetchedAt        DateTime? // last successful live refresh
+  forecastValue    Float? // EU Commission / IMF inflation forecast (%)
+  forecastYear     Int? // e.g. 2027
+  forecastSource   String?
+  updatedAt        DateTime  @updatedAt
 }
 
 // Sub-national tax region (Spanish comunidad, Italian regione, US state,

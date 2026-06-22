@@ -32,6 +32,14 @@ export interface SpecialRegime {
   conditionsDE: string;
 }
 
+export interface InflationDTO {
+  current: number | null;
+  trend: string | null; // "up" | "down" | "flat"
+  period: string | null;
+  forecast: number | null;
+  forecastYear: number | null;
+}
+
 export interface CalcSide {
   slug: string;
   country: string;
@@ -42,6 +50,7 @@ export interface CalcSide {
   breakdown: BreakdownLine[];
   col: Record<string, number>;
   regime?: SpecialRegime | null;
+  inflation?: InflationDTO;
 }
 
 export interface CalculateResponse {

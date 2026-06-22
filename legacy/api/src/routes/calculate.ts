@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "../lib/prisma";
 import { calculate, type TaxOptions } from "@paymap/tax-engine";
 import { loadTaxData } from "@paymap/db/tax-data";
+import { getInflation } from "../lib/inflation";
 
 const router = Router();
 
@@ -122,6 +123,12 @@ router.post("/", async (req, res) => {
     regimes[0] ??
     null;
 
+  // Live inflation (cached + stale-checked) for each side's country.
+  const [homeInflation, targetInflation] = await Promise.all([
+    getInflation(homeCountry),
+    getInflation(targetCountry),
+  ]);
+
   res.json({
     home: {
       slug: homeCity.slug,
@@ -132,6 +139,7 @@ router.post("/", async (req, res) => {
       social: home.socialContributions,
       breakdown: home.breakdown,
       col: colMap(homeCity.costItems),
+      inflation: homeInflation,
     },
     target: {
       slug: targetCity.slug,
@@ -143,6 +151,7 @@ router.post("/", async (req, res) => {
       breakdown: target.breakdown,
       col: colMap(targetCity.costItems),
       regime: targetRegime,
+      inflation: targetInflation,
     },
     delta: {
       monthly: Math.round(deltaMonthly),
