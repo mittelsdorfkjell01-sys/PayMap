@@ -61,7 +61,10 @@ export default function Header({ active = "calculator" }: { active?: string }) {
           <span className="mx-1 text-muted-foreground/50">/</span>
           <span className={currentLang === "en" ? "text-navy" : ""}>EN</span>
         </button>
-        <button className="flex h-7 w-7 items-center justify-center rounded-full text-navy transition-colors hover:bg-field">
+        <button
+          onClick={() => navigate("/profil")}
+          className="flex h-7 w-7 items-center justify-center rounded-full text-navy transition-colors hover:bg-field"
+        >
           <User className="h-5 w-5" strokeWidth={1.5} />
         </button>
       </div>

@@ -206,7 +206,7 @@ export default function Calculator() {
             </div>
 
             {/* Input card */}
-            <section className="rounded-card border border-border bg-card p-8">
+            <section id="rechner" className="rounded-card border border-border bg-card p-8">
               <div className="grid grid-cols-2 gap-8">
                 <Field label="Heimstadt">
                   <CitySelect value={homeSlug} options={homeCities} onChange={setHomeSlug} />
@@ -345,7 +345,7 @@ export default function Calculator() {
             {/* Results */}
             {result && (
               <>
-                <section className="rounded-card border border-border bg-card p-8">
+                <section id="steuern" className="rounded-card border border-border bg-card p-8">
                   <div className="grid grid-cols-2 gap-8">
                     <TaxColumn side={result.home} gross={gross} cities={homeCities} />
                     <TaxColumn side={result.target} gross={gross} cities={targetCities} />
@@ -456,7 +456,7 @@ function CostOfLivingSection({
   const targetTotal = colTotal(result.target.col);
 
   return (
-    <section className="rounded-card border border-border bg-card p-8">
+    <section id="lebenshaltung" className="rounded-card border border-border bg-card p-8">
       <div className="mb-4 grid grid-cols-2 gap-8">
         <CityHeader flag={home.flag} city={home.name} country={home.country} />
         <CityHeader flag={target.flag} city={target.name} country={target.country} />
