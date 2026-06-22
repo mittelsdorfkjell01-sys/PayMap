@@ -5,6 +5,22 @@ import { socialAmount, socialCeiling, deductionAmount, deductionPercentage } fro
 const r = (x: number) => Math.round(x * 100) / 100;
 
 /**
+ * Resolve the annual amount for an insurance branch, honouring an explicit
+ * monthly (€) override from opts.insuranceOverrides when present. Variante B:
+ * the same resolved value is used for both the net deduction and the
+ * Vorsorgepauschale, so an override entered by the user lowers the taxable
+ * income as well. `fallback` is the auto-computed annual amount.
+ */
+function resolveContribution(
+  branch: 'health' | 'care' | 'pension' | 'unemployment',
+  fallback: number,
+  opts: TaxOptions,
+): number {
+  const monthly = opts.insuranceOverrides?.[branch];
+  return monthly != null ? r(monthly * 12) : fallback;
+}
+
+/**
  * Vorsorgepauschale (§39b Abs. 2 Satz 5 Nr. 3 EStG, VZ 2026): the deductible
  * old-age + health + care provision contributions that lower the zvE. This is
  * the mechanism every official brutto-netto calculator uses; without it the
@@ -20,17 +36,27 @@ const r = (x: number) => Math.round(x * 100) / 100;
  * All rates/ceilings come from taxData.
  */
 function vorsorgepauschale(gross: number, opts: TaxOptions, data: TaxData): number {
-  const rv = socialAmount(data, 'pension', gross);
+  // Variante B: an explicit monthly override for a branch replaces the
+  // formula-based amount here too, so a user-entered contribution lowers the
+  // taxable income (zvE) as well as the net. Branches without an override keep
+  // the §39b formula value.
+  const rv = resolveContribution('pension', socialAmount(data, 'pension', gross), opts);
   const kvCeiling = socialCeiling(data, 'health');
   const kvBase = kvCeiling != null ? Math.min(gross, kvCeiling) : gross;
   // Only gate the KV deduction off when an explicit PKV premium is used (then
   // the basis deductibility is omitted as a documented approximation). PKV
   // without a stated premium is modelled like statutory, so it keeps the KV
-  // deduction.
+  // deduction. An explicit health override (insuranceOverrides.health) takes
+  // precedence and is treated as the deductible KV amount.
   const usePrivatePremium = opts.kvType === 'private' && opts.privateKvPremium != null;
-  const kv = usePrivatePremium ? 0 : kvBase * deductionPercentage(data, 'vorsorge_kv_rate');
-  const pv = socialAmount(data, opts.children === 0 ? 'care_childless' : 'care', gross);
-  const av = socialAmount(data, 'unemployment', gross);
+  const kvAuto = usePrivatePremium ? 0 : kvBase * deductionPercentage(data, 'vorsorge_kv_rate');
+  const kv = resolveContribution('health', kvAuto, opts);
+  const pv = resolveContribution(
+    'care',
+    socialAmount(data, opts.children === 0 ? 'care_childless' : 'care', gross),
+    opts,
+  );
+  const av = resolveContribution('unemployment', socialAmount(data, 'unemployment', gross), opts);
   const avPart = av + kv + pv <= 1900 ? av : 0;
   return r(rv + kv + pv + avPart);
 }
@@ -126,21 +152,32 @@ export const de: CountryModule = {
     const data = taxData ?? getDefaultTaxData('de', opts.year);
     const isPrivate = opts.kvType === 'private';
 
-    const pension = r(socialAmount(data, 'pension', gross));
-    const unemployment = r(socialAmount(data, 'unemployment', gross));
+    // Each branch honours an explicit monthly override (insuranceOverrides)
+    // when set, otherwise uses the auto-computed rate × capped-gross amount.
+    const pension = resolveContribution('pension', r(socialAmount(data, 'pension', gross)), opts);
+    const unemployment = resolveContribution(
+      'unemployment',
+      r(socialAmount(data, 'unemployment', gross)),
+      opts,
+    );
 
-    // PKV: use the user's stated monthly premium (×12). If unknown, approximate
-    // with the statutory-equivalent cost rather than 0 (a private premium is a
-    // real outflow). The basis-premium deductibility is left out as a documented
-    // conservative approximation (Vorsorgepauschale KV is gated off for PKV).
-    const health = !isPrivate
+    // Health auto value: PKV uses the user's stated monthly premium (×12); if
+    // unknown, approximate with the statutory-equivalent cost rather than 0 (a
+    // private premium is a real outflow). An explicit insuranceOverrides.health
+    // takes precedence over both (resolveContribution).
+    const autoHealth = !isPrivate
       ? r(socialAmount(data, 'health', gross))
       : opts.privateKvPremium != null
         ? r(opts.privateKvPremium * 12)
         : r(socialAmount(data, 'health', gross));
+    const health = resolveContribution('health', autoHealth, opts);
 
     const isChildless = opts.children === 0;
-    const care = r(socialAmount(data, isChildless ? 'care_childless' : 'care', gross));
+    const care = resolveContribution(
+      'care',
+      r(socialAmount(data, isChildless ? 'care_childless' : 'care', gross)),
+      opts,
+    );
 
     const total = r(pension + unemployment + health + care);
 

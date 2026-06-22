@@ -244,3 +244,58 @@ describe('DE — Kirchensteuer (A.6)', () => {
     expect(by.netMonthly).toBeGreaterThan(nw.netMonthly); // 8 % < 9 % → höheres Netto
   });
 });
+
+// ─── Schritt 2 — Versicherungs-Overrides (insuranceOverrides, Variante B) ──────
+// Explizite Monatsbeiträge ersetzen die automatischen (Satz × gekapptes Brutto)
+// Beträge und fließen BEIDES: in den Netto-Abzug UND die Vorsorgepauschale (zvE).
+describe('DE — insuranceOverrides (Variante B)', () => {
+  it('leeres Override-Objekt ist ein No-op (== Auto-Berechnung)', () => {
+    const auto = calculate('de', opts({ gross: 80000 }));
+    const empty = calculate('de', opts({ gross: 80000, insuranceOverrides: {} }));
+    expect(empty.socialContributions.total).toBe(auto.socialContributions.total);
+    expect(empty.netMonthly).toBe(auto.netMonthly);
+    expect(empty.incomeTax).toBe(auto.incomeTax);
+  });
+
+  it('expliziter Beitrag ersetzt den Auto-Betrag pro Zweig (×12)', () => {
+    const result = calculate('de', opts({
+      gross: 80000,
+      insuranceOverrides: { health: 500, care: 60, pension: 700, unemployment: 90 },
+    }));
+    expect(result.socialContributions.health).toBe(6000);
+    expect(result.socialContributions.care).toBe(720);
+    expect(result.socialContributions.pension).toBe(8400);
+    expect(result.socialContributions.unemployment).toBe(1080);
+  });
+
+  it('nicht gesetzte Zweige behalten die Auto-Berechnung', () => {
+    const auto = calculate('de', opts({ gross: 80000 }));
+    const partial = calculate('de', opts({ gross: 80000, insuranceOverrides: { health: 500 } }));
+    expect(partial.socialContributions.pension).toBe(auto.socialContributions.pension);
+    expect(partial.socialContributions.care).toBe(auto.socialContributions.care);
+    expect(partial.socialContributions.unemployment).toBe(auto.socialContributions.unemployment);
+  });
+
+  it('Variante B: höhere Beiträge senken über die Vorsorgepauschale auch die Steuer', () => {
+    const auto = calculate('de', opts({ gross: 80000 }));
+    // Deutlich höhere Renten-/KV-Beiträge als die Automatik (RV 7.440, KV ~5.894).
+    const higher = calculate('de', opts({
+      gross: 80000,
+      insuranceOverrides: { pension: 1200, health: 900 },
+    }));
+    // Mehr abzugsfähige Vorsorge → höhere Abzüge → niedrigeres zvE → weniger ESt.
+    expect(higher.deductions).toBeGreaterThan(auto.deductions);
+    expect(higher.taxableIncome).toBeLessThan(auto.taxableIncome);
+    expect(higher.incomeTax).toBeLessThan(auto.incomeTax);
+  });
+
+  it('health-Override hat Vorrang vor privateKvPremium', () => {
+    const result = calculate('de', opts({
+      gross: 120000,
+      kvType: 'private',
+      privateKvPremium: 700,        // würde sonst 8.400 ergeben
+      insuranceOverrides: { health: 500 }, // gewinnt → 6.000
+    }));
+    expect(result.socialContributions.health).toBe(6000);
+  });
+});

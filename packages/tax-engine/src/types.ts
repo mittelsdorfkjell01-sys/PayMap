@@ -9,6 +9,18 @@ export interface TaxOptions {
   // 'private' and this is set, it is used as the health contribution instead of
   // the (statutory) percentage. Monthly amount in the local currency.
   privateKvPremium?: number;
+  // DE: explicit monthly (€) insurance contributions entered by the user. When a
+  // value is set it overrides the auto-computed (rate × ceiling-capped gross)
+  // amount for that branch — Variante B: the override flows into BOTH the net
+  // (getSocialContributions) AND the deductible Vorsorgepauschale (taxable
+  // income). Any branch left undefined keeps the automatic computation, so an
+  // empty object is a no-op. `health` takes precedence over privateKvPremium.
+  insuranceOverrides?: {
+    health?: number;
+    care?: number;
+    pension?: number;
+    unemployment?: number;
+  };
   year: number;
   specialRegimeId?: string;
   partnerGross?: number;
