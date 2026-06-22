@@ -43,15 +43,32 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // CostofLiving Figma palette
+        navy: "#1d3557",
+        "navy-soft": "#46648f",
+        "accent-blue": "#457b9d",
+        positive: "#68b27a",
+        negative: "#e55a51",
+        "chart-tax": "#0096c7",
+        "chart-insurance": "#ffbb33",
+        "bar-track": "#f9f9fa",
+        "bar-fill": "#457b9d",
+        "bar-compare": "#c3cff7",
+        field: "#f9f9fa",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        card: "30px",
+        banner: "20px",
       },
       fontFamily: {
         serif: ["Cormorant Garamond", "serif"],
-        sans: ["DM Sans", "sans-serif"],
+        sans: ["IBM Plex Sans", "sans-serif"],
+      },
+      boxShadow: {
+        header: "0px 2px 10px -8px rgba(15,32,42,0.25)",
       },
       keyframes: {
         "accordion-down": {

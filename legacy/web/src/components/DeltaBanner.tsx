@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDelta, formatMoney } from "@/lib/utils";
+import { formatDelta } from "@/lib/utils";
 import type { CalculateResponse } from "@/api/calculate";
 
 interface Props {
@@ -30,7 +30,7 @@ export default function DeltaBanner({ result }: Props) {
         <div className="text-right">
           <div className="text-white/60 text-sm">
             <span className="text-white/40">{t("delta.effective")}: </span>
-            <span className="font-medium text-white">{delta.effective}%</span>
+            <span className="font-medium text-white">{delta.percent}%</span>
           </div>
           <div className="text-white/60 text-sm mt-1">
             <span className="text-white/40">{t("delta.perYear")}: </span>

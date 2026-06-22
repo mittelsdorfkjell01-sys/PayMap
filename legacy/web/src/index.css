@@ -4,26 +4,27 @@
 
 @layer base {
   :root {
-    --background: 222 47% 5%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 220 80% 64%;
-    --primary-foreground: 222 47% 5%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 55%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 72% 71%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 220 80% 64%;
-    --radius: 0.5rem;
+    /* Light theme — derived from the CostofLiving Figma palette */
+    --background: 240 20% 99%; /* #fafafc */
+    --foreground: 215 50% 23%; /* #1d3557 navy */
+    --card: 0 0% 100%; /* #fefefe */
+    --card-foreground: 215 50% 23%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 50% 23%;
+    --primary: 215 50% 23%; /* #1d3557 */
+    --primary-foreground: 105 24% 94%; /* #edf3ec */
+    --secondary: 240 14% 98%; /* #f9f9fa field bg */
+    --secondary-foreground: 215 50% 23%;
+    --muted: 240 14% 98%; /* #f9f9fa */
+    --muted-foreground: 214 16% 58%; /* slate, ~#1d3557 @54% */
+    --accent: 203 39% 44%; /* #457b9d */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 4 74% 61%; /* #e55a51 */
+    --destructive-foreground: 0 0% 100%;
+    --border: 225 21% 96%; /* #f3f4f7 */
+    --input: 222 23% 91%; /* #e4e6ed */
+    --ring: 203 39% 44%; /* #457b9d */
+    --radius: 0.5rem; /* 8px — inputs & buttons */
   }
 }
 
@@ -33,33 +34,25 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-color: #080B12;
-  }
-  .card-surface {
-    background-color: #0F1320;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: #fafafc;
   }
 }
 
-/* Dot-grid background texture */
-.dot-grid {
-  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
+/* Accent colors (light theme) */
+.text-positive { color: #68b27a; }
+.text-negative { color: #e55a51; }
+.text-accent-blue { color: #457b9d; }
 
-/* Accent colors */
-.text-positive { color: #22D3A5; }
-.text-negative { color: #F87171; }
-.text-accent-blue { color: #4F8FF8; }
+.bg-positive { background-color: #68b27a; }
+.bg-negative { background-color: #e55a51; }
+.bg-accent-blue { background-color: #457b9d; }
 
-/* Cormorant for monetary amounts */
-.font-money {
-  font-family: "Cormorant Garamond", serif;
-  font-weight: 500;
-}
+/* Chart palette */
+.text-chart-tax { color: #0096c7; }
+.text-chart-insurance { color: #ffbb33; }
 
 /* Custom scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+::-webkit-scrollbar-thumb { background: rgba(29,53,87,0.15); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(29,53,87,0.3); }

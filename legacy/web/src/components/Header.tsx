@@ -1,84 +1,69 @@
-import { useTranslation } from "react-i18next";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import i18n from "@/i18n";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function Header() {
-  const { t } = useTranslation();
+const NAV = [
+  { key: "calculator", label: "Calculator", to: "/" },
+  { key: "ranking", label: "Ranking", to: "/ranking" },
+  { key: "guide", label: "Guide", to: "/guide" },
+] as const;
+
+export default function Header({ active = "calculator" }: { active?: string }) {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const isAdmin = location.pathname.startsWith("/admin");
 
   function toggleLang() {
     const next = i18n.language?.startsWith("en") ? "de" : "en";
     i18n.changeLanguage(next);
   }
-
   const currentLang = i18n.language?.startsWith("en") ? "en" : "de";
 
   return (
-    <header
-      className="sticky top-0 z-40 flex items-center justify-between px-6 py-3 border-b"
-      style={{ backgroundColor: "#080B12", borderColor: "rgba(255,255,255,0.08)" }}
-    >
-      {/* Logo */}
+    <header className="sticky top-0 z-40 flex h-[54px] items-center justify-between rounded-2xl border-b border-border bg-card px-5 shadow-header">
+      {/* Brand */}
       <div
-        className="flex items-center gap-2 cursor-pointer select-none"
+        className="flex cursor-pointer select-none items-center gap-3"
         onClick={() => navigate("/")}
       >
-        <span className="font-serif text-xl font-semibold tracking-tight">
-          pay<span className="text-accent-blue">map</span>
-        </span>
-        <Badge
-          variant="outline"
-          className="text-[10px] px-1.5 py-0 border-white/20 text-white/40"
-        >
-          {t("app.beta")}
-        </Badge>
+        <img src="/figma/globe.png" alt="" className="h-10 w-10 object-contain" />
+        <span className="text-2xl font-light tracking-tight text-navy">CostofLiving</span>
       </div>
 
-      {/* Center: tabs (only on public pages) */}
-      {!isAdmin && (
-        <Tabs value="calculator">
-          <TabsList className="bg-transparent gap-1">
-            <TabsTrigger
-              value="calculator"
-              className="text-sm data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+      {/* Center nav */}
+      <nav className="flex items-center gap-12">
+        {NAV.map((item) => {
+          const isActive = item.key === active;
+          return (
+            <button
+              key={item.key}
+              onClick={() => navigate(item.to)}
+              className={cn(
+                "relative text-xl transition-colors",
+                isActive ? "text-accent-blue" : "text-navy hover:text-accent-blue"
+              )}
             >
-              {t("tab.calculator")}
-            </TabsTrigger>
-            <TabsTrigger value="workation" disabled className="text-sm text-white/30">
-              {t("tab.workation")}
-            </TabsTrigger>
-            <TabsTrigger value="ranking" disabled className="text-sm text-white/30">
-              {t("tab.ranking")}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      )}
+              {item.label}
+              {isActive && (
+                <span className="absolute -bottom-3 left-0 h-px w-full bg-accent-blue" />
+              )}
+            </button>
+          );
+        })}
+      </nav>
 
-      {/* Right: lang toggle */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="sm"
+      {/* Right: lang toggle + profile */}
+      <div className="flex items-center gap-4">
+        <button
           onClick={toggleLang}
-          className={`text-xs px-2 h-7 ${currentLang === "de" ? "text-white" : "text-white/40"}`}
+          className="text-xs font-medium text-muted-foreground transition-colors hover:text-navy"
         >
-          DE
-        </Button>
-        <span className="text-white/20 text-xs">/</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleLang}
-          className={`text-xs px-2 h-7 ${currentLang === "en" ? "text-white" : "text-white/40"}`}
-        >
-          EN
-        </Button>
+          <span className={currentLang === "de" ? "text-navy" : ""}>DE</span>
+          <span className="mx-1 text-muted-foreground/50">/</span>
+          <span className={currentLang === "en" ? "text-navy" : ""}>EN</span>
+        </button>
+        <button className="flex h-7 w-7 items-center justify-center rounded-full text-navy transition-colors hover:bg-field">
+          <User className="h-5 w-5" strokeWidth={1.5} />
+        </button>
       </div>
     </header>
   );

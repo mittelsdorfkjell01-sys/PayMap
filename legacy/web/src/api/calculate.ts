@@ -1,43 +1,59 @@
 import api from "./client";
-import i18n from "@/i18n";
 
-export interface BreakdownItem {
-  slug: string;
-  labelDe: string;
-  labelEn: string;
+export interface InsuranceOverrides {
+  health?: number;
+  care?: number;
+  pension?: number;
+  unemployment?: number;
+}
+
+export interface BreakdownLine {
+  label: string;
+  labelEN: string;
   amount: number;
+  isDeduction: boolean;
+  category: string;
 }
 
-export interface TaxSide {
-  netto: number;
-  monthly: number;
-  breakdown: BreakdownItem[];
-}
-
-export interface ColSide {
-  rent: number;
-  food: number;
-  transport: number;
+export interface SocialContributions {
+  health: number;
+  pension: number;
+  unemployment: number;
+  care: number;
   total: number;
 }
 
-export interface CalculateResponse {
-  home: TaxSide;
-  target: TaxSide;
-  delta: { monthly: number; percent: number; effective: number; annual: number };
-  col: { home: ColSide | null; target: ColSide | null; diff: number };
+export interface CalcSide {
+  slug: string;
+  country: string;
+  netAnnual: number;
+  netMonthly: number;
+  effectiveRate: number;
+  social: SocialContributions;
+  breakdown: BreakdownLine[];
+  col: Record<string, number>;
 }
 
-export async function calculate(params: {
-  gross: number;
+export interface CalculateResponse {
+  home: CalcSide;
+  target: CalcSide;
+  delta: { monthly: number; annual: number; percent: number };
+}
+
+export interface CalculateParams {
+  gross: number; // annual
   homeCitySlug: string;
   targetCitySlug: string;
-  regimeSlug: string;
-}): Promise<CalculateResponse> {
-  const locale = i18n.language?.slice(0, 2) ?? "de";
-  const { data } = await api.post<CalculateResponse>("/api/calculate", {
-    ...params,
-    locale,
-  });
+  year?: number;
+  employment?: "employed" | "freelancer" | "founder" | "passive";
+  familyStatus?: "single" | "married" | "divorced";
+  children?: number;
+  kvType?: "statutory" | "private";
+  insuranceOverrides?: InsuranceOverrides;
+  specialRegimeId?: string;
+}
+
+export async function calculate(params: CalculateParams): Promise<CalculateResponse> {
+  const { data } = await api.post<CalculateResponse>("/api/calculate", params);
   return data;
 }
