@@ -31,6 +31,10 @@
     "@prisma/client": "^5.10.0",
     "bcryptjs": "^2.4.3"
   },
+  "exports": {
+    "./tax-data": "./prisma/tax-data.ts",
+    "./col-categories": "./prisma/col-categories.ts"
+  },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "prisma": "^5.10.0",

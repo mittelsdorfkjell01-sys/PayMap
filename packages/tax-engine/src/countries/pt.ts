@@ -42,11 +42,16 @@ export const pt: CountryModule = {
 
   applySpecialRegime(gross: number, regimeId: string, opts: TaxOptions, taxData?: TaxData): number {
     const data = taxData ?? getDefaultTaxData('pt', opts.year);
-    if (regimeId === 'ifici-pt') {
-      // 20% flat auf qualifiziertes Einkommen
+    // Accept the canonical id plus the bare "ifici" alias the UI may send.
+    if (regimeId === 'ifici-pt' || regimeId === 'ifici') {
+      // IFICI+ : 20% flat on qualifying employment income (gross, no deductions).
       return r(gross * 0.2);
     }
-    return r(progressiveTax(gross, bracketsFor(data, 'employed')));
+    // Unknown regime → fall back to the STANDARD calc on the taxable income
+    // (gross − dedução específica), NOT on the full gross. Taxing gross here was
+    // a bug that overtaxed whenever an unmatched regimeId was passed.
+    const deductions = pt.getDeductions(gross, opts, data);
+    return r(progressiveTax(Math.max(0, gross - deductions), bracketsFor(data, 'employed')));
   },
 
   getDisclaimer(locale: string): string {

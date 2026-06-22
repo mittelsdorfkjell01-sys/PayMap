@@ -1,7 +1,7 @@
 {
   "name": "paymap",
   "private": true,
-  "workspaces": ["packages/*", "scripts/data-import"],
+  "workspaces": ["packages/*", "scripts/data-import", "legacy/api"],
   "scripts": {
     "typecheck": "npm run typecheck --workspace=packages/tax-engine && tsc --noEmit -p packages/db/tsconfig.json",
     "test": "npm run test --workspace=packages/tax-engine",

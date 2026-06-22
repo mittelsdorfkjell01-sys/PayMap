@@ -3,67 +3,38 @@ import prisma from "../lib/prisma";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
-  const locale = (req.query.locale as string) ?? "de";
-
+// City list for the calculator dropdowns. Home cities are the German baseline
+// (country = de); everything else is a comparison target. Uses the current
+// schema (nameDE/nameEN + country relation) — no legacy translations/col tables.
+router.get("/", async (_req, res) => {
   const cities = await prisma.city.findMany({
     where: { isActive: true },
     orderBy: { sortOrder: "asc" },
-    include: {
-      translations: true,
-      col: true,
-      regimes: {
-        orderBy: { sortOrder: "asc" },
-        include: { translations: true },
-      },
-      details: true,
+    select: {
+      id: true,
+      slug: true,
+      flag: true,
+      nameDE: true,
+      nameEN: true,
+      currency: true,
+      country: { select: { slug: true, nameDE: true, nameEN: true } },
     },
   });
 
-  function mapCity(city: (typeof cities)[0]) {
-    const t = city.translations.find((x) => x.locale === locale) ??
-              city.translations.find((x) => x.locale === "de") ??
-              city.translations[0];
-    return {
-      id: city.id,
-      slug: city.slug,
-      flag: city.flag,
-      isHomeCity: city.isHomeCity,
-      sortOrder: city.sortOrder,
-      name: t?.name ?? city.slug,
-      country: t?.country ?? "",
-      col: city.col
-        ? { rent: city.col.rent, food: city.col.food, transport: city.col.transport }
-        : null,
-      regimes: city.regimes.map((r) => {
-        const rt = r.translations.find((x) => x.locale === locale) ??
-                   r.translations.find((x) => x.locale === "de") ??
-                   r.translations[0];
-        return {
-          id: r.id,
-          slug: r.slug,
-          label: rt?.label ?? r.slug,
-          incomeRate: r.incomeRate,
-          socialRate: r.socialRate,
-          exemptFrac: r.exemptFrac,
-          isDefault: r.isDefault,
-          sortOrder: r.sortOrder,
-        };
-      }),
-      details: city.details
-        .filter((d) => d.locale === locale || locale !== "de")
-        .reduce(
-          (acc, d) => {
-            if (d.locale === locale) acc[d.section] = d.items;
-            return acc;
-          },
-          {} as Record<string, string[]>
-        ),
-    };
-  }
+  const map = (c: (typeof cities)[number]) => ({
+    id: c.id,
+    slug: c.slug,
+    flag: c.flag,
+    nameDE: c.nameDE ?? c.slug,
+    nameEN: c.nameEN ?? c.slug,
+    currency: c.currency ?? "EUR",
+    countrySlug: c.country?.slug ?? null,
+    countryDE: c.country?.nameDE ?? "",
+    countryEN: c.country?.nameEN ?? "",
+  });
 
-  const homeCities = cities.filter((c) => c.isHomeCity).map(mapCity);
-  const targetCities = cities.filter((c) => !c.isHomeCity).map(mapCity);
+  const homeCities = cities.filter((c) => c.country?.slug === "de").map(map);
+  const targetCities = cities.filter((c) => c.country?.slug !== "de").map(map);
 
   res.json({ homeCities, targetCities });
 });
