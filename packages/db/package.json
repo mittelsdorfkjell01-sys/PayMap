@@ -16,6 +16,7 @@
     "seed:premium:dubai": "ts-node --project tsconfig.json prisma/seed-sprint9-dubai.ts",
     "seed:premium:porto": "ts-node --project tsconfig.json prisma/seed-sprint9-porto.ts",
     "seed:col:porto": "ts-node --project tsconfig.json prisma/seed-col-porto.ts",
+    "seed:col:berlin": "ts-node --project tsconfig.json prisma/seed-col-berlin.ts",
     "seed:taxdata": "ts-node --project tsconfig.json prisma/seed-taxdata.ts",
     "seed:premium:barcelona": "ts-node --project tsconfig.json prisma/seed-sprint9-barcelona.ts",
     "seed:premium:rom-premium": "ts-node --project tsconfig.json prisma/seed-sprint9-rom-premium.ts",
