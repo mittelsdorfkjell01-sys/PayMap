@@ -15,6 +15,7 @@ if (!process.env.CORS_ORIGIN) {
 import citiesRouter from "./routes/cities";
 import calculateRouter from "./routes/calculate";
 import authRouter from "./routes/auth";
+import adminTaxTablesRouter from "./routes/admin/taxTables";
 
 const app = express();
 
@@ -30,11 +31,9 @@ app.use("/api/cities", citiesRouter);
 app.use("/api/calculate", calculateRouter);
 app.use("/api/auth", authRouter);
 
-// NOTE: The former admin routes (/api/admin/cities, /api/admin/regimes,
-// /api/admin/tax-configs) were removed — they targeted the pre-v3 schema
-// (TaxRegime, HomeTaxConfig, CityDetail, City.translations/isHomeCity), all of
-// which no longer exist. Admin CRUD must be rebuilt against the v3 schema
-// (SpecialRegime/ExitRule by country, costOfLivingItem, etc.) before re-mounting.
+// Admin (JWT-protected via requireAuth inside each router). Rebuilt against the
+// v3 schema. Phase A: year-versioned tax tables feeding loadTaxData.
+app.use("/api/admin/tax-tables", adminTaxTablesRouter);
 
 const PORT = process.env.PORT ?? 3001;
 app.listen(PORT, () => {

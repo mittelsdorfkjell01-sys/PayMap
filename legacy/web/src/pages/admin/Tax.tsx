@@ -1,95 +1,111 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import api from "@/api/client";
 import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/use-toast";
-import { Save, AlertTriangle, LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { LogOut, Save, AlertTriangle } from "lucide-react";
 
-interface TaxConfig {
-  id: string;
-  countrySlug: string;
-  label: string;
-  brackets: unknown;
-  social: unknown;
-  updatedAt: string;
+type CountryOpt = { slug: string; nameDE: string; years: number[] };
+interface Tables {
+  country: { slug: string; nameDE: string };
+  year: number;
+  regions: string[];
+  brackets: unknown[];
+  social: unknown[];
+  deductions: unknown[];
+  surcharges: unknown[];
+  fixedAmounts: unknown[];
 }
 
+const SECTIONS = [
+  { key: "brackets", label: "Steuerstufen — TaxBracket", rows: 14 },
+  { key: "social", label: "Sozialabgaben — SocialContribution", rows: 8 },
+  { key: "deductions", label: "Abzüge — Deduction", rows: 8 },
+  { key: "surcharges", label: "Zuschläge — Surcharge", rows: 10 },
+  { key: "fixedAmounts", label: "Festbeträge — FixedAmount", rows: 8 },
+] as const;
+type SecKey = (typeof SECTIONS)[number]["key"];
+
+const emptyDrafts = (): Record<SecKey, string> => ({
+  brackets: "", social: "", deductions: "", surcharges: "", fixedAmounts: "",
+});
+
 export default function AdminTax() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [configs, setConfigs] = useState<TaxConfig[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [countries, setCountries] = useState<CountryOpt[]>([]);
+  const [country, setCountry] = useState("");
+  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [tables, setTables] = useState<Tables | null>(null);
+  const [drafts, setDrafts] = useState<Record<SecKey, string>>(emptyDrafts());
+  const [jsonErr, setJsonErr] = useState<Record<SecKey, boolean>>({} as Record<SecKey, boolean>);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [drafts, setDrafts] = useState<Record<string, { brackets: string; social: string }>>({});
-  const [jsonErrors, setJsonErrors] = useState<Record<string, string>>({});
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
-  async function loadConfigs() {
-    try {
-      const { data } = await api.get<TaxConfig[]>("/api/admin/tax-configs");
-      setConfigs(data);
-      const initial: Record<string, { brackets: string; social: string }> = {};
-      for (const c of data) {
-        initial[c.countrySlug] = {
-          brackets: JSON.stringify(c.brackets, null, 2),
-          social: JSON.stringify(c.social, null, 2),
-        };
-      }
-      setDrafts(initial);
-    } catch {
-      toast({ variant: "destructive", title: t("error.apiUnavailable") });
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    api
+      .get<CountryOpt[]>("/api/admin/tax-tables/countries")
+      .then((r) => {
+        setCountries(r.data);
+        if (r.data[0]) {
+          setCountry(r.data[0].slug);
+          setYear(r.data[0].years[0] ?? new Date().getFullYear());
+        }
+      })
+      .catch(() => setMsg({ kind: "err", text: "Länder konnten nicht geladen werden (API auf :3001? eingeloggt?)." }));
+  }, []);
+
+  const yearsForCountry = countries.find((c) => c.slug === country)?.years ?? [];
+
+  function load() {
+    if (!country || !Number.isInteger(year)) return;
+    setLoading(true);
+    setMsg(null);
+    api
+      .get<Tables>(`/api/admin/tax-tables/${country}/${year}`)
+      .then((r) => {
+        setTables(r.data);
+        setDrafts({
+          brackets: JSON.stringify(r.data.brackets, null, 2),
+          social: JSON.stringify(r.data.social, null, 2),
+          deductions: JSON.stringify(r.data.deductions, null, 2),
+          surcharges: JSON.stringify(r.data.surcharges, null, 2),
+          fixedAmounts: JSON.stringify(r.data.fixedAmounts, null, 2),
+        });
+        setJsonErr({} as Record<SecKey, boolean>);
+      })
+      .catch(() => setMsg({ kind: "err", text: "Tabellen konnten nicht geladen werden." }))
+      .finally(() => setLoading(false));
   }
 
-  useEffect(() => { loadConfigs(); }, []);
+  // (re)load whenever country or year changes
+  useEffect(load, [country, year]);
 
-  function updateDraft(countrySlug: string, field: "brackets" | "social", value: string) {
-    setDrafts((prev) => ({ ...prev, [countrySlug]: { ...prev[countrySlug], [field]: value } }));
-    const key = `${countrySlug}.${field}`;
-    try {
-      JSON.parse(value);
-      setJsonErrors((prev) => { const n = { ...prev }; delete n[key]; return n; });
-    } catch {
-      setJsonErrors((prev) => ({ ...prev, [key]: t("error.invalidJson") }));
-    }
+  function edit(key: SecKey, value: string) {
+    setDrafts((p) => ({ ...p, [key]: value }));
+    let bad = false;
+    try { JSON.parse(value); } catch { bad = true; }
+    setJsonErr((p) => ({ ...p, [key]: bad }));
   }
 
-  async function save(config: TaxConfig) {
-    const draft = drafts[config.countrySlug];
-    if (!draft) return;
-
-    const bKey = `${config.countrySlug}.brackets`;
-    const sKey = `${config.countrySlug}.social`;
-    if (jsonErrors[bKey] || jsonErrors[sKey]) {
-      toast({ variant: "destructive", title: t("error.invalidJson") });
-      return;
+  async function save() {
+    const body: Record<SecKey, unknown> = {} as Record<SecKey, unknown>;
+    for (const { key } of SECTIONS) {
+      try { body[key] = JSON.parse(drafts[key]); }
+      catch { setMsg({ kind: "err", text: `Ungültiges JSON in „${key}".` }); return; }
     }
-
-    let brackets: unknown;
-    let social: unknown;
-    try {
-      brackets = JSON.parse(draft.brackets);
-      social = JSON.parse(draft.social);
-    } catch {
-      toast({ variant: "destructive", title: t("error.invalidJson") });
-      return;
-    }
-
     setSaving(true);
+    setMsg(null);
     try {
-      await api.put(`/api/admin/tax-configs/${config.countrySlug}`, { brackets, social });
-      toast({ title: t("admin.save") + " ✓" });
-      loadConfigs();
-    } catch {
-      toast({ variant: "destructive", title: t("error.apiUnavailable") });
+      const r = await api.put<{ ok: boolean; counts: Record<string, number> }>(
+        `/api/admin/tax-tables/${country}/${year}`,
+        body,
+      );
+      setMsg({ kind: "ok", text: `Gespeichert ✓ — ${JSON.stringify(r.data.counts)}` });
+      load();
+    } catch (e) {
+      const err = e as { response?: { data?: { error?: string } } };
+      setMsg({ kind: "err", text: `Fehler: ${err.response?.data?.error ?? "Speichern fehlgeschlagen"}` });
     } finally {
       setSaving(false);
     }
@@ -100,100 +116,105 @@ export default function AdminTax() {
     navigate("/admin/login");
   }
 
+  const anyErr = SECTIONS.some((s) => jsonErr[s.key]);
+  const selectCls = "h-10 rounded-lg border border-input bg-field px-3 text-sm font-light text-navy";
+
   return (
-    <div className="min-h-screen">
-      <Header />
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-medium">{t("admin.tax")}</h1>
+    <div className="min-h-screen bg-background px-4 py-6 lg:px-10">
+      <div className="mx-auto max-w-[1000px]">
+        <Header />
+        <div className="mt-8 flex items-center justify-between">
+          <h1 className="text-xl font-medium text-navy">Steuertabellen-Admin</h1>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate("/admin/cities")}
-              className="border-white/10 text-white/60 hover:text-white text-xs">
-              {t("admin.cities")}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={logout} className="text-white/40 text-xs">
-              <LogOut className="h-3.5 w-3.5 mr-1.5" />
-              {t("admin.logout")}
-            </Button>
+            <button onClick={() => navigate("/admin/cities")} className="rounded-md border border-input px-3 py-1.5 text-xs font-light text-navy/70 hover:text-navy">
+              Städte
+            </button>
+            <button onClick={logout} className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-light text-navy/50 hover:text-navy">
+              <LogOut className="h-3.5 w-3.5" /> Logout
+            </button>
           </div>
         </div>
 
-        <div className="mb-4 flex items-start gap-2 rounded-md border border-yellow-500/20 bg-yellow-500/05 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-yellow-400 mt-0.5 shrink-0" />
-          <p className="text-sm text-yellow-200/70">{t("admin.taxSaveWarning")}</p>
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+          <p className="text-sm font-light text-amber-700">
+            Änderungen wirken sofort auf die Berechnung (loadTaxData). Speichern ersetzt alle Zeilen für das gewählte
+            Land + Jahr. Regionen werden per Slug referenziert.
+          </p>
         </div>
 
-        {loading ? (
-          <Skeleton className="h-96 w-full" />
-        ) : (
-          <Tabs defaultValue={configs[0]?.countrySlug ?? "de"}>
-            <TabsList className="bg-white/05 mb-4">
-              {configs.map((c) => (
-                <TabsTrigger key={c.countrySlug} value={c.countrySlug} className="text-xs">
-                  {c.label}
-                </TabsTrigger>
+        {/* selectors */}
+        <div className="mt-5 flex flex-wrap items-end gap-4">
+          <label className="flex flex-col gap-1.5">
+            <span className="px-1 text-[13px] font-light text-navy">Land</span>
+            <select value={country} onChange={(e) => setCountry(e.target.value)} className={selectCls}>
+              {countries.map((c) => (
+                <option key={c.slug} value={c.slug}>{c.nameDE} ({c.slug})</option>
               ))}
-            </TabsList>
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="px-1 text-[13px] font-light text-navy">Jahr</span>
+            <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className={cn(selectCls, "w-28")} />
+          </label>
+          {yearsForCountry.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <span className="px-1 text-[13px] font-light text-navy/60">Vorhandene Jahre</span>
+              <div className="flex gap-1.5">
+                {yearsForCountry.map((y) => (
+                  <button key={y} onClick={() => setYear(y)} className={cn("rounded-md border px-2.5 py-1.5 text-xs", y === year ? "border-navy bg-navy/5 text-navy" : "border-input text-navy/60 hover:text-navy")}>
+                    {y}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
-            {configs.map((config) => {
-              const draft = drafts[config.countrySlug];
-              const bErr = jsonErrors[`${config.countrySlug}.brackets`];
-              const sErr = jsonErrors[`${config.countrySlug}.social`];
-
-              return (
-                <TabsContent key={config.countrySlug} value={config.countrySlug} className="space-y-4">
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm font-medium text-white/80 flex items-center justify-between">
-                        <span>{t("admin.taxBrackets")}</span>
-                        {bErr && <Badge variant="destructive" className="text-[10px]">{bErr}</Badge>}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Textarea
-                        value={draft?.brackets ?? ""}
-                        onChange={(e) => updateDraft(config.countrySlug, "brackets", e.target.value)}
-                        rows={12}
-                        className={`font-mono text-xs border-white/10 bg-white/5 resize-none ${bErr ? "border-negative" : ""}`}
-                      />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm font-medium text-white/80 flex items-center justify-between">
-                        <span>{t("admin.taxSocial")}</span>
-                        {sErr && <Badge variant="destructive" className="text-[10px]">{sErr}</Badge>}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Textarea
-                        value={draft?.social ?? ""}
-                        onChange={(e) => updateDraft(config.countrySlug, "social", e.target.value)}
-                        rows={8}
-                        className={`font-mono text-xs border-white/10 bg-white/5 resize-none ${sErr ? "border-negative" : ""}`}
-                      />
-                    </CardContent>
-                  </Card>
-
-                  <Button
-                    onClick={() => save(config)}
-                    disabled={saving || !!bErr || !!sErr}
-                    className="w-full"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {saving ? t("loading") : t("admin.save")}
-                  </Button>
-
-                  <p className="text-xs text-white/30 text-center">
-                    {t("admin.taxConfigTitle")}: {config.label} — {new Date(config.updatedAt).toLocaleString()}
-                  </p>
-                </TabsContent>
-              );
-            })}
-          </Tabs>
+        {tables && tables.regions.length > 0 && (
+          <p className="mt-3 text-xs font-light text-navy/60">
+            Regionen-Slugs für dieses Land: {tables.regions.join(", ")}
+          </p>
         )}
-      </main>
+
+        {msg && (
+          <p className={cn("mt-4 text-sm", msg.kind === "ok" ? "text-positive" : "text-negative")}>{msg.text}</p>
+        )}
+
+        {/* editors */}
+        <div className="mt-6 space-y-5">
+          {loading ? (
+            <p className="text-sm font-light text-navy/60">Lade…</p>
+          ) : (
+            SECTIONS.map((s) => (
+              <div key={s.key} className="rounded-card border border-border bg-card p-5">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-medium text-navy">{s.label}</span>
+                  {jsonErr[s.key] && <span className="text-xs text-negative">Ungültiges JSON</span>}
+                </div>
+                <textarea
+                  value={drafts[s.key]}
+                  onChange={(e) => edit(s.key, e.target.value)}
+                  rows={s.rows}
+                  spellCheck={false}
+                  className={cn(
+                    "w-full resize-y rounded-lg border bg-field p-3 font-mono text-xs text-navy",
+                    jsonErr[s.key] ? "border-negative" : "border-input",
+                  )}
+                />
+              </div>
+            ))
+          )}
+        </div>
+
+        <button
+          onClick={save}
+          disabled={saving || loading || anyErr || !country}
+          className="mt-6 flex items-center gap-2 rounded-lg bg-navy px-8 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          <Save className="h-4 w-4" /> {saving ? "Speichere…" : `Speichern (${country} ${year})`}
+        </button>
+      </div>
     </div>
   );
 }
