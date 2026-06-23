@@ -15,9 +15,6 @@ if (!process.env.CORS_ORIGIN) {
 import citiesRouter from "./routes/cities";
 import calculateRouter from "./routes/calculate";
 import authRouter from "./routes/auth";
-import adminCitiesRouter from "./routes/admin/cities";
-import adminRegimesRouter from "./routes/admin/regimes";
-import adminTaxConfigsRouter from "./routes/admin/taxConfigs";
 
 const app = express();
 
@@ -33,10 +30,11 @@ app.use("/api/cities", citiesRouter);
 app.use("/api/calculate", calculateRouter);
 app.use("/api/auth", authRouter);
 
-// Admin
-app.use("/api/admin/cities", adminCitiesRouter);
-app.use("/api/admin", adminRegimesRouter);
-app.use("/api/admin/tax-configs", adminTaxConfigsRouter);
+// NOTE: The former admin routes (/api/admin/cities, /api/admin/regimes,
+// /api/admin/tax-configs) were removed — they targeted the pre-v3 schema
+// (TaxRegime, HomeTaxConfig, CityDetail, City.translations/isHomeCity), all of
+// which no longer exist. Admin CRUD must be rebuilt against the v3 schema
+// (SpecialRegime/ExitRule by country, costOfLivingItem, etc.) before re-mounting.
 
 const PORT = process.env.PORT ?? 3001;
 app.listen(PORT, () => {
