@@ -16,6 +16,7 @@ import citiesRouter from "./routes/cities";
 import calculateRouter from "./routes/calculate";
 import authRouter from "./routes/auth";
 import adminTaxTablesRouter from "./routes/admin/taxTables";
+import adminRegimesRouter from "./routes/admin/regimes";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/api/auth", authRouter);
 // Admin (JWT-protected via requireAuth inside each router). Rebuilt against the
 // v3 schema. Phase A: year-versioned tax tables feeding loadTaxData.
 app.use("/api/admin/tax-tables", adminTaxTablesRouter);
+app.use("/api/admin", adminRegimesRouter);
 
 const PORT = process.env.PORT ?? 3001;
 app.listen(PORT, () => {

@@ -5,6 +5,7 @@ import Placeholder from "@/pages/Placeholder";
 import AdminLogin from "@/pages/admin/Login";
 import AdminCities from "@/pages/admin/Cities";
 import AdminTax from "@/pages/admin/Tax";
+import AdminRegimes from "@/pages/admin/Regimes";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function App() {
@@ -33,6 +34,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AdminTax />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/regimes"
+          element={
+            <ProtectedRoute>
+              <AdminRegimes />
             </ProtectedRoute>
           }
         />
