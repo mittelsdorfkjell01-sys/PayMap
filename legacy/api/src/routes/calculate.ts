@@ -123,13 +123,31 @@ router.post("/", async (req, res) => {
   } satisfies Partial<TaxOptions>;
 
   const home = calculate(homeCountry, { ...baseOpts, region: homeCity.region?.slug, cityScope: homeCity.slug } as TaxOptions, homeData);
-  const target = calculate(
-    targetCountry,
-    { ...baseOpts, region: targetCity.region?.slug, cityScope: targetCity.slug, specialRegimeId: appliedRegimeId } as TaxOptions,
-    targetData,
-  );
 
-  const deltaMonthly = target.netMonthly - home.netMonthly;
+  // Multiple engine runs for the target: a "standard" (no-regime) baseline plus
+  // one run per available special regime, so the UI can compare net per regime
+  // and switch the headline locally without another request. Most countries have
+  // 0–1 regime; Malta has two (GRP vs. HQP).
+  const targetBaseOpts = { ...baseOpts, region: targetCity.region?.slug, cityScope: targetCity.slug } as TaxOptions;
+  const runTarget = (regimeSlug: string | undefined) => {
+    const res = calculate(targetCountry, { ...targetBaseOpts, specialRegimeId: regimeSlug } as TaxOptions, targetData);
+    return {
+      netAnnual: res.netAnnual,
+      netMonthly: res.netMonthly,
+      effectiveRate: res.effectiveRate,
+      social: res.socialContributions,
+      breakdown: res.breakdown,
+    };
+  };
+  const regimeOptions = [
+    { regime: null as (typeof targetRegimes)[number] | null, ...runTarget(undefined) },
+    ...targetRegimes.map((rg) => ({ regime: rg, ...runTarget(rg.slug) })),
+  ];
+  // Headline = the applied regime when requested, else the standard baseline.
+  const selected =
+    (appliedRegimeId ? regimeOptions.find((o) => o.regime?.slug === appliedRegimeId) : undefined) ?? regimeOptions[0];
+
+  const deltaMonthly = selected.netMonthly - home.netMonthly;
 
   // Live inflation (cached + stale-checked) for each side's country.
   const [homeInflation, targetInflation] = await Promise.all([
@@ -152,13 +170,15 @@ router.post("/", async (req, res) => {
     target: {
       slug: targetCity.slug,
       country: targetCountry,
-      netAnnual: target.netAnnual,
-      netMonthly: target.netMonthly,
-      effectiveRate: target.effectiveRate,
-      social: target.socialContributions,
-      breakdown: target.breakdown,
+      netAnnual: selected.netAnnual,
+      netMonthly: selected.netMonthly,
+      effectiveRate: selected.effectiveRate,
+      social: selected.social,
+      breakdown: selected.breakdown,
       col: colMap(targetCity.costItems),
       regime: targetRegime,
+      appliedRegimeSlug: selected.regime?.slug ?? null,
+      regimeOptions,
       inflation: targetInflation,
     },
     delta: {

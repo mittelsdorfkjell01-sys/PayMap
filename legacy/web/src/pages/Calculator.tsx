@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ChevronDown, Minus, Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { cn, formatMoney } from "@/lib/utils";
 import { fetchCities, type City } from "@/api/cities";
-import { calculate, type CalcSide, type CalculateResponse, type InflationDTO, type InsuranceOverrides } from "@/api/calculate";
+import { calculate, type CalcSide, type CalculateResponse, type InflationDTO, type InsuranceOverrides, type RegimeOption } from "@/api/calculate";
 
 const LOCALE = "de";
 const eur = (n: number) => formatMoney(n, LOCALE);
@@ -114,7 +114,9 @@ export default function Calculator() {
   const [familyStatus, setFamilyStatus] = useState<"single" | "married" | "divorced">("single");
   const [employment, setEmployment] = useState<"employed" | "freelancer" | "founder" | "passive">("employed");
   const [kvType, setKvType] = useState<"statutory" | "private">("statutory");
-  const [regimeOn, setRegimeOn] = useState(true);
+  // null = standard (no regime); otherwise the chosen SpecialRegime slug. The
+  // backend returns one engine run per regime, so switching is purely local.
+  const [regimeChoice, setRegimeChoice] = useState<string | null>(null);
 
   const [insOpen, setInsOpen] = useState(false);
   const [approxInsurance, setApproxInsurance] = useState(true);
@@ -157,14 +159,16 @@ export default function Calculator() {
     setLoading(true);
     setError(null);
     try {
+      // No specialRegimeId: the API returns a per-regime run for every regime of
+      // the target country (plus a standard baseline) in target.regimeOptions, so
+      // the comparison and switching happen client-side without re-requesting.
       const res = await calculate({
         gross, homeCitySlug: homeSlug, targetCitySlug: targetSlug, year: 2026,
         employment, familyStatus, children, kvType, insuranceOverrides,
-        // Any truthy value = "apply the target's special regime"; the API resolves
-        // the target country's canonical regime slug (works for every country).
-        specialRegimeId: regimeOn ? "auto" : undefined,
       });
       setResult(res);
+      // Default to the first available regime (surface the benefit), else standard.
+      setRegimeChoice(res.target.regimeOptions?.find((o) => o.regime)?.regime?.slug ?? null);
       if (approxInsurance) fillApprox(res);
     } catch {
       setError("Berechnung fehlgeschlagen. Läuft das Backend auf :3001?");
@@ -186,6 +190,31 @@ export default function Calculator() {
     setApproxInsurance(on);
     if (on && result) fillApprox(result);
   }
+
+  // Per-regime engine runs returned by the API; the headline target reflects the
+  // locally selected option, so switching regimes needs no new request.
+  const regimeOptions = result?.target.regimeOptions ?? [];
+  const hasRegimeChoice = regimeOptions.some((o) => o.regime);
+  const selectedOption =
+    regimeOptions.find((o) => (o.regime?.slug ?? null) === regimeChoice) ??
+    regimeOptions.find((o) => !o.regime) ??
+    null;
+  const view: CalculateResponse | null = result
+    ? {
+        ...result,
+        target: selectedOption
+          ? {
+              ...result.target,
+              netAnnual: selectedOption.netAnnual,
+              netMonthly: selectedOption.netMonthly,
+              effectiveRate: selectedOption.effectiveRate,
+              social: selectedOption.social,
+              breakdown: selectedOption.breakdown,
+            }
+          : result.target,
+      }
+    : null;
+  const selectedRegime = selectedOption?.regime ?? result?.target.regime ?? null;
 
   return (
     <div className="min-h-screen bg-background px-4 py-6 lg:px-10">
@@ -299,12 +328,9 @@ export default function Calculator() {
                 </div>
               )}
 
-              <div className="mt-5 flex h-[52px] items-center gap-3 rounded-lg border border-input bg-field px-4">
-                <Switch checked={regimeOn} onCheckedChange={setRegimeOn} />
-                <span className="text-sm font-light text-navy">
-                  {result?.target.regime ? `Regime: ${result.target.regime.nameDE}` : "Sonderregime anwenden"}
-                </span>
-              </div>
+              {hasRegimeChoice && (
+                <RegimeSelector options={regimeOptions} value={regimeChoice} onChange={setRegimeChoice} />
+              )}
 
               <div className="mt-6 flex justify-center">
                 <button
@@ -318,12 +344,12 @@ export default function Calculator() {
               {error && <p className="mt-4 text-center text-sm text-negative">{error}</p>}
             </section>
 
-            {result && (
+            {view && (
               <>
-                <ResultsCard result={result} gross={gross} homeCities={homeCities} targetCities={targetCities} />
-                {result.target.regime && <SonderregimeBanner regime={result.target.regime} />}
-                <ColCard result={result} />
-                <DifferenceCard result={result} />
+                <ResultsCard result={view} gross={gross} homeCities={homeCities} targetCities={targetCities} />
+                {selectedRegime && <SonderregimeBanner regime={selectedRegime} />}
+                <ColCard result={view} />
+                <DifferenceCard result={view} />
               </>
             )}
           </main>
@@ -453,6 +479,42 @@ function SonderregimeBanner({ regime }: { regime: NonNullable<CalcSide["regime"]
         Im Guide erklärt
       </button>
     </section>
+  );
+}
+
+/* ── regime selector (compare net per regime; standard + each available) ───── */
+function RegimeSelector({
+  options,
+  value,
+  onChange,
+}: {
+  options: RegimeOption[];
+  value: string | null;
+  onChange: (slug: string | null) => void;
+}) {
+  return (
+    <div className="mt-5 flex flex-col gap-2">
+      <span className="px-1 text-[13px] font-light text-navy">Sonderregime — Netto / Monat im Vergleich</span>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {options.map((o) => {
+          const slug = o.regime?.slug ?? null;
+          const active = slug === value;
+          return (
+            <button
+              key={slug ?? "standard"}
+              onClick={() => onChange(slug)}
+              className={cn(
+                "flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors",
+                active ? "border-navy bg-navy/5" : "border-input bg-field hover:border-navy/40"
+              )}
+            >
+              <span className="font-light text-navy">{o.regime ? o.regime.nameDE : "Standard (kein Regime)"}</span>
+              <span className="shrink-0 font-medium text-navy">{eur(o.netMonthly)}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

@@ -40,6 +40,16 @@ export interface InflationDTO {
   forecastYear: number | null;
 }
 
+/** One engine run for the target: standard baseline (regime null) or a regime. */
+export interface RegimeOption {
+  regime: SpecialRegime | null;
+  netAnnual: number;
+  netMonthly: number;
+  effectiveRate: number;
+  social: SocialContributions;
+  breakdown: BreakdownLine[];
+}
+
 export interface CalcSide {
   slug: string;
   country: string;
@@ -50,6 +60,10 @@ export interface CalcSide {
   breakdown: BreakdownLine[];
   col: Record<string, number>;
   regime?: SpecialRegime | null;
+  // Target side only: which regime the headline reflects + per-regime runs to
+  // compare (standard + each available regime), for local switching.
+  appliedRegimeSlug?: string | null;
+  regimeOptions?: RegimeOption[];
   inflation?: InflationDTO;
 }
 
