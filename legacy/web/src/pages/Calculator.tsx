@@ -160,7 +160,9 @@ export default function Calculator() {
       const res = await calculate({
         gross, homeCitySlug: homeSlug, targetCitySlug: targetSlug, year: 2026,
         employment, familyStatus, children, kvType, insuranceOverrides,
-        specialRegimeId: regimeOn ? "ifici" : undefined,
+        // Any truthy value = "apply the target's special regime"; the API resolves
+        // the target country's canonical regime slug (works for every country).
+        specialRegimeId: regimeOn ? "auto" : undefined,
       });
       setResult(res);
       if (approxInsurance) fillApprox(res);
@@ -299,7 +301,9 @@ export default function Calculator() {
 
               <div className="mt-5 flex h-[52px] items-center gap-3 rounded-lg border border-input bg-field px-4">
                 <Switch checked={regimeOn} onCheckedChange={setRegimeOn} />
-                <span className="text-sm font-light text-navy">Regime IFICI</span>
+                <span className="text-sm font-light text-navy">
+                  {result?.target.regime ? `Regime: ${result.target.regime.nameDE}` : "Sonderregime anwenden"}
+                </span>
               </div>
 
               <div className="mt-6 flex justify-center">

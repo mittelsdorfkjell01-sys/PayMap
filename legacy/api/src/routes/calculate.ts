@@ -89,6 +89,25 @@ router.post("/", async (req, res) => {
     loadTaxData(targetCountry, p.year),
   ]);
 
+  // Resolve the target country's special regime ONCE, from the DB — used both
+  // for the engine calc and the Sonderregime banner, so the displayed regime and
+  // the net always agree. Any truthy specialRegimeId from the client means
+  // "apply the target's regime"; we forward the canonical DB slug so country
+  // modules that match on the exact id (ES beckham-es, PT ifici-pt, IT, …) apply
+  // it correctly. Previously the UI sent a bare "ifici" alias that only PT
+  // accepted — every other country silently fell back to the standard calc while
+  // still showing the banner.
+  const targetRegimes = await prisma.specialRegime.findMany({
+    where: { country: { slug: targetCountry } },
+    orderBy: { slug: "asc" },
+    select: { slug: true, nameDE: true, nameEN: true, flatRate: true, durationYears: true, conditionsDE: true },
+  });
+  const targetRegime =
+    targetRegimes.find((rg) => p.specialRegimeId && (rg.slug === p.specialRegimeId || rg.slug.startsWith(p.specialRegimeId))) ??
+    targetRegimes[0] ??
+    null;
+  const appliedRegimeId = p.specialRegimeId ? targetRegime?.slug : undefined;
+
   const baseOpts = {
     gross: p.gross,
     currency: "EUR",
@@ -106,22 +125,11 @@ router.post("/", async (req, res) => {
   const home = calculate(homeCountry, { ...baseOpts, region: homeCity.region?.slug, cityScope: homeCity.slug } as TaxOptions, homeData);
   const target = calculate(
     targetCountry,
-    { ...baseOpts, region: targetCity.region?.slug, cityScope: targetCity.slug, specialRegimeId: p.specialRegimeId } as TaxOptions,
+    { ...baseOpts, region: targetCity.region?.slug, cityScope: targetCity.slug, specialRegimeId: appliedRegimeId } as TaxOptions,
     targetData,
   );
 
   const deltaMonthly = target.netMonthly - home.netMonthly;
-
-  // Special regime of the target country (for the Sonderregime banner) — from the
-  // DB, no hardcoded copy. Prefer the one matching the requested id, else the first.
-  const regimes = await prisma.specialRegime.findMany({
-    where: { country: { slug: targetCountry } },
-    select: { slug: true, nameDE: true, nameEN: true, flatRate: true, durationYears: true, conditionsDE: true },
-  });
-  const targetRegime =
-    regimes.find((r) => p.specialRegimeId && (r.slug === p.specialRegimeId || r.slug.startsWith(p.specialRegimeId))) ??
-    regimes[0] ??
-    null;
 
   // Live inflation (cached + stale-checked) for each side's country.
   const [homeInflation, targetInflation] = await Promise.all([
